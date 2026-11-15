@@ -1120,6 +1120,7 @@ export default {
       commits: 'Commits',
       checks: 'Checks',
       reviews: 'Reviews',
+      files: 'Files',
       author: 'Author',
       branches: 'Branches',
       changes: 'Changes',
@@ -1129,8 +1130,8 @@ export default {
       noCommits: 'No commits loaded.',
       noChecks: 'No checks reported.',
       noReviews: 'No reviews yet.',
+      noFiles: 'No files changed.',
       unknown: 'Unknown',
-      files: '{count} files',
     },
   },
 

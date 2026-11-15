@@ -459,6 +459,17 @@ const cases = [
     waitFor: '[data-testid="detail-pane"]',
   },
   {
+    name: 'gate3-pr-files-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/pull-requests',
+    openPullRequest: true,
+    openPullFiles: true,
+    waitFor: '[data-testid="detail-pane"]',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -754,6 +765,12 @@ async function main() {
         await page.locator('.fd-pr-row').first().click()
         await page.waitForSelector('[data-testid="detail-pane"]')
         await page.waitForTimeout(300)
+      }
+
+      if (testCase.openPullFiles) {
+        await page.getByRole('button', { name: 'Files', exact: true }).click()
+        await page.waitForSelector('.fd-pr-file')
+        await page.waitForTimeout(200)
       }
 
       if (testCase.openGithubRepos) {
@@ -1131,6 +1148,12 @@ async function main() {
         const title = await page.locator('.fd-pr-detail-header strong').innerText()
         caseReport.pullDetail = title
         assert(title.includes('repository discovery'), `${testCase.name}: PR detail missing`, report.failures)
+      }
+
+      if (testCase.openPullFiles) {
+        const files = await page.locator('.fd-pr-file').count()
+        caseReport.pullFiles = files
+        assert(files >= 2, `${testCase.name}: expected PR files`, report.failures)
       }
 
       if (testCase.openGithubRepos) {

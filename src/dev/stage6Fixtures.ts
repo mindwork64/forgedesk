@@ -4,6 +4,7 @@ import type {
   GitHubCommit,
   GitHubPull,
   GitHubReview,
+  GitHubFile,
   PullRequestDetail,
 } from '@/types/ipc'
 
@@ -99,11 +100,33 @@ const checks: GitHubCheckRun[] = [
   { id: 904, name: 'Tauri shell', status: 'in_progress', conclusion: null, startedAt: iso(1), completedAt: null, htmlUrl: null, detailsUrl: null },
 ]
 
+const files: GitHubFile[] = [
+  {
+    filename: 'crates/forgedesk-core/src/github_auth.rs',
+    status: 'modified',
+    additions: 42,
+    deletions: 4,
+    changes: 46,
+    previousFilename: null,
+    patch: '@@ -180,6 +180,18 @@ impl GitHubAuth {\n+    pub fn access_token(&self) -> CoreResult<String> {\n+        self.hydrate_from_keyring()?;\n+        let needs_refresh = ...\n+    }\n@@ -210,4 +222,5 @@\n-        inner.token.as_ref().map(|token| token.access_token.clone())\n+        inner.token.as_ref().map(|token| token.access_token.clone())',
+  },
+  {
+    filename: 'src/features/pull-requests/PullRequestsView.vue',
+    status: 'added',
+    additions: 260,
+    deletions: 0,
+    changes: 260,
+    previousFilename: null,
+    patch: '@@ -0,0 +1,12 @@\n+<script setup lang="ts">\n+import { GitPullRequest } from \'@lucide/vue\'\n+</script>\n+<template>\n+  <div class="fd-pr-page">…</div>\n+</template>',
+  },
+]
+
 const detail: PullRequestDetail = {
   pull: pullOne,
   commits,
   reviews,
   checks,
+  files,
 }
 
 export function handleStage6FixtureCommand<T>(

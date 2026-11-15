@@ -802,9 +802,20 @@ export interface GitHubCheckRun {
   detailsUrl: string | null
 }
 
+export interface GitHubFile {
+  filename: string
+  status: string
+  additions: number
+  deletions: number
+  changes: number
+  patch: string | null
+  previousFilename: string | null
+}
+
 export interface PullRequestDetail {
   pull: GitHubPull
   commits: GitHubCommit[]
   reviews: GitHubReview[]
   checks: GitHubCheckRun[]
+  files: GitHubFile[]
 }

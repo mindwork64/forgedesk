@@ -1119,6 +1119,7 @@ export default {
       commits: 'Коммиты',
       checks: 'Проверки',
       reviews: 'Ревью',
+      files: 'Файлы',
       author: 'Автор',
       branches: 'Ветки',
       changes: 'Изменения',
@@ -1128,8 +1129,8 @@ export default {
       noCommits: 'Коммиты не загружены.',
       noChecks: 'Проверки не найдены.',
       noReviews: 'Ревью пока нет.',
+      noFiles: 'Файлы не изменены.',
       unknown: 'Неизвестно',
-      files: 'Файлов: {count}',
     },
   },
 

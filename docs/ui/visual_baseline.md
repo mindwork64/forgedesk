@@ -81,6 +81,7 @@ Query parameters used by the harness: `theme=dark|light`,
 | 45 | `gate3-github-repos-dark-1440.png` | 1440×900 | Dark | 240 px | discovered GitHub repositories/import |
 | 46 | `gate3-prs-dark-1440.png` | 1440×900 | Dark | 240 px | pull request table |
 | 47 | `gate3-pr-detail-dark-1440.png` | 1440×900 | Dark | 240 px | PR detail pane |
+| 48 | `gate3-pr-files-dark-1440.png` | 1440×900 | Dark | 240 px | PR unified file patches |
 
 ## Measured geometry
 

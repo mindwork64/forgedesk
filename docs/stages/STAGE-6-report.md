@@ -2,8 +2,9 @@
 
 **Date:** 2026-11-15  
 **Status:** PARTIAL — read-only pull-request list and detail (overview, commits,
-checks, reviews) are delivered and live-tested. File diffs, review submission,
-merge/close actions, requested-review queue and CI screen remain open.  
+checks, reviews, unified file patches) are delivered and live-tested. Split diffs,
+line comments, review submission, merge/close actions, requested-review queue and CI
+screen remain open.  
 **Schema:** v5 (no new local tables for Stage 6 yet)
 
 ## Delivered
@@ -25,7 +26,8 @@ merge/close actions, requested-review queue and CI screen remain open.
     mergeable, requested reviewers;
   - Commits: SHA, message, author;
   - Checks: status/conclusion and duration;
-  - Reviews: reviewer, state and body.
+  - Reviews: reviewer, state and body;
+  - Files: changed files with status/additions/deletions and unified patches.
 - No merge, close, approve, comment or review submission is exposed.
 - No fake PR data in production; connected screenshots use the build-gated harness.
 - Live read-only verification against `cli/cli`: list pulls + load detail/commits/
@@ -33,7 +35,7 @@ merge/close actions, requested-review queue and CI screen remain open.
 
 ## Not delivered
 
-- File list/diff viewer (unified/split), line comments and resolved state.
+- Split diff, line comments and resolved-thread state.
 - Review submission, approve/request-changes, merge/close, merge readiness and
   permission-aware actions.
 - Requested-review queue (`/reviews`) and CI/checks (`/ci`) dedicated screens.
@@ -50,14 +52,15 @@ merge/close actions, requested-review queue and CI screen remain open.
 |---|---|---|
 | Core tests | `cargo test -p forgedesk-core` | PASS — 52 (+2 ignored live) |
 | Frontend | `npm run typecheck`, `npm test` | PASS — 78 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 47 captures (PR list + detail added) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (PR list/detail/files) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
 | Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
+| Jenkins build 12 | PR files/diff snapshot | Pending commit/mirror push |
 | GitHub Actions | public repo `main` | SUCCESS |
 
 ## Next
 
-1. PR Files tab with lazy diff and unified/split.
+1. Split diff, line comments and lazy per-file diff loading.
 2. Review submission, merge/close and permission checks with explicit intent.
 3. `/reviews` requested queue and `/ci` checks screen.
 4. PR↔issue links and GraphQL list summaries.

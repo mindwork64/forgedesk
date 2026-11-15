@@ -20,7 +20,7 @@ import { useGithubAuthStore } from '@/stores/githubAuth'
 import { usePullRequestStore } from '@/stores/pullRequests'
 import type { GitHubCheckRun, GitHubPull } from '@/types/ipc'
 
-type DetailTab = 'overview' | 'commits' | 'checks' | 'reviews'
+type DetailTab = 'overview' | 'commits' | 'checks' | 'reviews' | 'files'
 
 const auth = useGithubAuthStore()
 const prs = usePullRequestStore()
@@ -44,6 +44,7 @@ const tabs = computed(() => [
   { id: 'commits' as const, label: t('prs.detail.commits') },
   { id: 'checks' as const, label: t('prs.detail.checks') },
   { id: 'reviews' as const, label: t('prs.detail.reviews') },
+  { id: 'files' as const, label: t('prs.detail.files') },
 ])
 
 async function load(): Promise<void> {
@@ -236,12 +237,23 @@ function duration(check: GitHubCheckRun): string {
                   <span class="fd-pr-muted">{{ duration(check) }}</span>
                 </div>
               </template>
-              <template v-else>
+              <template v-else-if="detailTab === 'reviews'">
                 <p v-if="prs.detail.reviews.length === 0" class="fd-pr-muted">{{ t('prs.detail.noReviews') }}</p>
                 <div v-for="review in prs.detail.reviews" :key="review.id" class="fd-pr-review">
                   <strong>{{ review.user?.login ?? '—' }}</strong>
                   <span class="fd-pr-muted">{{ review.state }}</span>
                   <p>{{ review.body || '—' }}</p>
+                </div>
+              </template>
+              <template v-else>
+                <p v-if="prs.detail.files.length === 0" class="fd-pr-muted">{{ t('prs.detail.noFiles') }}</p>
+                <div v-for="file in prs.detail.files" :key="file.filename" class="fd-pr-file">
+                  <div class="fd-pr-file__head">
+                    <code>{{ file.filename }}</code>
+                    <span class="fd-pr-muted">{{ file.status }} · +{{ file.additions }} −{{ file.deletions }}</span>
+                  </div>
+                  <pre v-if="file.patch" class="fd-pr-patch">{{ file.patch }}</pre>
+                  <p v-else class="fd-pr-muted">—</p>
                 </div>
               </template>
             </div>
@@ -285,6 +297,10 @@ function duration(check: GitHubCheckRun): string {
 .fd-pr-row-line { display: grid; grid-template-columns: 70px minmax(0, 1fr) 90px; gap: var(--fd-space-2); align-items: center; min-height: 30px; border-bottom: 1px solid var(--fd-border-subtle); color: var(--fd-text-secondary); font-size: var(--fd-text-11); }
 .fd-pr-review { display: grid; grid-template-columns: 90px 90px minmax(0, 1fr); gap: var(--fd-space-2); min-height: 30px; border-bottom: 1px solid var(--fd-border-subtle); font-size: var(--fd-text-11); }
 .fd-pr-review p { margin: 0; color: var(--fd-text-muted); }
+.fd-pr-file { margin-bottom: var(--fd-space-3); border: 1px solid var(--fd-border-subtle); border-radius: var(--fd-radius-control); overflow: hidden; }
+.fd-pr-file__head { display: flex; align-items: center; justify-content: space-between; gap: var(--fd-space-2); padding: 6px 8px; background: var(--fd-bg); }
+.fd-pr-file__head code { overflow: hidden; font-size: var(--fd-text-11); text-overflow: ellipsis; }
+.fd-pr-patch { max-height: 280px; margin: 0; overflow: auto; padding: 8px; background: var(--fd-surface); color: var(--fd-text-secondary); font-family: var(--fd-font-mono); font-size: var(--fd-text-10); line-height: 1.5; white-space: pre; }
 .fd-pr-check--ok { color: var(--fd-success); }
 .fd-pr-check--fail { color: var(--fd-danger); }
 .fd-pr-check--pending { color: var(--fd-warning); }

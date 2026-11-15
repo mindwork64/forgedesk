@@ -10,7 +10,8 @@ APIs and schema may still evolve with migrations.
 - GitHub REST pull list/detail, commits, reviews and check-runs.
 - Repository selection for PRs; Open/Closed/All table and 440px detail pane.
 - Live read-only test against `cli/cli`; no write/merge/review actions exposed.
-- 52 core tests (+2 ignored live), 78 frontend, 47 visual captures.
+- Unified PR file patches in the read-only detail pane.
+- 52 core tests (+2 ignored live), 78 frontend, 48 visual captures.
 
 ### Stage 5 — GitHub sync safety foundation and auth (partial)
 

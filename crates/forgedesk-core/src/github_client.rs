@@ -135,6 +135,17 @@ pub struct GitHubCheckRun {
     pub details_url: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubFile {
+    pub filename: String,
+    pub status: String,
+    pub additions: i64,
+    pub deletions: i64,
+    pub changes: i64,
+    pub patch: Option<String>,
+    pub previous_filename: Option<String>,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 struct CheckRunsResponse {
     #[serde(default)]
@@ -230,6 +241,22 @@ impl GitHubClient {
             number
         );
         self.get_page(&path)
+    }
+
+    pub fn list_pull_files(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<Vec<GitHubFile>> {
+        let path = format!(
+            "/repos/{}/{}/pulls/{}/files?per_page=100",
+            encode(owner),
+            encode(repo),
+            number
+        );
+        let page: Page<GitHubFile> = self.get_page(&path)?;
+        Ok(page.items)
     }
 
     pub fn list_check_runs(

@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 52 core (+2 ignored live), 78 frontend, 47 visual captures.
+- **Tests:** 52 core (+2 ignored live), 78 frontend, 48 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -65,7 +65,7 @@ through `user_version`. See ADR-0001…0007.
   with Overview / Commits / Checks / Reviews.
 - Overview shows description, branches, additions/deletions/files, mergeability and
   requested reviewers; Checks shows status/conclusion/duration; Reviews shows
-  reviewer/state/body.
+  reviewer/state/body; Files shows unified patches with status and counts.
 - No merge, close, approve, comment or review submission is exposed.
 - Live read-only verification against `cli/cli` passed for list + detail.
 - Files/diff, requested-review queue, CI screen and PR↔issue links remain open.
@@ -87,22 +87,23 @@ through `user_version`. See ADR-0001…0007.
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (78) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 47 captures (16/13/9/9 across Gates 0–3) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (16/13/9/10 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
 | Jenkins build 10 | GitHub discovery/import `5d894e6` | SUCCESS — 124 s, 52 core tests, 45 captures, 46 artifacts |
 | Jenkins build 11 | Stage 6 read-only PR slice `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
+| Jenkins build 12 | PR files/diff snapshot | Pending commit/mirror push |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
 
 - Stage 5 read-only issue import exists; label/comment sync, local→remote writes,
   sync UI, conflict resolution UI and the outbox dispatcher remain open.
-- Stage 6 is read-only: no PR files/diff, merge/close, approve/request-changes,
-  comment, requested-review queue or CI screen; review/check table columns show `—`
-  for rows whose detail has not been loaded.
+- Stage 6 is read-only: no split diff/line comments, merge/close,
+  approve/request-changes, comment, requested-review queue or CI screen;
+  review/check table columns show `—` for rows whose detail has not been loaded.
 - PR read calls do not yet write API-budget observations/request logs; selected
   repository is WebView storage, not SQLite.
 - Token storage uses OS keyring; when unavailable it falls back to session-only
