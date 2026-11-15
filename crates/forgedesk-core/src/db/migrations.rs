@@ -32,9 +32,14 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "git_budget",
         sql: include_str!("migrations/0004_git_budget.sql"),
     },
+    Migration {
+        version: 5,
+        name: "sync",
+        sql: include_str!("migrations/0005_sync.sql"),
+    },
 ];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 4;
+pub const CURRENT_SCHEMA_VERSION: i64 = 5;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -118,7 +123,7 @@ mod tests {
         .expect("workspace");
         tx.commit().expect("commit");
 
-        assert_eq!(run(&mut conn).expect("migrate to current"), 4);
+        assert_eq!(run(&mut conn).expect("migrate to current"), 5);
 
         let workflows: i64 = conn
             .query_row("SELECT count(*) FROM workflow", [], |row| row.get(0))

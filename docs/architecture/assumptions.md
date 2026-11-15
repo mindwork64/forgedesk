@@ -118,3 +118,16 @@ Each entry is small and reversible unless noted.
     provider request is simulated or sent until live auth/client exists.
 35. **Local repositories:** removing a repository row does not delete files or Git
     data. GitHub discovery is deferred until authentication exists.
+
+## GitHub sync safety (Stage 5)
+
+36. **Remote links:** one remote issue link per local issue; remote IDs/numbers are
+    stored separately from local UUIDs. Field ownership is explicit and never
+    inferred from timestamps alone.
+37. **Outbox:** idempotency keys are unique; ambiguous mutation outcomes enter
+    `outcome_unknown` and may only move to `reconciling`, never directly to retry or
+    success.
+38. **Cursors:** page cursor and time watermark are separate; success timestamps are
+    not advanced on partial/failed pages.
+39. **No live sync before auth:** Stage 5 foundation is inert until Stage 4 GitHub
+    App auth, token vault, provider client and budget-aware dispatcher exist.

@@ -10,5 +10,6 @@ pub mod relations;
 pub mod repo_registry;
 pub mod saved_views;
 pub mod settings;
+pub mod sync;
 pub mod workflow;
 pub mod workspace;

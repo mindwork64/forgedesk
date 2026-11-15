@@ -5,6 +5,14 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 5 — GitHub sync safety foundation (partial)
+
+- Schema v5: remote issue links, sync cursors, idempotent outbox, conflict records.
+- Closed outbox state machine including ambiguous-outcome reconciliation; no
+  automatic retry of uncertain mutations.
+- Remote-link ownership, per-resource cursor and conflict persistence with tests.
+- 46 core tests; live import/export remains blocked on GitHub App auth/token vault.
+
 ### Stage 4 — Local Git, GitHub foundation and API budgets (partial)
 
 - Schema v4: repositories, provider accounts (no token columns), API budget

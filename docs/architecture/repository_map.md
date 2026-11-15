@@ -38,6 +38,7 @@ ForgeDesk/
 │   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
 │   │   ├── issue.rs            Issue/status/label/filter/query DTOs + validation
 │   │   ├── planning.rs         Project/initiative/milestone/cycle/document DTOs
+│   │   ├── sync.rs             Remote link/outbox/cursor/conflict DTOs
 │   │   ├── saved_view.rs       Saved view DTO/validation
 │   │   ├── settings.rs         Typed AppSettings, patch validation, window state
 │   │   ├── workspace.rs        Single workspace validation
@@ -45,7 +46,7 @@ ForgeDesk/
 │   └── db/
 │       ├── mod.rs              Guarded SQLite connection, WAL, reopen/replace
 │       ├── migrations.rs       Append-only runner + tests
-│       ├── migrations/0001_init.sql, 0002_issues.sql, 0003_planning.sql, 0004_git_budget.sql
+│       ├── migrations/0001_init.sql … 0005_sync.sql
 │       └── repositories/
 │           ├── issues.rs       Issue CRUD/detail/list/batch/duplicate
 │           ├── issue_query.rs  Whitelisted filter/sort/search SQL builder
@@ -59,6 +60,7 @@ ForgeDesk/
 │           ├── repo_registry.rs Local repository registry
 │           ├── api_budget.rs   Observations, request log, queue, control
 │           ├── saved_views.rs  Persisted filter/sort/group views
+│           ├── sync.rs         Sync links/cursors/outbox/conflicts
 │           ├── settings.rs     Settings JSON document
 │           └── workspace.rs    Workspace + human-key counter
 │
@@ -133,9 +135,9 @@ ForgeDesk/
 ├── docs/
 │   ├── PROJECT_STATE.md        Compact current state
 │   ├── architecture/           overview, repository_map, assumptions
-│   ├── decisions/              ADR-0001…0005 (stack/UI/issues/planning/git-budget)
+│   ├── decisions/              ADR-0001…0006 (stack/UI/planning/git-budget/sync)
 │   ├── development/            setup.md, jenkins.md
-│   ├── stages/                 Stage 0/1/2/3/4 reports
+│   ├── stages/                 Stage 0/1/2/3/4/5 reports
 │   ├── ui/
 │   │   ├── component_map.md
 │   │   ├── visual_baseline.md

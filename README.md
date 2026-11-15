@@ -6,7 +6,8 @@
 **Рабочее имя:** ForgeDesk (может быть изменено без изменения архитектуры)
 
 > **Implementation status (2026-11-15):** the Stage 1 foundation, Stage 2 issue workflow, Stage 3 planning and Stage 4
-> local Git/API-budget foundation are implemented in this repository. See `docs/PROJECT_STATE.md` for current state,
+> local Git/API-budget foundation plus the Stage 5 sync safety model are implemented
+> in this repository. See `docs/PROJECT_STATE.md` for current state,
 > `docs/development/setup.md` for commands and `docs/ui/UI-GATE-0-REPORT.md`,
 > `docs/ui/UI-GATE-1-REPORT.md`, `docs/ui/UI-GATE-2-REPORT.md` and `docs/ui/UI-GATE-3-REPORT.md` for visual acceptance evidence. The requirement documents below remain authoritative.
 
