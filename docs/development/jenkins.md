@@ -86,4 +86,9 @@ machine with WebKitGTK/WebView2.
   `git://127.0.0.1:9418/forgedesk-ci.git`.
 - Build 2 (Stage 1 snapshot): **SUCCESS** in 234 s; frontend/core/shell typecheck
   and UI Gate 0/1 screenshots archived.
-- Build 3 (Stage 2 snapshot): run after `ci-sync.sh`; record the result here.
+- Build 3 (Stage 2 snapshot) failed because a stale fixed preview server on port
+  4173 was reachable from Jenkins; `scripts/ci.sh` now allocates a free port and
+  verifies the preview process before Playwright starts.
+- Build 4 (Stage 2 snapshot, commit `3f029a4`): **SUCCESS** in 67 s; 31 core tests,
+  22 visual captures, 23 archived artifacts. `measurements.json` reports
+  `assertions: PASS`, `failures: []`.

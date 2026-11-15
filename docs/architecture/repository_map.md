@@ -1,6 +1,6 @@
 # Repository map
 
-Updated after Stage 1. Update only when the structure changes.
+Updated after Stage 2 (core issue flow). Update only when the structure changes.
 
 ```text
 ForgeDesk/
@@ -29,7 +29,7 @@ ForgeDesk/
 │
 ├── crates/forgedesk-core/src/
 │   ├── lib.rs                  Public core surface
-│   ├── app.rs                  AppService: bootstrap/workspace/settings/backup/restore
+│   ├── app.rs                  AppService: bootstrap, settings, backups, issue operations
 │   ├── error.rs                CoreError + stable WireError categories
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── domain/

@@ -35,8 +35,8 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 - **Stage 1 foundation:** onboarding, settings, backups/restore, themes, navigation,
   command palette, shortcut sheet, en/ru.
 - **Tests:** 31 core, 70 frontend, token contract, visual gates (22 captures).
-- **Jenkins:** local `ForgeDesk-CI` pipeline from local git mirror (successful build
-  for Stage 1; Stage 2 snapshot/build after final commit).
+- **Jenkins:** local `ForgeDesk-CI` pipeline from a git daemon mirror; build 4 is
+  green for the Stage 2 tree with archived visual-gate artifacts.
 
 ## Verification
 
@@ -51,7 +51,7 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 | Frontend build | `npm run build` | PASS; harness excluded |
 | Visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 22 captures (16 Gate 0 + 6 Gate 1) |
 | Jenkins build 2 | `ForgeDesk-CI` #2 (Stage 1 snapshot) | SUCCESS — 234 s, artifacts archived |
-| Jenkins build 3 | Stage 2 snapshot | Pending commit/mirror push |
+| Jenkins build 4 | Stage 2 snapshot `3f029a4` | SUCCESS — 67 s, 22 captures + measurements archived |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
@@ -68,7 +68,8 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
   and a packaging machine must confirm.
 - Jenkins local mirror requires the git daemon; `/home/eloraam` is not readable by
   the Jenkins user, so a real remote should replace the bridge.
-- No CI run yet for the Stage 2 tree; trigger after commit.
+- Build 3 failed on a stale fixed preview port; `scripts/ci.sh` now allocates a free
+  port and verifies the preview process. Build 4 is green.
 
 ## Next step
 

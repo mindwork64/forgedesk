@@ -63,7 +63,7 @@ templates, watchers, attachments and workflow editing remain open.
 | Frontend build | `npm run build` | PASS |
 | UI visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 22 captures (16 Gate 0 + 6 Gate 1) |
 | Manual smoke | create → edit title → comment in harness browser | PASS |
-| Jenkins | `ForgeDesk-CI` build 2 (Stage 1 snapshot) | SUCCESS; Stage 2 build pending after snapshot |
+| Jenkins | `ForgeDesk-CI` build 4 (Stage 2 snapshot `3f029a4`) | SUCCESS — 31 core tests, 22 captures, 23 artifacts |
 | Native Tauri run | — | SKIPPED (no WebKitGTK/sudo) |
 
 ## Acceptance mapping

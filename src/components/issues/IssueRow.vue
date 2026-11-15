@@ -44,6 +44,7 @@ function select(): void {
     :class="{ 'fd-issue-grid--compact': compact, 'fd-issue-row--selected': selected }"
     role="row"
     tabindex="0"
+    :aria-selected="selected"
     :aria-label="`${issue.key} ${issue.title}`"
     data-testid="issue-row"
     @click="select"
