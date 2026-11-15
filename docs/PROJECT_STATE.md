@@ -136,8 +136,8 @@ through `user_version`. See ADR-0001…0007.
 - axe-core `button-name`/`aria-command-name` validation runs on every visual case,
   with valid/invalid regression fixtures; all 57 cases pass.
 - AI crate Clippy (`-D warnings`) is part of the dedicated CI job; the job
-  explicitly installs the Clippy component. CI execution is not inferred from local
-  results.
+  explicitly installs the Clippy component. GitHub Actions run `43772258572` passed
+  all jobs.
 - CI covers default and optional AI builds; release checklist added.
 - Native desktop smoke tests, signed installers, export/import and larger soak tests
   remain release blockers.

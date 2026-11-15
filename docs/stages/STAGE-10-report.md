@@ -50,7 +50,8 @@ full release packaging remain open.
 | Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 57 captures |
 | Production chunk | `npm run build` | PASS — main JS ~231 KB |
 | Migration v5→v9 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
-| AI Clippy (local) | `cargo clippy -p forgedesk-ai ...` | PASS; CI execution tracked separately |
+| AI Clippy (local) | `cargo clippy -p forgedesk-ai ...` | PASS |
+| AI Clippy (CI) | GitHub Actions run `43772258572` | PASS |
 | Native runtime | — | BLOCKED — no desktop WebKitGTK |
 | Signed installers | — | BLOCKED — no signing credentials |
 
