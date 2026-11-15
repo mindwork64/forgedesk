@@ -22,7 +22,7 @@ with Rust (Tauri 2), Vue 3 + TypeScript and SQLite.
   repository discovery are live; dispatcher and write paths remain open.
 - Stage 5 — GitHub issue synchronization: read-only discovery/import done; write and
   conflict paths remain partial.
-- Stage 6 — pull requests/checks/reviews: read-only list/detail done; files and
-  write actions remain open.
+- Stage 6 — pull requests/checks/reviews: read-only list/detail/files done; write
+  actions and review/CI screens remain open.
 
 The source of truth for project status is `docs/PROJECT_STATE.md` in the repository.

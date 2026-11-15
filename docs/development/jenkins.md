@@ -104,5 +104,7 @@ machine with WebKitGTK/WebView2.
 - Build 10 (discovery/read-only import, commit `5d894e6`): **SUCCESS** in 124 s;
   52 core tests, 45 visual captures, 46 archived artifacts.
 - Build 11 (read-only PRs, commit `ec5e9dc`): **SUCCESS** in 144 s; 52 core tests
-  (+2 ignored live), 47 visual captures, 48 archived artifacts. `measurements.json`
+  (+2 ignored live), 47 visual captures, 48 archived artifacts.
+- Build 12 (PR files/diff, commit `3dc3ee1`): **SUCCESS** in 128 s; 52 core tests
+  (+2 ignored live), 48 visual captures, 49 archived artifacts. `measurements.json`
   reports `assertions: PASS`, `failures: []`.
