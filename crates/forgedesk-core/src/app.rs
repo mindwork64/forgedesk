@@ -9,6 +9,7 @@ use crate::db::repositories::{
 };
 use crate::db::Database;
 use crate::domain::inbox::{InboxEvent, InboxFilter};
+use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
@@ -505,6 +506,13 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db.with_transaction(|conn| {
             crate::db::repositories::inbox::mark_all_read(conn, &workspace.id)
+        })
+    }
+
+    pub fn insights(&self, range_days: i64) -> CoreResult<InsightsSummary> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::insights::summary(conn, &workspace.id, range_days)
         })
     }
 

@@ -3,6 +3,7 @@ pub mod error;
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
 use forgedesk_core::domain::inbox::InboxEvent;
+use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
 use forgedesk_core::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
@@ -901,5 +902,15 @@ pub fn inbox_archive(state: State<'_, AppState>, event_id: String) -> Result<(),
 pub fn inbox_mark_all_read(state: State<'_, AppState>) -> Result<i64, CommandError> {
     state
         .with_service(|service| service.inbox_mark_all_read())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_insights(
+    state: State<'_, AppState>,
+    range_days: i64,
+) -> Result<InsightsSummary, CommandError> {
+    state
+        .with_service(|service| service.insights(range_days))
         .map_err(CommandError::from)
 }

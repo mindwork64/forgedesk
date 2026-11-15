@@ -1,6 +1,7 @@
 pub mod api_budget;
 pub mod git;
 pub mod inbox;
+pub mod insights;
 pub mod issue;
 pub mod planning;
 pub mod pull_link;
@@ -13,6 +14,7 @@ pub mod workspace;
 pub use api_budget::*;
 pub use git::*;
 pub use inbox::*;
+pub use insights::*;
 pub use issue::*;
 pub use planning::*;
 pub use pull_link::*;

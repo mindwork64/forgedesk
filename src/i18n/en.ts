@@ -1257,6 +1257,13 @@ export default {
     filter: 'Inbox filter',
   },
 
+  insightsPage: {
+    dataThrough: 'Data through', range: 'Date range', days30: '30 days', days90: '90 days', days365: '365 days',
+    refresh: 'Refresh', loadError: 'Could not load insights', empty: 'No local data yet', emptyBody: 'Insights appear after issues are created or completed.',
+    created: 'Created', completed: 'Completed', open: 'Open', overdue: 'Overdue', avgCycle: 'Avg cycle', days: 'days',
+    throughput: 'Completed over time', byStatus: 'Issues by status', byProject: 'Issues by project',
+  },
+
   about: {
     heading: 'A local-first development workspace',
     body: 'ForgeDesk brings issues, projects, repositories and pull requests into one desktop workspace backed by SQLite on this computer.',

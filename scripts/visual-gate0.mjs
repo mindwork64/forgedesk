@@ -532,6 +532,15 @@ const cases = [
     waitFor: '.fd-inbox-row',
   },
   {
+    name: 'gate4-insights-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/insights',
+    waitFor: '.fd-insight-card',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1224,6 +1233,14 @@ async function main() {
         caseReport.ciCommits = commits
         caseReport.ciChecks = checks
         assert(commits >= 3 && checks >= 3, `${testCase.name}: expected CI activity`, report.failures)
+      }
+
+      if (testCase.route === '/insights') {
+        const cards = await page.locator('.fd-insight-card').count()
+        const bars = await page.locator('.fd-insight-bar-row').count()
+        caseReport.insightCards = cards
+        caseReport.insightBars = bars
+        assert(cards === 5 && bars >= 4, `${testCase.name}: expected insights`, report.failures)
       }
 
       if (testCase.route === '/inbox') {

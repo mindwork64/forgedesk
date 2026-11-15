@@ -88,6 +88,7 @@ Query parameters used by the harness: `theme=dark|light`,
 | 52 | `gate3-pr-files-split-dark-1440.png` | 1440×900 | Dark | 240 px | split PR diff |
 | 53 | `gate3-pr-merge-dark-1440.png` | 1440×900 | Dark | 240 px | merge confirmation dialog |
 | 54 | `gate4-inbox-dark-1440.png` | 1440×900 | Dark | 240 px | Inbox groups/filters/unread |
+| 55 | `gate4-insights-dark-1440.png` | 1440×900 | Dark | 240 px | Insights metrics and charts |
 
 ## Measured geometry
 

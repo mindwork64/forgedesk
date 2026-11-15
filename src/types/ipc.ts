@@ -163,6 +163,7 @@ export type CommandName =
   | 'inbox_mark_read'
   | 'inbox_archive'
   | 'inbox_mark_all_read'
+  | 'get_insights'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -903,4 +904,28 @@ export interface InboxEvent {
   createdAt: string
   read: boolean
   archived: boolean
+}
+
+export interface InsightBucket {
+  label: string
+  count: number
+}
+
+export interface InsightPoint {
+  label: string
+  count: number
+}
+
+export interface InsightsSummary {
+  generatedAt: string
+  dataThrough: string
+  rangeDays: number
+  totalCreated: number
+  totalCompleted: number
+  openCount: number
+  overdueCount: number
+  avgCycleDays: number | null
+  throughput: InsightPoint[]
+  byStatus: InsightBucket[]
+  byProject: InsightBucket[]
 }

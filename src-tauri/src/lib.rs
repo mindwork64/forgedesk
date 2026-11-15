@@ -122,6 +122,7 @@ pub fn run() {
             commands::inbox_mark_read,
             commands::inbox_archive,
             commands::inbox_mark_all_read,
+            commands::get_insights,
         ]);
 
     let app = builder

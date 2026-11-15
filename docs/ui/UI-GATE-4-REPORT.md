@@ -9,8 +9,9 @@
 | # | File | Size | Content |
 |---|---|---|---|
 | 1 | `docs/ui/current/gate4-inbox-dark-1440.png` | 1440×900 | Inbox groups, filters, unread markers |
+| 2 | `docs/ui/current/gate4-insights-dark-1440.png` | 1440×900 | Insights metrics/charts |
 
-Full run: **54 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 1 Gate 4).
+Full run: **55 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 2 Gate 4).
 
 ## Acceptance
 
@@ -23,7 +24,8 @@ Full run: **54 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 1 Gate
 | Mark all read / row actions | PASS | header + icon actions |
 | Empty/loading/error states | PASS | components wired |
 | External sync events | NOT IMPLEMENTED | no producer yet |
-| Automations/Analytics/Dashboards | NOT IMPLEMENTED | next slices |
+| Insights local aggregates | PASS | summary, throughput, status/project distribution |
+| Automations/Dashboards | NOT IMPLEMENTED | next slices |
 
 ## Notes
 

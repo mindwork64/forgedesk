@@ -13,6 +13,7 @@ import ApiMonitorView from '@/features/api-monitor/ApiMonitorView.vue'
 import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
 import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
 import InboxView from '@/features/inbox/InboxView.vue'
+import InsightsView from '@/features/insights/InsightsView.vue'
 import ReviewsView from '@/features/reviews/ReviewsView.vue'
 import CiView from '@/features/ci/CiView.vue'
 import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
@@ -193,7 +194,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/insights',
     name: 'insights',
-    component: PlaceholderView,
+    component: InsightsView,
     meta: {
       titleKey: 'pages.insights.title',
       descriptionKey: 'pages.insights.description',

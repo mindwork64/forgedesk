@@ -54,6 +54,7 @@ import type {
   GitHubMergeResult,
   GitHubReview,
   InboxEvent,
+  InsightsSummary,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -308,4 +309,6 @@ export const api = {
   inboxArchive: (eventId: string) =>
     call<void>('inbox_archive', { eventId }),
   inboxMarkAllRead: () => call<number>('inbox_mark_all_read'),
+  getInsights: (rangeDays: number) =>
+    call<InsightsSummary>('get_insights', { rangeDays }),
 }

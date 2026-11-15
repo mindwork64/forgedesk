@@ -1256,6 +1256,13 @@ export default {
     filter: 'Фильтр Inbox',
   },
 
+  insightsPage: {
+    dataThrough: 'Данные по', range: 'Период', days30: '30 дней', days90: '90 дней', days365: '365 дней',
+    refresh: 'Обновить', loadError: 'Не удалось загрузить аналитику', empty: 'Локальных данных пока нет', emptyBody: 'Аналитика появится после создания или завершения задач.',
+    created: 'Создано', completed: 'Завершено', open: 'Открыто', overdue: 'Просрочено', avgCycle: 'Средний цикл', days: 'дн.',
+    throughput: 'Завершения по времени', byStatus: 'Задачи по статусам', byProject: 'Задачи по проектам',
+  },
+
   about: {
     heading: 'Локальное рабочее пространство для разработки',
     body: 'ForgeDesk объединяет задачи, проекты, репозитории и pull requests в одном desktop-пространстве на локальной базе SQLite.',

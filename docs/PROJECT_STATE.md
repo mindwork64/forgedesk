@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 80 core (+3 ignored live), 107 frontend, 54 visual captures.
+- **Tests:** 81 core (+3 ignored live), 107 frontend, 55 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -101,7 +101,10 @@ through `user_version`. See ADR-0001…0007.
 - Normalization currently covers local `activity_event` rows; GitHub sync events will
   be added with the sync engine. No fake external events.
 - Detail pane shows event summary/entity and links to local issues.
-- Automations, Insights and Dashboards remain to do.
+- **Insights:** local aggregates for created/completed/open/overdue, average cycle
+  time, 12-bucket completion throughput, status and project distribution, with
+  `data through`; range 30/90/365 days.
+- Automations and Dashboards remain to do.
 
 ### Stages 1–3 (preserved)
 
@@ -113,14 +116,14 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (80 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (81 + 3 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (107) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 54 captures (16/13/9/15/1 across Gates 0–4) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 55 captures (16/13/9/15/2 across Gates 0–4) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
@@ -164,6 +167,6 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Continue Stage 7: triage actions/tabs polish, then automations (rules, preview, run
-history), Insights aggregates and Dashboards. Remaining Stage 6 polish (inline comment
+Continue Stage 7: automations (rules, preview, run history, loop protection), then
+Dashboards with persisted 12-column layout. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.

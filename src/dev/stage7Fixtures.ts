@@ -1,4 +1,4 @@
-import type { CommandName, InboxEvent } from '@/types/ipc'
+import type { CommandName, InboxEvent, InsightsSummary } from '@/types/ipc'
 
 function iso(hoursAgo: number): string {
   return new Date(Date.now() - hoursAgo * 3_600_000).toISOString()
@@ -49,6 +49,32 @@ const events: InboxEvent[] = [
   },
 ]
 
+const insights: InsightsSummary = {
+  generatedAt: iso(0),
+  dataThrough: iso(0),
+  rangeDays: 30,
+  totalCreated: 38,
+  totalCompleted: 24,
+  openCount: 14,
+  overdueCount: 3,
+  avgCycleDays: 4.6,
+  throughput: [2, 4, 3, 6, 5, 7, 8, 6, 9, 7, 10, 8].map((count, index) => ({
+    label: `W${index + 1}`,
+    count,
+  })),
+  byStatus: [
+    { label: 'Todo', count: 5 },
+    { label: 'In Progress', count: 4 },
+    { label: 'In Review', count: 3 },
+    { label: 'Done', count: 24 },
+  ],
+  byProject: [
+    { label: 'ForgeDesk core', count: 18 },
+    { label: 'Integrations', count: 11 },
+    { label: 'Design system', count: 9 },
+  ],
+}
+
 export function handleStage7FixtureCommand<T>(
   command: CommandName,
 ): { handled: boolean; value?: T } {
@@ -61,6 +87,8 @@ export function handleStage7FixtureCommand<T>(
       return { handled: true, value: undefined as T }
     case 'inbox_mark_all_read':
       return { handled: true, value: events.filter((event) => !event.read).length as T }
+    case 'get_insights':
+      return { handled: true, value: structuredClone(insights) as T }
     default:
       return { handled: false }
   }
