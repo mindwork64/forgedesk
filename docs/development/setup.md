@@ -95,3 +95,17 @@ Windows shell builds with the proper dependencies.
   actual webview; report them separately from browser-rendered UI gates.
 - CI lanes: `.github/workflows/ci.yml` (frontend, core matrix, shell Linux/Windows,
   visual gate artifact).
+
+## Full verification script
+
+`scripts/ci.sh` runs the complete local/CI gate: npm install (`npm ci`), typecheck,
+70 unit tests, production build, Rust fmt/clippy/tests, shell typecheck (real
+WebKitGTK when available, otherwise `ci/pkgconfig` shims), UI Gate 0/1 screenshots
+and a final production build that verifies the harness is excluded.
+
+```bash
+./scripts/ci.sh
+```
+
+Local Jenkins setup and the git-mirror bridge are documented in
+`docs/development/jenkins.md`. Credentials must stay in environment variables.

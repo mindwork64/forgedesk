@@ -40,6 +40,21 @@ props change; do not re-read every component for unrelated work.
 | `FdBadge` | `src/components/ui/FdBadge.vue` | Neutral/accent/success/warning/danger/info chips |
 | `FdKbd` | `src/components/ui/FdKbd.vue` | Shortcut key chips |
 
+## Issue components
+
+| Component | Path | Purpose |
+|---|---|---|
+| `IssueStatusBadge` | `src/components/issues/IssueStatusBadge.vue` | Color dot + localized status name |
+| `PriorityIndicator` | `src/components/issues/PriorityIndicator.vue` | Priority icon/label with semantic token color |
+| `IssueTypeIcon` | `src/components/issues/IssueTypeIcon.vue` | Type icon with accessible label |
+| `LabelChip` | `src/components/issues/LabelChip.vue` | Compact label token chip |
+| `IssueRow` | `src/components/issues/IssueRow.vue` | 40 px dense row; checkbox, type/title, status, priority, project, labels, updated |
+| `IssueList` | `src/components/issues/IssueList.vue` | Sticky header, row rendering, compact columns when detail is open |
+| `IssueBoard` | `src/components/issues/IssueBoard.vue` | Status columns, cards, native drag/drop status change |
+| `EntityDetailPane` | `src/components/issues/EntityDetailPane.vue` | Base 440 px side pane / absolute overlay below 1280; Esc close |
+| `IssueDetailPane` | `src/components/issues/IssueDetailPane.vue` | Issue title/description/properties/hierarchy/relations/activity/comments |
+| `CreateIssueDialog` | `src/components/issues/CreateIssueDialog.vue` | 720 px create dialog, title autofocus, more properties |
+
 ## Feature screens
 
 | Component | Path | Purpose |
@@ -67,9 +82,11 @@ props change; do not re-read every component for unrelated work.
 | Module | Path | Purpose |
 |---|---|---|
 | `app` store | `src/stores/app.ts` | Bootstrap, optimistic serialized settings writes, backups/restore, appearance |
+| `issues` store | `src/stores/issues.ts` | List/detail, serialized mutations, request guards, search, board grouping |
 | `ui` store | `src/stores/ui.ts` | Palette/shortcut overlays, sidebar groups, viewport width, chord hint |
 | `toasts` store | `src/stores/toasts.ts` | Bounded toast stack with timed dismissal |
 | IPC facade | `src/lib/ipc.ts` | Typed commands, error normalization, dev-only transport |
 | Theme/locale | `src/lib/theme.ts`, `src/i18n/index.ts` | Paint hint, locale/theme resolution |
 | Navigation | `src/navigation.ts`, `src/router/index.ts` | Fixed nav order and routes |
-| Visual harness | `src/dev/visualHarness.ts` | Visual-gate fixtures only; excluded from production build |
+| Visual harness | `src/dev/visualHarness.ts`, `src/dev/issueFixtures.ts` | Visual-gate fixtures only; excluded from production build |
+| CI | `scripts/ci.sh`, `Jenkinsfile` | Shared local/Jenkins verification; screenshots archived |

@@ -49,24 +49,39 @@ cargo clippy -p forgedesk --all-targets -- -D warnings
 echo ":: playwright browser"
 npx playwright install chromium >/dev/null
 
-echo ":: UI Gate 0"
+echo ":: UI visual gates (0+1)"
 VITE_VISUAL_HARNESS=true npm run build
-PREVIEW_PORT="${FORGEDESK_PREVIEW_PORT:-4173}"
-npm run preview -- --host 127.0.0.1 --port "$PREVIEW_PORT" \
+PREVIEW_PORT="${FORGEDESK_PREVIEW_PORT:-}"
+if [ -z "$PREVIEW_PORT" ]; then
+  PREVIEW_PORT="$(node -e "const net=require('net');const s=net.createServer();s.listen(0,'127.0.0.1',()=>{console.log(s.address().port);s.close();})")"
+fi
+npm run preview -- --host 127.0.0.1 --port "$PREVIEW_PORT" --strictPort \
   > "$ROOT/.tmp/preview.log" 2>&1 &
 PREVIEW_PID=$!
 cleanup() {
   kill "$PREVIEW_PID" 2>/dev/null || true
+  wait "$PREVIEW_PID" 2>/dev/null || true
 }
 trap cleanup EXIT
 
+PREVIEW_READY=0
 for _ in $(seq 1 30); do
+  if ! kill -0 "$PREVIEW_PID" 2>/dev/null; then
+    echo "Preview server exited before becoming ready:" >&2
+    cat "$ROOT/.tmp/preview.log" >&2
+    exit 1
+  fi
   if curl -fsS "http://127.0.0.1:$PREVIEW_PORT/" >/dev/null 2>&1; then
+    PREVIEW_READY=1
     break
   fi
   sleep 1
 done
-curl -fsS "http://127.0.0.1:$PREVIEW_PORT/" >/dev/null
+if [ "$PREVIEW_READY" != "1" ]; then
+  echo "Preview server did not become ready:" >&2
+  cat "$ROOT/.tmp/preview.log" >&2
+  exit 1
+fi
 PREVIEW_URL="http://127.0.0.1:$PREVIEW_PORT" node scripts/visual-gate0.mjs
 cleanup
 trap - EXIT

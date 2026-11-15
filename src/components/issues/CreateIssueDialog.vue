@@ -135,7 +135,12 @@ async function submit(): Promise<void> {
 
 <template>
   <FdModal v-model="open" :title="t('issues.createTitle')" size="lg">
-    <form class="fd-issue-create" @submit.prevent="submit">
+    <form
+      class="fd-issue-create"
+      @submit.prevent="submit"
+      @keydown.ctrl.enter.prevent="submit"
+      @keydown.meta.enter.prevent="submit"
+    >
       <div class="fd-issue-create__meta">
         <FdBadge tone="neutral">{{ t('issues.createHint') }}</FdBadge>
         <span v-if="parentId" class="fd-issue-create__parent">
