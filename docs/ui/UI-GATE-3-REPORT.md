@@ -23,6 +23,8 @@ data requires Stage 4 authentication, which is not configured.
   copy actions and keyring/memory storage state.
 - GitHub repository discovery + read-only issue import dialog (up to 250 recently
   updated issues, idempotent remote links; no comments or GitHub writes).
+- Pull Requests read-only table and 440px detail pane (Overview/Commits/Checks/
+  Reviews) for the selected discovered repository.
 - API Monitor: connection/scheduler/dispatcher/last observation/reset summary,
   secondary-limit state, GraphQL/REST primary panels, resource buckets, background
   allowance/reserve, queue, recent sanitized requests, manual pause/resume and
@@ -41,8 +43,10 @@ data requires Stage 4 authentication, which is not configured.
 | 5 | `gate3-api-monitor-dark-1440.png` | 1440×900 | budgets, queue, request log |
 | 6 | `gate3-github-auth-dark-1440.png` | 1440×900 | Device Flow dialog with code |
 | 7 | `gate3-github-repos-dark-1440.png` | 1440×900 | discovered GitHub repos + import |
+| 8 | `gate3-prs-dark-1440.png` | 1440×900 | PR table with Open/Closed/All |
+| 9 | `gate3-pr-detail-dark-1440.png` | 1440×900 | PR detail tabs/reviews/checks |
 
-Full run: **45 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 7 Gate 3),
+Full run: **47 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 9 Gate 3),
 `docs/ui/current/measurements.json`, zero assertion failures.
 
 ## Acceptance checklist
@@ -60,7 +64,9 @@ Full run: **45 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 7 Gate 3),
 | API Monitor queue/request history | PASS with fixtures | 2 queue jobs, 3 requests |
 | Pause/resume background sync | PASS | persisted api_control |
 | Diagnostics export sanitized | PASS | JSON copy, no tokens/payloads |
-| GitHub repository discovery | NOT implemented | auth ready; client pending |
+| GitHub repository discovery | PASS | real `user/repos`, selection for PRs |
+| Pull request read-only list/detail | PASS | live `cli/cli` list + detail |
+| PR files/diff and write actions | NOT implemented | next Stage 6 slice |
 | PR/Reviews/CI screens | NOT in Stage 4 | Stage 6 |
 | Native Tauri capture | SKIPPED | no WebKitGTK runtime |
 
@@ -75,7 +81,7 @@ Full run: **45 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 7 Gate 3),
 
 ## Conclusion
 
-The delivered Stage 4 screens pass browser visual acceptance for local Git and the
-API budget foundation. The gate remains **PARTIAL** until live provider client, repository discovery,
-dispatcher and provider-backed API Monitor data exist. Native Tauri verification
-remains open.
+The delivered Stage 4–6 read-only screens pass browser visual acceptance for local
+Git, API budgets, GitHub auth/import and pull requests. The gate remains **PARTIAL**
+until PR files/write actions, dispatcher, provider-backed API Monitor history and
+native Tauri verification exist.

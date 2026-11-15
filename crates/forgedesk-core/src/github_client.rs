@@ -62,6 +62,85 @@ pub struct Page<T> {
     pub rate: RateSnapshot,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubRef {
+    #[serde(rename = "ref")]
+    pub reference: String,
+    pub sha: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubPull {
+    pub id: i64,
+    pub number: i64,
+    pub title: String,
+    pub state: String,
+    #[serde(default)]
+    pub draft: bool,
+    pub user: Option<GitHubOwner>,
+    pub head: GitHubRef,
+    pub base: GitHubRef,
+    pub updated_at: String,
+    pub created_at: String,
+    pub html_url: String,
+    pub body: Option<String>,
+    pub mergeable: Option<bool>,
+    pub merged_at: Option<String>,
+    pub additions: Option<i64>,
+    pub deletions: Option<i64>,
+    pub changed_files: Option<i64>,
+    pub commits: Option<i64>,
+    #[serde(default)]
+    pub requested_reviewers: Vec<GitHubOwner>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubCommit {
+    pub sha: String,
+    pub commit: GitHubCommitData,
+    pub author: Option<GitHubOwner>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubCommitData {
+    pub message: String,
+    pub author: Option<GitHubCommitAuthor>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubCommitAuthor {
+    pub name: String,
+    pub date: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubReview {
+    pub id: i64,
+    pub user: Option<GitHubOwner>,
+    pub state: String,
+    pub body: Option<String>,
+    pub submitted_at: Option<String>,
+    pub html_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubCheckRun {
+    pub id: i64,
+    pub name: String,
+    pub status: String,
+    pub conclusion: Option<String>,
+    pub started_at: Option<String>,
+    pub completed_at: Option<String>,
+    pub html_url: Option<String>,
+    pub details_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct CheckRunsResponse {
+    #[serde(default)]
+    check_runs: Vec<GitHubCheckRun>,
+}
+
 pub struct GitHubClient {
     http: Client,
     token: String,
@@ -104,6 +183,91 @@ impl GitHubClient {
             per_page.clamp(1, 100),
             page.max(1)
         ))
+    }
+
+    pub fn list_pulls(&self, owner: &str, repo: &str, state: &str) -> CoreResult<Page<GitHubPull>> {
+        let owner = encode(owner);
+        let repo = encode(repo);
+        let state = match state {
+            "closed" | "all" => state,
+            _ => "open",
+        };
+        self.get_page(&format!(
+            "/repos/{owner}/{repo}/pulls?state={state}&per_page=50&sort=updated&direction=desc"
+        ))
+    }
+
+    pub fn get_pull(&self, owner: &str, repo: &str, number: i64) -> CoreResult<GitHubPull> {
+        let path = format!("/repos/{}/{}/pulls/{}", encode(owner), encode(repo), number);
+        self.get_json(&path)
+    }
+
+    pub fn list_pull_commits(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<Page<GitHubCommit>> {
+        let path = format!(
+            "/repos/{}/{}/pulls/{}/commits?per_page=50",
+            encode(owner),
+            encode(repo),
+            number
+        );
+        self.get_page(&path)
+    }
+
+    pub fn list_pull_reviews(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<Page<GitHubReview>> {
+        let path = format!(
+            "/repos/{}/{}/pulls/{}/reviews?per_page=50",
+            encode(owner),
+            encode(repo),
+            number
+        );
+        self.get_page(&path)
+    }
+
+    pub fn list_check_runs(
+        &self,
+        owner: &str,
+        repo: &str,
+        reference: &str,
+    ) -> CoreResult<Vec<GitHubCheckRun>> {
+        let path = format!(
+            "/repos/{}/{}/commits/{}/check-runs?per_page=50",
+            encode(owner),
+            encode(repo),
+            encode(reference)
+        );
+        let response: CheckRunsResponse = self.get_json(&path)?;
+        Ok(response.check_runs)
+    }
+
+    fn get_json<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<T> {
+        let url = format!("{}{}", self.base, path);
+        let response = self
+            .http
+            .get(&url)
+            .header("Accept", "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", "2022-11-28")
+            .bearer_auth(&self.token)
+            .send()
+            .map_err(|error| CoreError::network(format!("GitHub request failed: {error}")))?;
+        let status = response.status();
+        let rate = rate_from_headers(&response);
+        let text = response
+            .text()
+            .map_err(|error| CoreError::network(format!("GitHub response failed: {error}")))?;
+        if !status.is_success() {
+            return Err(map_status(status, &text, rate.remaining));
+        }
+        serde_json::from_str(&text)
+            .map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))
     }
 
     fn get_page<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<Page<T>> {

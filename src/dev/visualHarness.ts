@@ -11,6 +11,7 @@ import { setDevTransport } from '@/lib/ipc'
 import { handleIssueFixtureCommand } from './issueFixtures'
 import { handlePlanningFixtureCommand } from './planningFixtures'
 import { handleStage4FixtureCommand } from './stage4Fixtures'
+import { handleStage6FixtureCommand } from './stage6Fixtures'
 import type {
   AppSettings,
   BackupInfo,
@@ -29,6 +30,15 @@ function isoOffset(hoursAgo: number): string {
 }
 
 const dataDir = '/home/dev/.local/share/dev.forgedesk.app'
+
+try {
+  localStorage.setItem(
+    'forgedesk.githubRepo',
+    JSON.stringify({ owner: 'mindwork64', name: 'forgedesk', fullName: 'mindwork64/forgedesk' }),
+  )
+} catch {
+  // Harness selection is optional.
+}
 
 let settings: AppSettings = {
   locale: params.get('locale') === 'ru' ? 'ru' : 'en',
@@ -127,6 +137,11 @@ export function installVisualHarness(): void {
 
   setDevTransport(async <T,>(command: CommandName, args?: Record<string, unknown>): Promise<T> => {
     await new Promise((resolve) => setTimeout(resolve, 15))
+
+    const stage6Result = handleStage6FixtureCommand<T>(command)
+    if (stage6Result.handled) {
+      return stage6Result.value as T
+    }
 
     const stage4Result = handleStage4FixtureCommand<T>(command, args)
     if (stage4Result.handled) {

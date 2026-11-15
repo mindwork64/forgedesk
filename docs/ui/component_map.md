@@ -114,7 +114,9 @@ props change; do not re-read every component for unrelated work.
 | `issues` store | `src/stores/issues.ts` | List/detail, serialized mutations, request guards, search, board grouping |
 | `planning` store | `src/stores/planning.ts` | Projects/initiatives/cycles/documents queries and mutations |
 | `git` store | `src/stores/git.ts` | Local repository registry and Git operations |
-| `githubAuth` store | `src/stores/githubAuth.ts` | Device Flow polling, connection, refresh, disconnect |
+| `githubAuth` store | `src/stores/githubAuth.ts` | Device Flow polling, connection, refresh, disconnect, selected repo |
+| `PullRequestsView` | `src/features/pull-requests/` | Read-only PR table + commits/checks/reviews detail |
+| `pullRequests` store | `src/stores/pullRequests.ts` | PR list/detail requests and selection |
 | `apiMonitor` store | `src/stores/apiMonitor.ts` | Budget state, pause/resume, diagnostics |
 | `ui` store | `src/stores/ui.ts` | Palette/shortcut overlays, sidebar groups, viewport width, chord hint |
 | `toasts` store | `src/stores/toasts.ts` | Bounded toast stack with timed dismissal |

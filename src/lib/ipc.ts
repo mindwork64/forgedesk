@@ -44,6 +44,8 @@ import type {
   GitHubConnection,
   GitHubRepo,
   GitHubImportResult,
+  GitHubPull,
+  PullRequestDetail,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -236,4 +238,8 @@ export const api = {
     call<GitHubRepo[]>('github_discover_repositories'),
   githubImportIssues: (owner: string, repo: string) =>
     call<GitHubImportResult>('github_import_issues', { owner, repo }),
+  githubListPulls: (owner: string, repo: string, pullState: string) =>
+    call<GitHubPull[]>('github_list_pulls', { owner, repo, pullState }),
+  githubPullDetail: (owner: string, repo: string, number: number) =>
+    call<PullRequestDetail>('github_pull_detail', { owner, repo, number }),
 }

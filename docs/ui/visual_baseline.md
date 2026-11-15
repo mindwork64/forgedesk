@@ -79,6 +79,8 @@ Query parameters used by the harness: `theme=dark|light`,
 | 43 | `gate3-api-monitor-dark-1440.png` | 1440×900 | Dark | 240 px | API Monitor budgets/history |
 | 44 | `gate3-github-auth-dark-1440.png` | 1440×900 | Dark | 240 px | GitHub Device Flow dialog |
 | 45 | `gate3-github-repos-dark-1440.png` | 1440×900 | Dark | 240 px | discovered GitHub repositories/import |
+| 46 | `gate3-prs-dark-1440.png` | 1440×900 | Dark | 240 px | pull request table |
+| 47 | `gate3-pr-detail-dark-1440.png` | 1440×900 | Dark | 240 px | PR detail pane |
 
 ## Measured geometry
 

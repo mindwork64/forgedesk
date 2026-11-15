@@ -34,6 +34,8 @@ ForgeDesk/
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── git.rs                  Safe direct-argv Git process wrapper
 │   ├── github_auth.rs          GitHub App Device Flow + keyring token vault
+│   ├── github_client.rs        Budget-free GitHub REST reads (repos/issues/PRs)
+│   ├── github_pr.rs            PR detail/commits/reviews/check-runs
 │   ├── domain/
 │   │   ├── api_budget.rs       Budget observation/request/queue DTOs + formula
 │   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
@@ -94,7 +96,8 @@ ForgeDesk/
 │   │   ├── issues.ts           Issue list/detail/mutations, request guards
 │   │   ├── planning.ts         Projects/initiatives/cycles/documents state
 │   │   ├── git.ts              Repositories/Git overview actions
-│   │   ├── githubAuth.ts       Device Flow/connection/refresh state
+│   │   ├── githubAuth.ts       Device Flow/connection/repo selection
+│   │   ├── pullRequests.ts     PR list/detail state
 │   │   ├── apiMonitor.ts       API Monitor state/pause/diagnostics
 │   │   ├── ui.ts               Overlays, groups, viewport, chord hint
 │   │   └── toasts.ts           Bounded toast queue
@@ -124,6 +127,7 @@ ForgeDesk/
 │   │   ├── roadmap/            Projects/initiatives timeline
 │   │   ├── repositories/       Local repository list/detail/dialog
 │   │   ├── integrations/       Provider cards + GitHub Device Flow dialog
+│   │   ├── pull-requests/      PR table + read-only detail pane
 │   │   ├── api-monitor/        Budgets, queue, request history
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections
@@ -139,7 +143,7 @@ ForgeDesk/
 │   ├── architecture/           overview, repository_map, assumptions
 │   ├── decisions/              ADR-0001…0007 (…/sync/github-auth)
 │   ├── development/            setup.md, jenkins.md
-│   ├── stages/                 Stage 0/1/2/3/4/5 reports
+│   ├── stages/                 Stage 0/1/2/3/4/5/6 reports
 │   ├── ui/
 │   │   ├── component_map.md
 │   │   ├── visual_baseline.md

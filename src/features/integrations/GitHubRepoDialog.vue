@@ -49,6 +49,12 @@ async function importRepo(repo: GitHubRepo): Promise<void> {
   }
 }
 
+function useForPullRequests(repo: GitHubRepo): void {
+  auth.selectRepository(repo)
+  open.value = false
+  void router.push('/pull-requests')
+}
+
 function openProject(repo: GitHubRepo): void {
   const result = results.value[repo.fullName]
   if (!result) {
@@ -99,6 +105,13 @@ function openProject(repo: GitHubRepo): void {
             </small>
           </div>
           <div class="fd-github-repo-row__actions">
+            <FdButton
+              variant="ghost"
+              size="sm"
+              @click="useForPullRequests(repo)"
+            >
+              {{ t('githubRepos.useForPrs') }}
+            </FdButton>
             <FdButton
               v-if="results[repo.fullName]"
               variant="ghost"

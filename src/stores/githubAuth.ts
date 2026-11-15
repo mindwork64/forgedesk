@@ -21,11 +21,36 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   const starting = ref(false)
   const error = ref<ReturnType<typeof toIpcError> | null>(null)
   const repositories = ref<GitHubRepo[]>([])
+  const selectedRepo = ref<{ owner: string; name: string; fullName: string } | null>(
+    readSelectedRepo(),
+  )
   const discovering = ref(false)
   const importing = ref(false)
   let timer: ReturnType<typeof setTimeout> | null = null
 
   const connected = computed(() => connection.value?.connected === true)
+
+  function readSelectedRepo(): { owner: string; name: string; fullName: string } | null {
+    try {
+      const raw = localStorage.getItem('forgedesk.githubRepo')
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }
+
+  function selectRepository(repo: GitHubRepo): void {
+    selectedRepo.value = {
+      owner: repo.owner.login,
+      name: repo.name,
+      fullName: repo.fullName,
+    }
+    try {
+      localStorage.setItem('forgedesk.githubRepo', JSON.stringify(selectedRepo.value))
+    } catch {
+      // Storage is optional; the in-memory selection still works.
+    }
+  }
 
   function clearTimer(): void {
     if (timer) {
@@ -167,6 +192,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     error,
     connected,
     repositories,
+    selectedRepo,
     discovering,
     importing,
     loadConnection,
@@ -176,6 +202,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     refresh,
     discoverRepositories,
     importIssues,
+    selectRepository,
     disconnect,
   }
 })

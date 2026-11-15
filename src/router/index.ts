@@ -11,6 +11,7 @@ import ProjectsView from '@/features/projects/ProjectsView.vue'
 import RoadmapView from '@/features/roadmap/RoadmapView.vue'
 import ApiMonitorView from '@/features/api-monitor/ApiMonitorView.vue'
 import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
+import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
 import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
 import RepositoryDetailView from '@/features/repositories/RepositoryDetailView.vue'
 import PlaceholderView from '@/features/placeholder/PlaceholderView.vue'
@@ -159,7 +160,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/pull-requests',
     name: 'pull-requests',
-    component: PlaceholderView,
+    component: PullRequestsView,
     meta: {
       titleKey: 'pages.pullRequests.title',
       descriptionKey: 'pages.pullRequests.description',

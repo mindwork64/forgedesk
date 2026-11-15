@@ -147,6 +147,8 @@ export type CommandName =
   | 'github_disconnect'
   | 'github_discover_repositories'
   | 'github_import_issues'
+  | 'github_list_pulls'
+  | 'github_pull_detail'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -742,4 +744,67 @@ export interface GitHubImportResult {
   projectName: string
   hasMore: boolean
   pages: number
+}
+
+export interface GitHubRef {
+  ref: string
+  sha: string
+}
+
+export interface GitHubPull {
+  id: number
+  number: number
+  title: string
+  state: string
+  draft: boolean
+  user: { login: string } | null
+  head: GitHubRef
+  base: GitHubRef
+  updatedAt: string
+  createdAt: string
+  htmlUrl: string
+  body: string | null
+  mergeable: boolean | null
+  mergedAt: string | null
+  additions: number | null
+  deletions: number | null
+  changedFiles: number | null
+  commits: number | null
+  requestedReviewers: Array<{ login: string }>
+}
+
+export interface GitHubCommit {
+  sha: string
+  commit: {
+    message: string
+    author: { name: string; date: string } | null
+  }
+  author: { login: string } | null
+}
+
+export interface GitHubReview {
+  id: number
+  user: { login: string } | null
+  state: string
+  body: string | null
+  submittedAt: string | null
+  htmlUrl: string | null
+}
+
+export interface GitHubCheckRun {
+  id: number
+  name: string
+  status: string
+  conclusion: string | null
+  startedAt: string | null
+  completedAt: string | null
+  htmlUrl: string | null
+  detailsUrl: string | null
+}
+
+export interface PullRequestDetail {
+  pull: GitHubPull
+  commits: GitHubCommit[]
+  reviews: GitHubReview[]
+  checks: GitHubCheckRun[]
 }

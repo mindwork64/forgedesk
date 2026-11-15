@@ -12,7 +12,9 @@ use forgedesk_core::domain::{
     Workspace,
 };
 use forgedesk_core::github_auth::{DeviceFlowPoll, DeviceFlowStart, GitHubConnection};
+use forgedesk_core::github_client::GitHubPull;
 use forgedesk_core::github_client::GitHubRepo;
+use forgedesk_core::github_pr::PullRequestDetail;
 use forgedesk_core::github_sync::ImportResult;
 use tauri::{AppHandle, Manager, State};
 
@@ -646,5 +648,35 @@ pub fn github_import_issues(
         .with_service(|service| {
             service.import_github_issues(&token, &login, user_id, &owner, &repo)
         })
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_list_pulls(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    pull_state: String,
+) -> Result<Vec<GitHubPull>, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| {
+            service
+                .list_github_pulls(&token, &owner, &repo, &pull_state)
+                .map(|(pulls, _)| pulls)
+        })
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_pull_detail(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+) -> Result<PullRequestDetail, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.github_pull_detail(&token, &owner, &repo, number))
         .map_err(CommandError::from)
 }

@@ -51,7 +51,7 @@
 | Pending/stale sync states | N/A | No provider integration exists in this stage |
 | No AI navigation in disabled state | PASS | No AI item in nav model or DOM |
 | No fake data presented as live | PASS | Harness is visual-gate only; placeholders are labelled and disabled |
-| Screenshot set dark/light × expanded/collapsed | PASS | 16 Gate 0 captures in `docs/ui/current/` (latest full run: 45) |
+| Screenshot set dark/light × expanded/collapsed | PASS | 16 Gate 0 captures in `docs/ui/current/` (latest full run: 47) |
 | Native Tauri window screenshot | SKIPPED | WebKitGTK 4.1 absent; native runtime not launched |
 | Tauri shell compile | PARTIAL | `cargo check`/`clippy` pass with local pkg-config shims for typechecking; real link/CI build not run here |
 | Frontend typecheck/tests/build | PASS | `npm run typecheck`, `npm test` (66), `npm run build` |

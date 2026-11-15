@@ -18,7 +18,9 @@ use crate::domain::{
     Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
+use crate::github_client::GitHubPull;
 use crate::github_client::GitHubRepo;
+use crate::github_pr::PullRequestDetail;
 use crate::github_sync::ImportResult;
 
 pub const DB_FILE_NAME: &str = "forgedesk.db";
@@ -296,6 +298,26 @@ impl AppService {
                 repo,
             )
         })
+    }
+
+    pub fn list_github_pulls(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        state: &str,
+    ) -> CoreResult<(Vec<GitHubPull>, bool)> {
+        crate::github_pr::list_pulls(token, owner, repo, state)
+    }
+
+    pub fn github_pull_detail(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<PullRequestDetail> {
+        crate::github_pr::pull_detail(token, owner, repo, number)
     }
 
     pub fn git_available(&self) -> GitAvailability {
