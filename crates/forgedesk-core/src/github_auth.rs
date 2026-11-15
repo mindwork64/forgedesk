@@ -487,8 +487,11 @@ impl GitHubAuth {
 }
 
 fn entry() -> CoreResult<Entry> {
-    Entry::new(KEYRING_SERVICE, KEYRING_USER)
-        .map_err(|error| CoreError::auth(format!("Secure credential store unavailable: {error}")))
+    entry_result(Entry::new(KEYRING_SERVICE, KEYRING_USER))
+}
+
+fn entry_result(result: Result<Entry, keyring::Error>) -> CoreResult<Entry> {
+    result.map_err(|_| CoreError::credential_storage("Secure credential store unavailable."))
 }
 
 fn connection_from(token: &StoredToken, inner: &Inner) -> GitHubConnection {
@@ -603,6 +606,18 @@ mod tests {
 
     fn stored_json() -> String {
         serde_json::to_string(&stored_token()).expect("token json")
+    }
+
+    #[test]
+    fn entry_creation_error_is_credential_storage() {
+        let Err(error) = entry_result(Err(keyring::Error::NoEntry)) else {
+            panic!("expected entry error");
+        };
+        assert_eq!(
+            error.category(),
+            crate::error::ErrorCategory::CredentialStorage
+        );
+        assert_eq!(error.category().code(), "credential_storage");
     }
 
     #[test]

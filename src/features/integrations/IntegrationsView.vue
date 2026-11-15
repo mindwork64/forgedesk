@@ -127,7 +127,12 @@ onMounted(async () => {
             >
               {{ t('githubAuth.retryCheck') }}
             </FdButton>
-            <span class="fd-provider-muted">{{ t('integrations.noAccount') }}</span>
+            <span
+              v-if="!auth.storageUnavailable && !auth.connectionCheckFailed"
+              class="fd-provider-muted"
+            >
+              {{ t('integrations.noAccount') }}
+            </span>
           </template>
         </div>
       </section>

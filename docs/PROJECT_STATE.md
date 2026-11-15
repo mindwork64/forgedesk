@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 69 core (+2 ignored live), 93 frontend, 49 visual captures.
+- **Tests:** 70 core (+2 ignored live), 103 frontend, 49 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -75,10 +75,11 @@ through `user_version`. See ADR-0001…0007.
 - PR Files completeness distinguishes a below-cap incomplete list from files exceeding
   the 3000-file endpoint cap and from unknown completeness at the cap; warnings are
   non-blocking and loaded patches stay visible.
-- Credential-storage failures use the stable `credential_storage` wire code. Only that
-  code shows saved-authorization-unavailable; auth/network/internal failures show a
-  separate connection-check error, with retry/reauthorization. Invalid saved JSON
-  returns a safe auth error without deletion.
+- Credential-storage failures—including Entry creation—use the stable
+  `credential_storage` wire code. Only that code shows saved-authorization-unavailable;
+  auth/network/internal failures show a separate connection-check error, with retry/
+  reauthorization. "No account connected" is rendered only after a successful check
+  confirms absence. Invalid saved JSON returns a safe auth error without deletion.
 - Split diff/line comments, requested-review queue, CI screen and PR↔issue links
   remain open.
 
@@ -92,12 +93,12 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (69 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (70 + 2 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (93) |
+| Frontend tests | `npm test` | PASS (103) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 49 captures (16/13/9/11 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
