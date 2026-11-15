@@ -92,5 +92,7 @@ machine with WebKitGTK/WebView2.
 - Build 4 (Stage 2 snapshot, commit `3f029a4`): **SUCCESS** in 67 s; 22 visual
   captures, 23 archived artifacts.
 - Build 5 (Stage 2 completion snapshot, commit `07b5e70`): **SUCCESS** in 90 s;
-  34 core tests, 29 visual captures, 30 archived artifacts. `measurements.json`
+  34 core tests, 29 visual captures, 30 archived artifacts.
+- Build 6 (Stage 3 planning snapshot, commit `8a999ee`): **SUCCESS** in 98 s;
+  36 core tests, 38 visual captures, 39 archived artifacts. `measurements.json`
   reports `assertions: PASS`, `failures: []`.

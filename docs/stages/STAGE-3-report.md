@@ -63,7 +63,7 @@ remain open.
 | Frontend tests | `npm test` | PASS — 78 |
 | Frontend build | `npm run build` | PASS |
 | UI visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 38 captures (16 Gate 0 + 13 Gate 1 + 9 Gate 2) |
-| Jenkins | `ForgeDesk-CI` build 6 (Stage 3 snapshot) | Pending commit/mirror push |
+| Jenkins | `ForgeDesk-CI` build 6 (Stage 3 snapshot `8a999ee`) | SUCCESS — 98 s, 36 core tests, 38 captures, 39 artifacts |
 | Native Tauri run | — | SKIPPED (no WebKitGTK/sudo) |
 
 ## Acceptance mapping

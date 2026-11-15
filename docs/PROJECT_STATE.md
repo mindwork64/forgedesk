@@ -6,8 +6,8 @@
 
 ## Current objective
 
-Run the Stage 3 snapshot through Jenkins, then begin Stage 4 (Local Git + GitHub
-connection + API Budget foundation). Stage 3 follow-ups remain tracked below.
+Begin Stage 4 (Local Git + GitHub connection + API Budget foundation). Stage 3
+follow-ups remain tracked below; the Stage 3 snapshot is green in Jenkins build 6.
 
 ## Architecture (locked)
 
@@ -56,7 +56,7 @@ IPC only. SQLite WAL, serialized writes, append-only migrations through
 | Frontend build | `npm run build` | PASS; harness excluded |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 38 captures (16 Gate 0 + 13 Gate 1 + 9 Gate 2) |
 | Jenkins build 5 | Stage 2 completion `07b5e70` | SUCCESS |
-| Jenkins build 6 | Stage 3 snapshot | Pending commit/mirror push |
+| Jenkins build 6 | Stage 3 snapshot `8a999ee` | SUCCESS — 98 s, 36 core tests, 38 captures, 39 artifacts |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
@@ -70,7 +70,7 @@ IPC only. SQLite WAL, serialized writes, append-only migrations through
 - “Add issue” from Project Overview opens My Issues without pre-filling the project.
 - Issue filters/saved views do not yet expose cycle/milestone fields.
 - Native Tauri binary/run/screenshots remain unverified in this sandbox.
-- Jenkins mirror requires the local git daemon; rotate the API token after setup.
+- Jenkins mirror requires the local git daemon; builds 5 and 6 are green. Rotate the API token after setup.
 
 ## Next step
 
