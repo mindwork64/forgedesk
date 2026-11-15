@@ -6,6 +6,7 @@ import type {
   CommandName,
   InboxEvent,
   InsightsSummary,
+  ProviderCapabilities,
 } from '@/types/ipc'
 
 function iso(hoursAgo: number): string {
@@ -144,6 +145,17 @@ const dashboard: Dashboard = {
   updatedAt: iso(1),
 }
 
+const providerCapabilities: ProviderCapabilities = {
+  repositories: true,
+  issues: true,
+  mergeRequests: true,
+  comments: false,
+  reviews: false,
+  checks: false,
+  write: false,
+  readOnly: true,
+}
+
 export function handleStage7FixtureCommand<T>(
   command: CommandName,
 ): { handled: boolean; value?: T } {
@@ -180,6 +192,8 @@ export function handleStage7FixtureCommand<T>(
       return { handled: true, value: structuredClone(automationRuns) as T }
     case 'dashboard_get':
       return { handled: true, value: structuredClone(dashboard) as T }
+    case 'provider_capabilities':
+      return { handled: true, value: structuredClone(providerCapabilities) as T }
     case 'dashboard_add_widget':
     case 'dashboard_remove_widget':
     case 'dashboard_update_width':

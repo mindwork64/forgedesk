@@ -8,6 +8,8 @@ import PageHeader from '@/components/layout/PageHeader.vue'
 import FdButton from '@/components/ui/FdButton.vue'
 import FdConfirmDialog from '@/components/ui/FdConfirmDialog.vue'
 import { useGithubAuthStore } from '@/stores/githubAuth'
+import { api } from '@/lib/ipc'
+import type { ProviderCapabilities } from '@/types/ipc'
 import { useGitStore } from '@/stores/git'
 import GitHubDeviceDialog from './GitHubDeviceDialog.vue'
 import GitHubRepoDialog from './GitHubRepoDialog.vue'
@@ -19,14 +21,29 @@ const { t } = useI18n()
 const connectOpen = ref(false)
 const disconnectOpen = ref(false)
 const reposOpen = ref(false)
+const gitlabCaps = ref<ProviderCapabilities | null>(null)
+const giteaCaps = ref<ProviderCapabilities | null>(null)
 
 onMounted(async () => {
   await Promise.all([
     git.loadAvailability(),
     git.loadRepositories(),
     auth.loadConnection(),
+    api.providerCapabilities('gitlab').then((caps) => (gitlabCaps.value = caps)),
+    api.providerCapabilities('gitea').then((caps) => (giteaCaps.value = caps)),
   ])
 })
+
+function capabilityText(caps: ProviderCapabilities | null): string {
+  if (!caps) return t('integrations.capabilitiesUnavailable')
+  return [
+    caps.repositories ? t('integrations.capRepositories') : null,
+    caps.issues ? t('integrations.capIssues') : null,
+    caps.mergeRequests ? t('integrations.capMergeRequests') : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
 </script>
 
 <template>
@@ -180,11 +197,12 @@ onMounted(async () => {
             <span class="fd-provider-icon"><Plug :size="20" aria-hidden="true" /></span>
             <div>
               <h2>{{ t('integrations.gitlab') }}</h2>
-              <p>{{ t('integrations.planned') }}</p>
+              <p>{{ t('integrations.adapterNotConfigured') }}</p>
             </div>
           </div>
-          <span class="fd-provider-state">{{ t('integrations.notConnected') }}</span>
+          <span class="fd-provider-state">{{ t('integrations.readOnlyAdapter') }}</span>
         </div>
+        <p class="fd-provider-card__notice">{{ capabilityText(gitlabCaps) }}</p>
       </section>
 
       <section class="fd-provider-card fd-provider-card--planned">
@@ -193,11 +211,12 @@ onMounted(async () => {
             <span class="fd-provider-icon"><Lock :size="20" aria-hidden="true" /></span>
             <div>
               <h2>{{ t('integrations.gitea') }}</h2>
-              <p>{{ t('integrations.planned') }}</p>
+              <p>{{ t('integrations.adapterNotConfigured') }}</p>
             </div>
           </div>
-          <span class="fd-provider-state">{{ t('integrations.notConnected') }}</span>
+          <span class="fd-provider-state">{{ t('integrations.readOnlyAdapter') }}</span>
         </div>
+        <p class="fd-provider-card__notice">{{ capabilityText(giteaCaps) }}</p>
       </section>
     </div>
 

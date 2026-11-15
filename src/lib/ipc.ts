@@ -60,6 +60,7 @@ import type {
   AutomationEvent,
   AutomationInput,
   Dashboard,
+  ProviderCapabilities,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -341,4 +342,6 @@ export const api = {
     call<Dashboard>('dashboard_reorder', { ids }),
   githubSyncPullEvents: (owner: string, repo: string) =>
     call<number>('github_sync_pull_events', { owner, repo }),
+  providerCapabilities: (provider: string) =>
+    call<ProviderCapabilities>('provider_capabilities', { provider }),
 }

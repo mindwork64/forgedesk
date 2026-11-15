@@ -5,6 +5,14 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 8 — GitLab/Gitea adapters
+
+- Capability-driven read-only GitLab/Gitea adapters for repositories, issues and
+  merge requests, with local mock-server contract tests.
+- Integrations cards expose adapter capabilities and clearly show credentials not
+  configured; no fake connections.
+- 90 core tests (+3 ignored live), 107 frontend, 57 visual captures.
+
 ### Stage 7 — Inbox/triage (partial)
 
 - Schema v7 `inbox_state`; normalized local activity Inbox with filters, unread/

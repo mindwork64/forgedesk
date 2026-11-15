@@ -34,6 +34,7 @@ ForgeDesk/
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── git.rs                  Safe direct-argv Git process wrapper
 │   ├── github_auth.rs          GitHub App Device Flow + keyring token vault
+│   ├── provider.rs             GitLab/Gitea adapter contract + transports
 │   ├── github_client.rs        Budget-free GitHub REST reads (repos/issues/PRs)
 │   ├── github_pr.rs            PR detail/commits/reviews/check-runs
 │   ├── github_activity.rs      Review queue + CI/check-runs reads
@@ -158,7 +159,7 @@ ForgeDesk/
 ├── docs/
 │   ├── PROJECT_STATE.md        Compact current state
 │   ├── architecture/           overview, repository_map, assumptions
-│   ├── decisions/              ADR-0001…0008 (…/sync/github-auth/PR-actions)
+│   ├── decisions/              ADR-0001…0009 (…/PR-actions/provider-adapters)
 │   ├── development/            setup.md, jenkins.md
 │   ├── stages/                 Stage 0/1/2/3/4/5/6 reports
 │   ├── ui/

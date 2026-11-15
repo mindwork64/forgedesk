@@ -16,6 +16,7 @@ pub mod github_auth;
 pub mod github_client;
 pub mod github_pr;
 pub mod github_sync;
+pub mod provider;
 
 pub use app::AppService;
 pub use error::{CoreError, WireError};

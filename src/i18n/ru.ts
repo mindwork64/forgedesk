@@ -989,6 +989,12 @@ export default {
     configuredRepositories: 'Репозиториев: {count}',
     manageRepositories: 'Управлять репозиториями',
     disconnect: 'Отключить',
+    adapterNotConfigured: 'Учётные данные не настроены',
+    readOnlyAdapter: 'Read-only адаптер готов',
+    capabilitiesUnavailable: 'Возможности недоступны',
+    capRepositories: 'репозитории',
+    capIssues: 'задачи',
+    capMergeRequests: 'merge requests',
     noAccount: 'Аккаунт не подключён',
   },
   apiMonitor: {

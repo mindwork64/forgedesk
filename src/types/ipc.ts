@@ -177,6 +177,7 @@ export type CommandName =
   | 'dashboard_update_width'
   | 'dashboard_reorder'
   | 'github_sync_pull_events'
+  | 'provider_capabilities'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -996,4 +997,15 @@ export interface Dashboard {
   name: string
   widgets: DashboardWidget[]
   updatedAt: string
+}
+
+export interface ProviderCapabilities {
+  repositories: boolean
+  issues: boolean
+  mergeRequests: boolean
+  comments: boolean
+  reviews: boolean
+  checks: boolean
+  write: boolean
+  readOnly: boolean
 }

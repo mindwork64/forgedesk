@@ -29,6 +29,7 @@ Full run: **57 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 4 Gate
 | Insights local aggregates | PASS | summary, throughput, status/project distribution |
 | Automations local rules/preview/run | PASS | toggle, preview, run, history |
 | Dashboards layout/widgets | PASS | persisted 12-column edit mode |
+| GitLab/Gitea capability cards | PASS | read-only adapter ready, credentials not configured |
 
 ## Notes
 

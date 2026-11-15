@@ -28,6 +28,7 @@ use forgedesk_core::github_client::{GitHubCheckRun, GitHubSearchIssue};
 use forgedesk_core::github_client::{GitHubMergeResult, GitHubPull as GitHubPullModel};
 use forgedesk_core::github_pr::PullRequestDetail;
 use forgedesk_core::github_sync::ImportResult;
+use forgedesk_core::provider::{ProviderCapabilities, ProviderKind};
 use tauri::{AppHandle, Manager, State};
 
 use crate::state::AppState;
@@ -1042,4 +1043,11 @@ pub fn github_sync_pull_events(
     state
         .with_service(|service| service.sync_github_pull_events(&token, &owner, &repo))
         .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn provider_capabilities(provider: String) -> Result<ProviderCapabilities, CommandError> {
+    Ok(forgedesk_core::provider::capabilities(ProviderKind::parse(
+        &provider,
+    )?))
 }

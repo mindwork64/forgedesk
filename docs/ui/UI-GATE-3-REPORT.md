@@ -18,7 +18,7 @@ data requires Stage 4 authentication, which is not configured.
   branch creation.
 - Integrations: GitHub primary card with real Device Flow connect/reauthorize/
   refresh/disconnect, connection state and readable read/write scopes; Local Git
-  real state/version/repository count; GitLab/Gitea planned.
+  real state/version/repository count; GitLab/Gitea read-only adapters ready, credentials not configured.
 - GitHub Device Flow dialog with device code, verification URL, automatic polling,
   copy actions and keyring/memory storage state.
 - GitHub repository discovery + read-only issue import dialog (up to 250 recently

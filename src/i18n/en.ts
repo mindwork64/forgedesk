@@ -988,6 +988,12 @@ export default {
     configuredRepositories: '{count} repositories',
     manageRepositories: 'Manage repositories',
     disconnect: 'Disconnect',
+    adapterNotConfigured: 'Credentials not configured',
+    readOnlyAdapter: 'Read-only adapter ready',
+    capabilitiesUnavailable: 'Capabilities unavailable',
+    capRepositories: 'repositories',
+    capIssues: 'issues',
+    capMergeRequests: 'merge requests',
     noAccount: 'No account connected',
   },
   apiMonitor: {

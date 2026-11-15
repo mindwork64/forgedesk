@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15
-**Stage:** 7 — COMPLETE (DoD); Stage 5 sync writes remain partial
+**Stage:** 8 — COMPLETE (provider fixtures); Stage 5 sync writes remain partial
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 87 core (+3 ignored live), 107 frontend, 57 visual captures.
+- **Tests:** 90 core (+3 ignored live), 107 frontend, 57 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -115,6 +115,17 @@ through `user_version`. See ADR-0001…0007.
   `pr_merged` activity and updates the link state; live-tested on the test repository.
 - Triage routing/assignment and real-time webhooks remain out of scope for v1.
 
+### Stage 8 — GitLab/Gitea adapters (complete, fixtures)
+
+- `ProviderAdapter` contract: normalized repositories/issues/merge requests plus
+  explicit read-only capabilities; no fake provider names as capability evidence.
+- GitLab: projects/issues/MRs, `PRIVATE-TOKEN`, `X-Next-Page`.
+- Gitea: user repos/issues/pulls, token auth, `X-HasMore`, PR filtering from issues.
+- Integrations cards show read-only adapter ready, credentials not configured and
+  supported capability list.
+- Contract tests use local mock HTTP servers; live hosts/tokens are unavailable and
+  explicitly reported as not run.
+
 ### Stages 1–3 (preserved)
 
 - Local-first shell/settings/backups/themes.
@@ -125,7 +136,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (87 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (90 + 3 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
@@ -156,6 +167,8 @@ through `user_version`. See ADR-0001…0007.
   repository is WebView storage, not SQLite.
 - Token storage uses OS keyring; when unavailable it falls back to session-only
   memory and warns. Token revocation is local-only (Disconnect deletes the entry).
+- GitLab/Gitea adapters are contract-tested but not live-tested; no connection/token
+  UI or provider persistence exists yet.
 - GitHub repository discovery is live; only the selected repo is used for PRs.
 - No dispatcher worker; issue import records response-header budget observations, but
   PR reads and request logs have no producer yet. Observed-request counts are log
@@ -176,6 +189,7 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Stage 8: capability-driven GitLab/Gitea provider adapters with contract tests. Stage 5
-sync writes and Stage 6/7 polish remain tracked. Remaining Stage 6 polish (inline comment
+Stage 9: optional AI extension, disabled by default and build-excludable. Stage 5/6
+sync-write and native polish remain tracked; GitLab/Gitea live verification remains a
+release task until hosts/tokens are available. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.
