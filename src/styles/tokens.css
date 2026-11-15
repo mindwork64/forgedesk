@@ -1,0 +1,157 @@
+/* ============================================================================
+   ForgeDesk design tokens — the single source of truth.
+   Base values are fixed by 06_UI_UX_SPEC.md §3. Derived tokens (focus rings,
+   overlays, shadows, soft semantic backgrounds) are the only additions.
+   ========================================================================== */
+
+:root {
+  /* Typography --------------------------------------------------------- */
+  --fd-font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Noto Sans',
+    sans-serif;
+  --fd-font-mono: 'Cascadia Code', 'JetBrains Mono', 'SFMono-Regular', Consolas,
+    'Liberation Mono', monospace;
+
+  --fd-text-11: 11px;
+  --fd-text-12: 12px;
+  --fd-text-13: 13px;
+  --fd-text-14: 14px;
+  --fd-text-16: 16px;
+  --fd-text-18: 18px;
+  --fd-text-20: 20px;
+
+  --fd-weight-regular: 400;
+  --fd-weight-medium: 500;
+  --fd-weight-semibold: 600;
+
+  --fd-line-body: 1.5;
+  --fd-line-tight: 1.35;
+
+  /* 4 px spacing scale ------------------------------------------------- */
+  --fd-space-1: 4px;
+  --fd-space-2: 8px;
+  --fd-space-3: 12px;
+  --fd-space-4: 16px;
+  --fd-space-5: 20px;
+  --fd-space-6: 24px;
+  --fd-space-7: 32px;
+  --fd-space-8: 40px;
+  --fd-space-9: 48px;
+
+  /* Geometry ----------------------------------------------------------- */
+  --fd-sidebar-width: 240px;
+  --fd-sidebar-collapsed-width: 64px;
+  --fd-header-height: 48px;
+  --fd-status-height: 24px;
+  --fd-detail-width: 440px;
+  --fd-content-pad: 24px;
+  --fd-sidebar-pad: 12px;
+  --fd-toolbar-height: 40px;
+  --fd-nav-item-height: 32px;
+  --fd-row-height: 40px;
+  --fd-row-height-compact: 36px;
+  --fd-button-height: 32px;
+  --fd-button-height-sm: 28px;
+  --fd-input-height: 32px;
+  --fd-radius-control: 6px;
+  --fd-radius-panel: 8px;
+  --fd-radius-modal: 10px;
+
+  /* Motion ------------------------------------------------------------- */
+  --fd-motion-hover: 120ms;
+  --fd-motion-drawer: 160ms;
+  --fd-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layers ------------------------------------------------------------- */
+  --fd-z-dropdown: 20;
+  --fd-z-overlay: 40;
+  --fd-z-modal: 50;
+  --fd-z-toast: 60;
+  --fd-z-tooltip: 70;
+}
+
+/* Dark theme (default) -------------------------------------------------- */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --fd-bg: #0e1117;
+  --fd-sidebar: #11151c;
+  --fd-surface: #151a22;
+  --fd-surface-raised: #1a202b;
+  --fd-surface-hover: #202735;
+  --fd-surface-selected: #242d3d;
+  --fd-border: #293241;
+  --fd-border-subtle: #202734;
+  --fd-text: #e8ecf2;
+  --fd-text-secondary: #a0a9b8;
+  --fd-text-muted: #727d8d;
+  --fd-accent: #8b7cff;
+  --fd-accent-soft: #302b52;
+  --fd-success: #43b581;
+  --fd-warning: #e5a84b;
+  --fd-danger: #e16d75;
+  --fd-info: #6fa8ff;
+
+  /* Derived tokens */
+  --fd-accent-contrast: #0e1117;
+  --fd-accent-hover: #9d90ff;
+  --fd-danger-contrast: #10141b;
+  --fd-danger-hover: #ea8189;
+  --fd-success-soft: rgba(67, 181, 129, 0.14);
+  --fd-warning-soft: rgba(229, 168, 75, 0.14);
+  --fd-danger-soft: rgba(225, 109, 117, 0.14);
+  --fd-info-soft: rgba(111, 168, 255, 0.14);
+  --fd-overlay: rgba(5, 8, 12, 0.64);
+  --fd-scrollbar: #2b3442;
+  --fd-scrollbar-hover: #3a4556;
+  --fd-focus-ring: rgba(139, 124, 255, 0.42);
+  --fd-shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(41, 50, 65, 0.9);
+  --fd-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(41, 50, 65, 0.9);
+  --fd-shadow-control: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --fd-skeleton: #1d2430;
+}
+
+/* Light theme ----------------------------------------------------------- */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --fd-bg: #f5f6f8;
+  --fd-sidebar: #eceff3;
+  --fd-surface: #ffffff;
+  --fd-surface-raised: #ffffff;
+  --fd-surface-hover: #eef1f5;
+  --fd-surface-selected: #e7e9f8;
+  --fd-border: #d8dde5;
+  --fd-border-subtle: #e7eaf0;
+  --fd-text: #202633;
+  --fd-text-secondary: #5f6978;
+  --fd-text-muted: #8a93a1;
+  --fd-accent: #6757d9;
+  --fd-accent-soft: #eae7ff;
+  --fd-success: #23865b;
+  --fd-warning: #a86a12;
+  --fd-danger: #c44450;
+  --fd-info: #356fc4;
+
+  /* Derived tokens */
+  --fd-accent-contrast: #ffffff;
+  --fd-accent-hover: #5849c6;
+  --fd-danger-contrast: #ffffff;
+  --fd-danger-hover: #ae3541;
+  --fd-success-soft: rgba(35, 134, 91, 0.11);
+  --fd-warning-soft: rgba(168, 106, 18, 0.11);
+  --fd-danger-soft: rgba(196, 68, 80, 0.1);
+  --fd-info-soft: rgba(53, 111, 196, 0.1);
+  --fd-overlay: rgba(23, 30, 42, 0.32);
+  --fd-scrollbar: #c9d0da;
+  --fd-scrollbar-hover: #b3bcc9;
+  --fd-focus-ring: rgba(103, 87, 217, 0.34);
+  --fd-shadow-popover: 0 8px 24px rgba(32, 38, 51, 0.14),
+    0 0 0 1px rgba(216, 221, 229, 0.95);
+  --fd-shadow-modal: 0 24px 64px rgba(32, 38, 51, 0.2),
+    0 0 0 1px rgba(216, 221, 229, 0.95);
+  --fd-shadow-control: 0 1px 2px rgba(32, 38, 51, 0.18);
+  --fd-skeleton: #e9edf2;
+}

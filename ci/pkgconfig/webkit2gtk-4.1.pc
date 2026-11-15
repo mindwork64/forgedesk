@@ -1,0 +1,9 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+Name: webkit2gtk-4.1
+Description: Local typecheck shim (no native library linked by cargo check)
+Version: 2.48.0
+Libs: -L${libdir} -lwebkit2gtk-4.1
+Cflags: -I${includedir}/webkitgtk-4.1

@@ -1,0 +1,114 @@
+pub mod commands;
+pub mod state;
+
+use tauri::{Manager, PhysicalPosition, PhysicalSize, RunEvent, WindowEvent};
+use tracing_subscriber::EnvFilter;
+
+use crate::state::AppState;
+
+pub fn run() {
+    init_logging();
+
+    let builder = tauri::Builder::default()
+        .setup(|app| {
+            let data_dir = app.path().app_data_dir().map_err(|error| {
+                format!("ForgeDesk could not resolve its application data directory: {error}")
+            })?;
+            let version = app.package_info().version.to_string();
+            app.manage(AppState::initialize(data_dir, version));
+
+            if let Some(window) = app.get_webview_window("main") {
+                restore_window_state(app.handle(), &window);
+            }
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { .. } = event {
+                let state = window.state::<AppState>();
+                let size = window.inner_size().unwrap_or(PhysicalSize::new(1440, 900));
+                let position = window.outer_position().ok();
+                let window_state = forgedesk_core::domain::WindowState {
+                    width: size.width.max(1100),
+                    height: size.height.max(700),
+                    x: position.map(|p| p.x),
+                    y: position.map(|p| p.y),
+                    maximized: window.is_maximized().unwrap_or(false),
+                };
+                state.save_window_state(window_state);
+            }
+        })
+        .invoke_handler(tauri::generate_handler![
+            commands::bootstrap,
+            commands::create_workspace,
+            commands::save_settings,
+            commands::complete_onboarding,
+            commands::save_window_state,
+            commands::list_backups,
+            commands::create_backup,
+            commands::restore_backup,
+        ]);
+
+    let app = builder
+        .build(tauri::generate_context!())
+        .expect("ForgeDesk could not initialize the desktop shell");
+
+    app.run(|app_handle, event| {
+        if let RunEvent::Exit = event {
+            app_handle.state::<AppState>().shutdown();
+        }
+    });
+}
+
+fn init_logging() {
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("forgedesk=info,warn"));
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_target(false)
+        .try_init();
+}
+
+/// Restore persisted size/position only when the saved position still lies
+/// within an available monitor. Off-screen restoration would strand the window.
+fn restore_window_state(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
+    let Some(bootstrap) = app.state::<AppState>().try_bootstrap() else {
+        return;
+    };
+    let saved = bootstrap.settings.window;
+
+    if saved.maximized {
+        let _ = window.maximize();
+        return;
+    }
+
+    let _ = window.set_size(PhysicalSize::new(saved.width, saved.height));
+
+    if let (Some(x), Some(y)) = (saved.x, saved.y) {
+        let position = PhysicalPosition::new(x, y);
+        let width = i64::from(saved.width);
+        let height = i64::from(saved.height);
+        let visible = window
+            .available_monitors()
+            .unwrap_or_default()
+            .iter()
+            .any(|monitor| {
+                let monitor_position = monitor.position();
+                let monitor_size = monitor.size();
+                let monitor_left = i64::from(monitor_position.x);
+                let monitor_top = i64::from(monitor_position.y);
+                let monitor_right = monitor_left + i64::from(monitor_size.width);
+                let monitor_bottom = monitor_top + i64::from(monitor_size.height);
+                let left = i64::from(x);
+                let top = i64::from(y);
+                left < monitor_right
+                    && left + width > monitor_left
+                    && top < monitor_bottom
+                    && top + height > monitor_top
+            });
+        if visible {
+            let _ = window.set_position(position);
+        } else {
+            let _ = window.center();
+        }
+    }
+}

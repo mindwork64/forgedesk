@@ -1,0 +1,9 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+Name: libsoup
+Description: Local typecheck shim
+Version: 3.4.4
+Libs: -L${libdir} -lsoup-3.0
+Cflags: -I${includedir}/libsoup-3.0

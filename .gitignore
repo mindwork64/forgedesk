@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.npm-cache/
+
+# Rust build output
+target/
+.cargo-home/
+
+# Frontend build output
+dist/
+
+# Tauri generated artifacts
+src-tauri/gen/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+.tmp/
+.DS_Store
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Screenshot tooling browsers
+.playwright-browsers/
