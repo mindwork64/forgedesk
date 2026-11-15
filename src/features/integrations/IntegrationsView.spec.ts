@@ -67,6 +67,18 @@ async function mountView(locale: 'en' | 'ru', code: string | null): Promise<void
   failureCode = code
   i18n.global.locale.value = locale
   setDevTransport(async <T,>(command: string) => {
+    if (command === 'provider_capabilities') {
+      return {
+        repositories: true,
+        issues: true,
+        mergeRequests: true,
+        comments: false,
+        reviews: false,
+        checks: false,
+        write: false,
+        readOnly: true,
+      } as T
+    }
     if (command === 'github_connection') {
       if (failureCode) {
         throw { code: failureCode, message: `connection failed: ${failureCode}` }
