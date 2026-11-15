@@ -68,8 +68,8 @@ issue import/export and conflict UI remain pending. No remote write was attempte
 | Live read-only import | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — cli/cli import, second run imported 0 and skipped links |
 | Jenkins build 8 | Sync foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
-| Jenkins build 10 | GitHub discovery/import | Pending commit/mirror push |
-| GitHub Actions | public repo `main` | SUCCESS — frontend, core Ubuntu/Windows, Tauri Linux/Windows, visual gates |
+| Jenkins build 10 | GitHub discovery/import `5d894e6` | SUCCESS — 124 s, 52 core tests, 45 captures, 46 artifacts |
+| GitHub Actions | public repo `main` | SUCCESS — frontend, core Ubuntu/Windows, Tauri Linux/Windows, visual gates (auth + import runs) |
 | Live GitHub sync | — | NOT RUN — auth/provider client absent |
 
 ## Next
