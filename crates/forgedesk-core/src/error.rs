@@ -91,6 +91,9 @@ pub enum CoreError {
 
     #[error("credential storage error: {message}")]
     CredentialStorage { message: String },
+
+    #[error("permission denied: {message}")]
+    Permission { message: String },
 }
 
 impl CoreError {
@@ -156,6 +159,12 @@ impl CoreError {
         }
     }
 
+    pub fn permission(message: impl Into<String>) -> Self {
+        Self::Permission {
+            message: message.into(),
+        }
+    }
+
     pub fn internal(message: impl Into<String>) -> Self {
         Self::Internal {
             message: message.into(),
@@ -176,6 +185,7 @@ impl CoreError {
             Self::Network { .. } => ErrorCategory::Network,
             Self::UnsupportedCapability { .. } => ErrorCategory::UnsupportedCapability,
             Self::CredentialStorage { .. } => ErrorCategory::CredentialStorage,
+            Self::Permission { .. } => ErrorCategory::Permission,
         }
     }
 
@@ -194,6 +204,7 @@ impl CoreError {
             Self::Network { message } => message.clone(),
             Self::UnsupportedCapability { message } => message.clone(),
             Self::CredentialStorage { message } => message.clone(),
+            Self::Permission { message } => message.clone(),
         }
     }
 
@@ -211,7 +222,8 @@ impl CoreError {
             Self::Auth { .. }
             | Self::Network { .. }
             | Self::UnsupportedCapability { .. }
-            | Self::CredentialStorage { .. } => Some(self.to_string()),
+            | Self::CredentialStorage { .. }
+            | Self::Permission { .. } => Some(self.to_string()),
         }
     }
 

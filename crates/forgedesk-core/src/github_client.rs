@@ -30,6 +30,32 @@ pub struct GitHubRepo {
     pub description: Option<String>,
     pub updated_at: Option<String>,
     pub owner: GitHubOwner,
+    #[serde(default)]
+    pub permissions: Option<GitHubPermissions>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct GitHubPermissions {
+    #[serde(default)]
+    pub admin: bool,
+    #[serde(default)]
+    pub maintain: bool,
+    #[serde(default)]
+    pub push: bool,
+    #[serde(default)]
+    pub triage: bool,
+    #[serde(default)]
+    pub pull: bool,
+}
+
+impl GitHubPermissions {
+    pub fn can_manage(&self) -> bool {
+        self.admin || self.maintain || self.push
+    }
+
+    pub fn can_review(&self) -> bool {
+        self.can_manage() || self.triage || self.pull
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -176,6 +202,13 @@ pub struct GitHubFile {
     pub changes: i64,
     pub patch: Option<String>,
     pub previous_filename: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubMergeResult {
+    pub merged: bool,
+    pub message: String,
+    pub sha: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -367,6 +400,62 @@ impl GitHubClient {
         Ok(files)
     }
 
+    pub fn merge_pull(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        method: &str,
+        expected_sha: Option<&str>,
+    ) -> CoreResult<GitHubMergeResult> {
+        let mut body = serde_json::Map::new();
+        body.insert("merge_method".into(), method.into());
+        if let Some(sha) = expected_sha {
+            body.insert("sha".into(), sha.into());
+        }
+        self.send_json(
+            reqwest::Method::PUT,
+            &format!(
+                "/repos/{}/{}/pulls/{number}/merge",
+                encode(owner),
+                encode(repo)
+            ),
+            &serde_json::Value::Object(body),
+        )
+    }
+
+    pub fn close_pull(&self, owner: &str, repo: &str, number: i64) -> CoreResult<GitHubPull> {
+        self.send_json(
+            reqwest::Method::PATCH,
+            &format!("/repos/{}/{}/pulls/{number}", encode(owner), encode(repo)),
+            &serde_json::json!({ "state": "closed" }),
+        )
+    }
+
+    pub fn submit_review(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        event: &str,
+        body: &str,
+    ) -> CoreResult<GitHubReview> {
+        let mut payload = serde_json::Map::new();
+        payload.insert("event".into(), event.into());
+        if !body.trim().is_empty() {
+            payload.insert("body".into(), body.into());
+        }
+        self.send_json(
+            reqwest::Method::POST,
+            &format!(
+                "/repos/{}/{}/pulls/{number}/reviews",
+                encode(owner),
+                encode(repo)
+            ),
+            &serde_json::Value::Object(payload),
+        )
+    }
+
     pub fn list_check_runs(
         &self,
         owner: &str,
@@ -381,6 +470,33 @@ impl GitHubClient {
         );
         let response: CheckRunsResponse = self.get_json(&path)?;
         Ok(response.check_runs)
+    }
+
+    fn send_json<T: for<'de> Deserialize<'de>>(
+        &self,
+        method: reqwest::Method,
+        path: &str,
+        body: &serde_json::Value,
+    ) -> CoreResult<T> {
+        let response = self
+            .http
+            .request(method, format!("{}{}", self.base, path))
+            .header("Accept", "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", "2022-11-28")
+            .bearer_auth(&self.token)
+            .json(body)
+            .send()
+            .map_err(|error| CoreError::network(format!("GitHub request failed: {error}")))?;
+        let status = response.status();
+        let rate = rate_from_headers(&response);
+        let text = response
+            .text()
+            .map_err(|error| CoreError::network(format!("GitHub response failed: {error}")))?;
+        if !status.is_success() {
+            return Err(map_status(status, &text, rate.remaining));
+        }
+        serde_json::from_str(&text)
+            .map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))
     }
 
     fn get_json<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<T> {
@@ -503,6 +619,15 @@ fn map_status(status: StatusCode, body: &str, remaining: Option<i64>) -> CoreErr
     }
     if status == StatusCode::FORBIDDEN {
         return CoreError::auth(format!("GitHub permission denied: {message}"));
+    }
+    if status == StatusCode::NOT_FOUND {
+        return CoreError::not_found("GitHub object");
+    }
+    if status == StatusCode::CONFLICT || status == StatusCode::METHOD_NOT_ALLOWED {
+        return CoreError::conflict(format!("GitHub rejected the action: {message}"));
+    }
+    if status == StatusCode::UNPROCESSABLE_ENTITY {
+        return CoreError::validation_message(format!("GitHub validation failed: {message}"));
     }
     CoreError::network(format!("GitHub request failed: {message}"))
 }
@@ -718,6 +843,36 @@ mod tests {
         );
         assert_eq!(parse_next_page("<...>; rel=\"last\""), None);
         assert_eq!(encode("owner/repo name"), "owner%2Frepo%20name");
+    }
+
+    #[test]
+    fn permissions_require_write_or_maintain_roles() {
+        assert!(!GitHubPermissions::default().can_manage());
+        assert!(GitHubPermissions {
+            admin: true,
+            ..Default::default()
+        }
+        .can_manage());
+        assert!(GitHubPermissions {
+            maintain: true,
+            ..Default::default()
+        }
+        .can_manage());
+        assert!(GitHubPermissions {
+            push: true,
+            ..Default::default()
+        }
+        .can_manage());
+        assert!(GitHubPermissions {
+            pull: true,
+            ..Default::default()
+        }
+        .can_review());
+        assert!(!GitHubPermissions {
+            triage: true,
+            ..Default::default()
+        }
+        .can_manage());
     }
 
     #[test]

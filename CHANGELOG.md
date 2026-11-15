@@ -5,6 +5,14 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 6 completion
+
+- Schema v6 `pull_request_link`; PR↔local issue link/unlink.
+- Permission-aware, confirmation-gated merge/squash/rebase, close and review actions
+  with head-SHA pinning and no automatic retry of ambiguous writes.
+- Read-only review queue, CI/activity, review comments and unified/split diffs.
+- 78 core tests (+3 ignored live), 107 frontend, 53 visual captures.
+
 ### Stage 6 — pull requests/checks/reviews (read-only, partial)
 
 - GitHub REST pull list/detail, commits, reviews and check-runs.

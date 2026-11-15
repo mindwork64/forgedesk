@@ -152,6 +152,13 @@ export type CommandName =
   | 'github_review_requested'
   | 'github_ci_overview'
   | 'github_commit_checks'
+  | 'github_pull_link'
+  | 'github_link_pull'
+  | 'github_unlink_pull'
+  | 'github_pull_capabilities'
+  | 'github_merge_pull'
+  | 'github_close_pull'
+  | 'github_submit_review'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -850,4 +857,31 @@ export interface CiOverview {
   defaultBranch: string
   commits: GitHubCommit[]
   checks: GitHubCheckRun[]
+}
+
+export interface PullLink {
+  id: string
+  localIssueId: string
+  issueKey: string
+  issueTitle: string
+  provider: string
+  accountId: string
+  repositoryId: string
+  pullNumber: number
+  pullUrl: string
+  title: string
+  state: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PullCapabilities {
+  canManage: boolean
+  canReview: boolean
+}
+
+export interface GitHubMergeResult {
+  merged: boolean
+  message: string
+  sha: string | null
 }

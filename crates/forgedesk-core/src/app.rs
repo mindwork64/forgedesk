@@ -8,6 +8,7 @@ use crate::db::repositories::{
     workflow,
 };
 use crate::db::Database;
+use crate::domain::pull_link::PullLink;
 use crate::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
@@ -18,10 +19,11 @@ use crate::domain::{
     Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
+use crate::github_actions::PullCapabilities;
 use crate::github_activity::CiOverview;
-use crate::github_client::GitHubPull;
 use crate::github_client::GitHubRepo;
 use crate::github_client::GitHubSearchIssue;
+use crate::github_client::{GitHubMergeResult, GitHubPull, GitHubReview};
 use crate::github_pr::PullRequestDetail;
 use crate::github_sync::ImportResult;
 
@@ -349,6 +351,132 @@ impl AppService {
         reference: &str,
     ) -> CoreResult<Vec<crate::github_client::GitHubCheckRun>> {
         crate::github_activity::commit_checks(token, owner, repo, reference)
+    }
+
+    pub fn github_pull_link(
+        &self,
+        account_id: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<Option<PullLink>> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::pull_links::get(
+                conn,
+                &workspace.id,
+                "github",
+                account_id,
+                &format!("{owner}/{repo}"),
+                number,
+            )
+        })
+    }
+
+    pub fn link_github_pull(
+        &self,
+        token: &str,
+        account_id: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        issue_key: &str,
+    ) -> CoreResult<PullLink> {
+        let workspace = self.require_workspace()?;
+        let pull = crate::github_client::GitHubClient::new(token)?.get_pull(owner, repo, number)?;
+        self.db.with_transaction(|tx| {
+            crate::db::repositories::pull_links::link(
+                tx,
+                &workspace.id,
+                issue_key,
+                "github",
+                account_id,
+                &format!("{owner}/{repo}"),
+                number,
+                &pull.html_url,
+                &pull.title,
+                &pull.state,
+            )
+        })
+    }
+
+    pub fn unlink_github_pull(
+        &self,
+        account_id: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            crate::db::repositories::pull_links::unlink(
+                tx,
+                &workspace.id,
+                "github",
+                account_id,
+                &format!("{owner}/{repo}"),
+                number,
+            )
+        })
+    }
+
+    pub fn github_pull_capabilities(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+    ) -> CoreResult<PullCapabilities> {
+        crate::github_actions::capabilities(token, owner, repo)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn github_merge_pull(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        method: &str,
+        expected_sha: Option<&str>,
+        confirmed: bool,
+    ) -> CoreResult<GitHubMergeResult> {
+        crate::github_actions::merge_pull(
+            token,
+            owner,
+            repo,
+            number,
+            method,
+            expected_sha,
+            confirmed,
+        )
+    }
+
+    pub fn github_close_pull(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        confirmed: bool,
+    ) -> CoreResult<GitHubPull> {
+        crate::github_actions::close_pull(token, owner, repo, number, confirmed)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn github_submit_review(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        event: &str,
+        body: &str,
+        login: &str,
+        confirmed: bool,
+    ) -> CoreResult<GitHubReview> {
+        crate::github_actions::submit_review(
+            token, owner, repo, number, event, body, login, confirmed,
+        )
     }
 
     pub fn git_available(&self) -> GitAvailability {

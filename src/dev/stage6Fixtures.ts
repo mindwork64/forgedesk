@@ -8,6 +8,9 @@ import type {
   GitHubSearchIssue,
   CiOverview,
   GitHubReviewComment,
+  PullLink,
+  PullCapabilities,
+  GitHubMergeResult,
   PullRequestDetail,
 } from '@/types/ipc'
 
@@ -184,6 +187,39 @@ const ciOverview: CiOverview = {
   checks,
 }
 
+const linkedPull: PullLink = {
+  id: 'pull-link-1',
+  localIssueId: 'issue-101',
+  issueKey: 'FD-142',
+  issueTitle: 'GitHub pull request workspace',
+  provider: 'github',
+  accountId: 'github:34349377',
+  repositoryId: 'mindwork64/forgedesk',
+  pullNumber: 214,
+  pullUrl: pullOne.htmlUrl,
+  title: pullOne.title,
+  state: 'open',
+  createdAt: iso(24),
+  updatedAt: iso(2),
+}
+
+const capabilities: PullCapabilities = { canManage: true, canReview: true }
+
+const mergeResult: GitHubMergeResult = {
+  merged: true,
+  message: 'Pull request successfully merged',
+  sha: 'f1e2d3c4b5a6978877665544332211aabbccddee',
+}
+
+const submittedReview: GitHubReview = {
+  id: 990,
+  user: { login: 'eloraam' },
+  state: 'APPROVED',
+  body: 'Approved from ForgeDesk.',
+  submittedAt: iso(1),
+  htmlUrl: null,
+}
+
 const overLimitDetail: PullRequestDetail = {
   pull: { ...pullTwo, changedFiles: 3500 },
   commits: [],
@@ -213,6 +249,23 @@ export function handleStage6FixtureCommand<T>(
       return { handled: true, value: structuredClone(ciOverview) as T }
     case 'github_commit_checks':
       return { handled: true, value: structuredClone(checks) as T }
+    case 'github_pull_link':
+      return { handled: true, value: structuredClone(linkedPull) as T }
+    case 'github_link_pull':
+      return { handled: true, value: structuredClone(linkedPull) as T }
+    case 'github_unlink_pull':
+      return { handled: true, value: undefined as T }
+    case 'github_pull_capabilities':
+      return { handled: true, value: structuredClone(capabilities) as T }
+    case 'github_merge_pull':
+      return { handled: true, value: structuredClone(mergeResult) as T }
+    case 'github_close_pull':
+      return {
+        handled: true,
+        value: structuredClone({ ...pullOne, state: 'closed' }) as T,
+      }
+    case 'github_submit_review':
+      return { handled: true, value: structuredClone(submittedReview) as T }
     default:
       return { handled: false }
   }

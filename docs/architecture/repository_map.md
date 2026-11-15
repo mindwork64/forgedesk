@@ -37,6 +37,7 @@ ForgeDesk/
 │   ├── github_client.rs        Budget-free GitHub REST reads (repos/issues/PRs)
 │   ├── github_pr.rs            PR detail/commits/reviews/check-runs
 │   ├── github_activity.rs      Review queue + CI/check-runs reads
+│   ├── github_actions.rs       Permissioned merge/close/review actions
 │   ├── domain/
 │   │   ├── api_budget.rs       Budget observation/request/queue DTOs + formula
 │   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
@@ -65,6 +66,7 @@ ForgeDesk/
 │           ├── api_budget.rs   Observations, request log, queue, control
 │           ├── saved_views.rs  Persisted filter/sort/group views
 │           ├── sync.rs         Sync links/cursors/outbox/conflicts
+│           ├── pull_links.rs   PR↔local issue links
 │           ├── settings.rs     Settings JSON document
 │           └── workspace.rs    Workspace + human-key counter
 │
@@ -144,7 +146,7 @@ ForgeDesk/
 ├── docs/
 │   ├── PROJECT_STATE.md        Compact current state
 │   ├── architecture/           overview, repository_map, assumptions
-│   ├── decisions/              ADR-0001…0007 (…/sync/github-auth)
+│   ├── decisions/              ADR-0001…0008 (…/sync/github-auth/PR-actions)
 │   ├── development/            setup.md, jenkins.md
 │   ├── stages/                 Stage 0/1/2/3/4/5/6 reports
 │   ├── ui/

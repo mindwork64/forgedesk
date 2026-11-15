@@ -1,14 +1,14 @@
 # PROJECT_STATE
 
-**Updated:** 2026-11-15  
-**Stage:** 6 — Pull requests/checks/reviews (read-only slice); Stage 5 sync writes remain partial  
+**Updated:** 2026-11-15
+**Stage:** 6 — COMPLETE (DoD); Stage 5 sync writes remain partial
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
 
-Extend the read-only GitHub PR surface (Files/diff, request queue, CI screen) and
-then complete Stage 5 write/reconciliation paths. No merge/close/comment or external
-issue write is enabled without explicit user intent.
+Complete the remaining PR polish (inline comment placement, PR read budgets) and
+Stage 5 reconciliation. GitHub merge/close/review actions are permission-checked and
+require explicit confirmation; no automatic retry of ambiguous writes.
 
 ## Architecture (locked)
 
@@ -38,11 +38,11 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 70 core (+3 ignored live), 107 frontend, 52 visual captures.
+- **Tests:** 78 core (+3 ignored live), 107 frontend, 53 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
-- **Schema v5:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`.
+- **Schema v6:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`, `pull_request_link`.
 - Remote link ownership JSON, per-resource cursors (page/watermark/last success),
   idempotent outbox enqueue and closed state machine:
   `pending → dispatching → succeeded | failed_definite | outcome_unknown →
@@ -66,7 +66,11 @@ through `user_version`. See ADR-0001…0007.
 - Overview shows description, branches, additions/deletions/files, mergeability and
   requested reviewers; Checks shows status/conclusion/duration; Reviews shows
   reviewer/state/body; Files shows unified patches with status and counts.
-- No merge, close, approve, comment or review submission is exposed.
+- PR↔local-issue links are stored in schema v6 (`pull_request_link`) with link/unlink
+  UI; no GitHub object is modified by linking.
+- Permission-aware actions: merge (merge/squash/rebase with expected head SHA),
+  close and review submission (approve/request changes/comment) require explicit
+  confirmation and server-side permission checks; no auto-retry on ambiguous writes.
 - Live read-only verification against `cli/cli` passed for list + detail.
 - Disconnect is idempotent, keyring-error-safe and clears memory/pending/warnings
   only after a successful credential delete; PR file pagination loads all pages
@@ -98,14 +102,14 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (70 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (78 + 3 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (107) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 52 captures (16/13/9/14 across Gates 0–3) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 53 captures (16/13/9/15 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
@@ -120,9 +124,11 @@ through `user_version`. See ADR-0001…0007.
 
 - Stage 5 read-only issue import exists; label/comment sync, local→remote writes,
   sync UI, conflict resolution UI and the outbox dispatcher remain open.
-- Stage 6 is read-only: no split diff/line comments, merge/close,
-  approve/request-changes, comment, requested-review queue or CI screen;
-  review/check table columns show `—` for rows whose detail has not been loaded.
+- Stage 6 write actions are implemented with explicit confirmation and permission
+  checks, but have not been executed against a live GitHub repository. Inline
+  comment placement/thread resolution, budget-aware PR request logging and native
+  Tauri verification remain open; review/check table columns show `—` for rows whose
+  detail has not been loaded.
 - PR read calls do not yet write API-budget observations/request logs; selected
   repository is WebView storage, not SQLite.
 - Token storage uses OS keyring; when unavailable it falls back to session-only
@@ -147,7 +153,7 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Stage 6 read-only completion: PR Files/diff (lazy, unified/split), requested-review
-queue, CI/checks screen, GraphQL list summaries and PR↔issue links. Then Stage 5
-write/reconciliation: comments, explicit local→remote create/update, conflict UI and
-budget-aware request logs. Authenticate via Integrations → Connect.
+Remaining Stage 6: inline comment placement/thread resolution, budget-aware PR
+request logs, GraphQL list summaries and native verification. Then Stage 5
+write/reconciliation: comments, explicit local→remote issue create/update, conflict
+UI and outbox dispatcher. Authenticate via Integrations → Connect.

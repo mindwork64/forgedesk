@@ -9,11 +9,15 @@ import PageHeader from '@/components/layout/PageHeader.vue'
 import PageToolbar from '@/components/layout/PageToolbar.vue'
 import FdButton from '@/components/ui/FdButton.vue'
 import FdEmptyState from '@/components/ui/FdEmptyState.vue'
+import FdConfirmDialog from '@/components/ui/FdConfirmDialog.vue'
 import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdIconButton from '@/components/ui/FdIconButton.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import FdSegmented from '@/components/ui/FdSegmented.vue'
 import GitHubRepoDialog from '@/features/integrations/GitHubRepoDialog.vue'
+import LinkIssueDialog from './LinkIssueDialog.vue'
+import MergePullDialog from './MergePullDialog.vue'
+import ReviewPullDialog from './ReviewPullDialog.vue'
 import { assessFileCompleteness } from './fileCompleteness'
 import { parseSplitDiff, type SplitDiffRow } from './splitDiff'
 import { formatRelative } from '@/lib/format'
@@ -33,6 +37,10 @@ const { t } = useI18n()
 
 const state = ref<'open' | 'closed' | 'all'>('open')
 const repoDialog = ref(false)
+const linkDialog = ref(false)
+const mergeDialog = ref(false)
+const reviewDialog = ref(false)
+const closeDialog = ref(false)
 const detailTab = ref<DetailTab>('overview')
 const diffMode = ref('unified')
 const selectedRepo = computed(() => auth.selectedRepo)
@@ -232,6 +240,33 @@ function duration(check: GitHubCheckRun): string {
               <span v-if="prs.detail.pull.draft">{{ t('prs.draftBadge') }}</span>
               <span>{{ prs.detail.pull.user?.login ?? '—' }}</span>
             </div>
+            <div v-if="prs.capabilities && prs.detail.pull.state === 'open'" class="fd-pr-actions">
+              <FdButton
+                v-if="prs.capabilities.canReview"
+                variant="ghost"
+                size="sm"
+                @click="reviewDialog = true"
+              >
+                {{ t('prs.actions.review') }}
+              </FdButton>
+              <FdButton
+                v-if="prs.capabilities.canManage"
+                variant="secondary"
+                size="sm"
+                :disabled="prs.detail.pull.mergeable === false"
+                @click="mergeDialog = true"
+              >
+                {{ t('prs.actions.merge') }}
+              </FdButton>
+              <FdButton
+                v-if="prs.capabilities.canManage"
+                variant="ghost"
+                size="sm"
+                @click="closeDialog = true"
+              >
+                {{ t('prs.actions.close') }}
+              </FdButton>
+            </div>
             <nav class="fd-pr-tabs">
               <button
                 v-for="tab in tabs"
@@ -253,6 +288,24 @@ function duration(check: GitHubCheckRun): string {
                   <div><dt>{{ t('prs.detail.changes') }}</dt><dd>+{{ prs.detail.pull.additions ?? 0 }} −{{ prs.detail.pull.deletions ?? 0 }} · {{ prs.detail.pull.changedFiles ?? 0 }} files</dd></div>
                   <div><dt>{{ t('prs.detail.mergeable') }}</dt><dd>{{ prs.detail.pull.mergeable === null ? t('prs.detail.unknown') : prs.detail.pull.mergeable }}</dd></div>
                   <div><dt>{{ t('prs.detail.reviewers') }}</dt><dd>{{ prs.detail.pull.requestedReviewers.map((r) => r.login).join(', ') || '—' }}</dd></div>
+                  <div>
+                    <dt>{{ t('prs.link.linkedIssue') }}</dt>
+                    <dd v-if="prs.linkedIssue">
+                      <strong>{{ prs.linkedIssue.issueKey }}</strong> {{ prs.linkedIssue.issueTitle }}
+                      <FdButton
+                        variant="ghost"
+                        size="sm"
+                        @click="prs.unlinkIssue(selectedRepo.owner, selectedRepo.name, prs.detail.pull.number)"
+                      >
+                        {{ t('prs.link.unlink') }}
+                      </FdButton>
+                    </dd>
+                    <dd v-else>
+                      <FdButton variant="ghost" size="sm" @click="linkDialog = true">
+                        {{ t('prs.link.action') }}
+                      </FdButton>
+                    </dd>
+                  </div>
                 </dl>
               </template>
               <template v-else-if="detailTab === 'commits'">
@@ -346,6 +399,43 @@ function duration(check: GitHubCheckRun): string {
     </div>
 
     <GitHubRepoDialog v-model:open="repoDialog" />
+    <LinkIssueDialog
+      v-if="selectedRepo && prs.selectedNumber !== null"
+      v-model:open="linkDialog"
+      :owner="selectedRepo.owner"
+      :repo="selectedRepo.name"
+      :number="prs.selectedNumber"
+    />
+    <MergePullDialog
+      v-if="selectedRepo && prs.selectedNumber !== null && pull"
+      v-model:open="mergeDialog"
+      :owner="selectedRepo.owner"
+      :repo="selectedRepo.name"
+      :number="prs.selectedNumber"
+      :head-sha="pull.head.sha"
+      @done="load"
+    />
+    <ReviewPullDialog
+      v-if="selectedRepo && prs.selectedNumber !== null && pull"
+      v-model:open="reviewDialog"
+      :owner="selectedRepo.owner"
+      :repo="selectedRepo.name"
+      :number="prs.selectedNumber"
+      :is-author="pull.user?.login === auth.connection?.login"
+      @done="load"
+    />
+    <FdConfirmDialog
+      v-if="selectedRepo && prs.selectedNumber !== null"
+      v-model="closeDialog"
+      :title="t('prs.actions.closeTitle')"
+      :body="t('prs.actions.closeBody')"
+      :confirm-label="t('prs.actions.close')"
+      destructive
+      @confirm="
+        selectedRepo &&
+          prs.closePull(selectedRepo.owner, selectedRepo.name, prs.selectedNumber).then(load)
+      "
+    />
   </div>
 </template>
 
@@ -371,6 +461,7 @@ function duration(check: GitHubCheckRun): string {
 .fd-pr-tabs { display: flex; gap: 2px; padding: 0 var(--fd-space-4); border-bottom: 1px solid var(--fd-border-subtle); }
 .fd-pr-tab { height: 32px; padding: 0 8px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--fd-text-muted); font-size: var(--fd-text-11); cursor: pointer; }
 .fd-pr-tab--active { border-bottom-color: var(--fd-accent); color: var(--fd-text-primary); }
+.fd-pr-actions { display: flex; gap: var(--fd-space-2); padding: 0 var(--fd-space-4) var(--fd-space-2); border-bottom: 1px solid var(--fd-border-subtle); }
 .fd-pr-detail-body { padding: var(--fd-space-3) var(--fd-space-4) var(--fd-space-5); }
 .fd-pr-description { margin: 0 0 var(--fd-space-3); color: var(--fd-text-secondary); font-size: var(--fd-text-12); line-height: var(--fd-line-body); white-space: pre-wrap; }
 .fd-pr-facts { display: flex; flex-direction: column; gap: 6px; margin: 0; }

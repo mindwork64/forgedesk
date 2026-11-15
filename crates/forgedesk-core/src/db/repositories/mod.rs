@@ -6,6 +6,7 @@ pub mod issues;
 pub mod labels;
 pub mod planning;
 pub mod projects;
+pub mod pull_links;
 pub mod relations;
 pub mod repo_registry;
 pub mod saved_views;

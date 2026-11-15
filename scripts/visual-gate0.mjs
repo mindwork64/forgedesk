@@ -470,6 +470,17 @@ const cases = [
     waitFor: '[data-testid="detail-pane"]',
   },
   {
+    name: 'gate3-pr-merge-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/pull-requests',
+    openPullRequest: true,
+    openMergeDialog: true,
+    waitFor: '[data-testid="detail-pane"]',
+  },
+  {
     name: 'gate3-pr-files-split-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -807,6 +818,12 @@ async function main() {
         await page.locator('.fd-pr-row').nth(testCase.openPullRow ?? 0).click()
         await page.waitForSelector('[data-testid="detail-pane"]')
         await page.waitForTimeout(300)
+      }
+
+      if (testCase.openMergeDialog) {
+        await page.getByRole('button', { name: 'Merge', exact: true }).click()
+        await page.waitForSelector('.fd-merge')
+        await page.waitForTimeout(200)
       }
 
       if (testCase.openPullFiles) {
@@ -1209,8 +1226,21 @@ async function main() {
       if (testCase.openPullRequest) {
         const title = await page.locator('.fd-pr-detail-header strong').innerText()
         caseReport.pullDetail = title
+        if (
+          testCase.openPullRow !== 1 &&
+          !testCase.openPullFiles &&
+          !testCase.openMergeDialog
+        ) {
+          const linked = await page.locator('.fd-pr-facts').innerText()
+          assert(linked.includes('FD-142'), `${testCase.name}: linked issue missing`, report.failures)
+        }
         const expectedTitle = testCase.openPullRow === 1 ? 'API Monitor' : 'repository discovery'
         assert(title.includes(expectedTitle), `${testCase.name}: PR detail missing`, report.failures)
+      }
+
+      if (testCase.openMergeDialog) {
+        caseReport.mergeDialog = await page.locator('.fd-merge').isVisible()
+        assert(caseReport.mergeDialog, `${testCase.name}: merge confirmation missing`, report.failures)
       }
 
       if (testCase.openPullFiles) {

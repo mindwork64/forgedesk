@@ -2,6 +2,7 @@ pub mod error;
 
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
+use forgedesk_core::domain::pull_link::PullLink;
 use forgedesk_core::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
@@ -11,11 +12,14 @@ use forgedesk_core::domain::{
     SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow,
     Workspace,
 };
+use forgedesk_core::github_actions::PullCapabilities;
 use forgedesk_core::github_activity::CiOverview;
 use forgedesk_core::github_auth::{DeviceFlowPoll, DeviceFlowStart, GitHubConnection};
 use forgedesk_core::github_client::GitHubPull;
 use forgedesk_core::github_client::GitHubRepo;
+use forgedesk_core::github_client::GitHubReview;
 use forgedesk_core::github_client::{GitHubCheckRun, GitHubSearchIssue};
+use forgedesk_core::github_client::{GitHubMergeResult, GitHubPull as GitHubPullModel};
 use forgedesk_core::github_pr::PullRequestDetail;
 use forgedesk_core::github_sync::ImportResult;
 use tauri::{AppHandle, Manager, State};
@@ -723,5 +727,143 @@ pub fn github_commit_checks(
     let token = state.with_github(|github| github.access_token())?;
     state
         .with_service(|service| service.github_commit_checks(&token, &owner, &repo, &reference))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_pull_link(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+) -> Result<Option<PullLink>, CommandError> {
+    let account_id = state.with_github(|github| {
+        let connection = github
+            .connection()?
+            .ok_or_else(|| forgedesk_core::CoreError::auth("GitHub is not connected."))?;
+        Ok(format!("github:{}", connection.user_id))
+    })?;
+    state
+        .with_service(|service| service.github_pull_link(&account_id, &owner, &repo, number))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_link_pull(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+    issue_key: String,
+) -> Result<PullLink, CommandError> {
+    let (token, account_id) = state.with_github(|github| {
+        let token = github.access_token()?;
+        let connection = github
+            .connection()?
+            .ok_or_else(|| forgedesk_core::CoreError::auth("GitHub is not connected."))?;
+        Ok((token, format!("github:{}", connection.user_id)))
+    })?;
+    state
+        .with_service(|service| {
+            service.link_github_pull(&token, &account_id, &owner, &repo, number, &issue_key)
+        })
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_unlink_pull(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+) -> Result<(), CommandError> {
+    let account_id = state.with_github(|github| {
+        let connection = github
+            .connection()?
+            .ok_or_else(|| forgedesk_core::CoreError::auth("GitHub is not connected."))?;
+        Ok(format!("github:{}", connection.user_id))
+    })?;
+    state
+        .with_service(|service| service.unlink_github_pull(&account_id, &owner, &repo, number))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_pull_capabilities(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+) -> Result<PullCapabilities, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.github_pull_capabilities(&token, &owner, &repo))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+pub fn github_merge_pull(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+    method: String,
+    expected_sha: Option<String>,
+    confirmed: bool,
+) -> Result<GitHubMergeResult, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| {
+            service.github_merge_pull(
+                &token,
+                &owner,
+                &repo,
+                number,
+                &method,
+                expected_sha.as_deref(),
+                confirmed,
+            )
+        })
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_close_pull(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+    confirmed: bool,
+) -> Result<GitHubPullModel, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.github_close_pull(&token, &owner, &repo, number, confirmed))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+pub fn github_submit_review(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    number: i64,
+    event: String,
+    body: String,
+    confirmed: bool,
+) -> Result<GitHubReview, CommandError> {
+    let (token, login) = state.with_github(|github| {
+        let token = github.access_token()?;
+        let connection = github
+            .connection()?
+            .ok_or_else(|| forgedesk_core::CoreError::auth("GitHub is not connected."))?;
+        Ok((token, connection.login))
+    })?;
+    state
+        .with_service(|service| {
+            service.github_submit_review(
+                &token, &owner, &repo, number, &event, &body, &login, confirmed,
+            )
+        })
         .map_err(CommandError::from)
 }

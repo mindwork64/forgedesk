@@ -49,6 +49,10 @@ import type {
   GitHubSearchIssue,
   CiOverview,
   GitHubCheckRun,
+  PullLink,
+  PullCapabilities,
+  GitHubMergeResult,
+  GitHubReview,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -251,4 +255,50 @@ export const api = {
     call<CiOverview>('github_ci_overview', { owner, repo }),
   githubCommitChecks: (owner: string, repo: string, reference: string) =>
     call<GitHubCheckRun[]>('github_commit_checks', { owner, repo, reference }),
+  githubPullLink: (owner: string, repo: string, number: number) =>
+    call<PullLink | null>('github_pull_link', { owner, repo, number }),
+  githubLinkPull: (owner: string, repo: string, number: number, issueKey: string) =>
+    call<PullLink>('github_link_pull', { owner, repo, number, issueKey }),
+  githubUnlinkPull: (owner: string, repo: string, number: number) =>
+    call<void>('github_unlink_pull', { owner, repo, number }),
+  githubPullCapabilities: (owner: string, repo: string) =>
+    call<PullCapabilities>('github_pull_capabilities', { owner, repo }),
+  githubMergePull: (
+    owner: string,
+    repo: string,
+    number: number,
+    method: string,
+    expectedSha: string | null,
+    confirmed: boolean,
+  ) =>
+    call<GitHubMergeResult>('github_merge_pull', {
+      owner,
+      repo,
+      number,
+      method,
+      expectedSha,
+      confirmed,
+    }),
+  githubClosePull: (
+    owner: string,
+    repo: string,
+    number: number,
+    confirmed: boolean,
+  ) => call<GitHubPull>('github_close_pull', { owner, repo, number, confirmed }),
+  githubSubmitReview: (
+    owner: string,
+    repo: string,
+    number: number,
+    event: string,
+    body: string,
+    confirmed: boolean,
+  ) =>
+    call<GitHubReview>('github_submit_review', {
+      owner,
+      repo,
+      number,
+      event,
+      body,
+      confirmed,
+    }),
 }

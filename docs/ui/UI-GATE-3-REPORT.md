@@ -52,8 +52,9 @@ data requires Stage 4 authentication, which is not configured.
 | 12 | `gate3-reviews-dark-1440.png` | 1440×900 | requested reviews queue |
 | 13 | `gate3-ci-dark-1440.png` | 1440×900 | commits + check-runs |
 | 14 | `gate3-pr-files-split-dark-1440.png` | 1440×900 | split diff |
+| 15 | `gate3-pr-merge-dark-1440.png` | 1440×900 | explicit merge confirmation |
 
-Full run: **52 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 14 Gate 3),
+Full run: **53 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3),
 `docs/ui/current/measurements.json`, zero assertion failures.
 
 ## Acceptance checklist

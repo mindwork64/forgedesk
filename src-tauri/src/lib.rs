@@ -111,6 +111,13 @@ pub fn run() {
             commands::github_review_requested,
             commands::github_ci_overview,
             commands::github_commit_checks,
+            commands::github_pull_link,
+            commands::github_link_pull,
+            commands::github_unlink_pull,
+            commands::github_pull_capabilities,
+            commands::github_merge_pull,
+            commands::github_close_pull,
+            commands::github_submit_review,
         ]);
 
     let app = builder

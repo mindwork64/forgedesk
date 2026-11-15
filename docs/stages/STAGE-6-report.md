@@ -1,11 +1,12 @@
 # Stage 6 report — Pull requests, checks and reviews
 
-**Date:** 2026-11-15  
-**Status:** PARTIAL — read-only pull-request list and detail (overview, commits,
-checks, reviews, unified file patches) are delivered and live-tested. Split diffs,
-line comments, review submission, merge/close actions, requested-review queue and CI
-screen remain open.  
-**Schema:** v5 (no new local tables for Stage 6 yet)
+**Date:** 2026-11-15
+**Status:** COMPLETE (DoD) — PR list/detail, commits, files, reviews, checks, review
+comments, reviews queue, CI screen, PR↔issue links and guarded review/merge/close are
+implemented. Write actions are permission-checked and confirmation-gated but were not
+executed against a live repository in CI. Remaining polish: inline comment placement/
+thread resolution, PR read budget logs and native Tauri verification.
+**Schema:** v6 (`pull_request_link` for PR↔local issue links)
 
 ## Delivered
 
@@ -28,7 +29,6 @@ screen remain open.
   - Checks: status/conclusion and duration;
   - Reviews: reviewer, state and body;
   - Files: changed files with status/additions/deletions and unified patches.
-- No merge, close, approve, comment or review submission is exposed.
 - No fake PR data in production; connected screenshots use the build-gated harness.
 - Live read-only verification against `cli/cli`: list pulls + load detail/commits/
   reviews/check-runs, review search and CI overview succeeded.
@@ -40,6 +40,12 @@ screen remain open.
   the matching file with path, line, author and body.
 - **Diff modes:** Unified/Split toggle for loaded patches; Split pairs deletions and
   additions with old/new line numbers.
+- **PR↔issue links:** schema v6 `pull_request_link`, link/unlink UI, local issue key
+  validated in workspace; no remote modification.
+- **Permission-aware actions:** merge/squash/rebase with expected head SHA, close,
+  and review approve/request-changes/comment. All require explicit confirmation;
+  merge/close require admin/maintain/push and are re-checked server-side. No automatic
+  retry of ambiguous writes.
 - Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
   consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
   rejection and fails the whole request on later-page errors.
@@ -53,10 +59,8 @@ screen remain open.
 
 ## Not delivered
 
-- Inline line placement and resolved-thread state.
-- Review submission, approve/request-changes, merge/close, merge readiness and
-  permission-aware actions.
-- PR-to-local-issue linking, PR labels/assignees/milestones, merge queue.
+- Inline review-comment placement and resolved-thread state.
+- PR labels/assignees/milestones and merge queue.
 - GraphQL batching of review/check summaries for list rows; rows without an open
   detail show `—` for review/checks.
 - API-budget observations/request logs for PR read calls.
@@ -67,9 +71,9 @@ screen remain open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 70 (+3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 78 (+3 ignored live) |
 | Frontend | `npm run typecheck`, `npm test` | PASS — 107 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 52 captures (PR unified/split, reviews, CI) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 53 captures (PR, comments, split, merge, reviews, CI) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
 | Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
 | Jenkins build 12 | PR files/diff `3dc3ee1` | SUCCESS — 128 s, 52 core tests (+2 ignored), 48 captures, 49 artifacts |
@@ -78,8 +82,6 @@ screen remain open.
 
 ## Next
 
-1. Split diff, line comments and lazy per-file diff loading.
-2. Review submission, merge/close and permission checks with explicit intent.
-3. PR↔issue links and GraphQL list summaries.
-4. Budget-aware request logging for PR reads.
-5. Native Tauri verification.
+1. Inline comment placement and resolved-thread state.
+2. Budget-aware request logging for PR reads.
+3. GraphQL list summaries and native Tauri verification.
