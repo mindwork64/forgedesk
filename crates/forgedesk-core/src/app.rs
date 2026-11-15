@@ -18,6 +18,8 @@ use crate::domain::{
     Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
+use crate::github_client::GitHubRepo;
+use crate::github_sync::ImportResult;
 
 pub const DB_FILE_NAME: &str = "forgedesk.db";
 pub const BACKUPS_DIR_NAME: &str = "backups";
@@ -267,6 +269,33 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db
             .with_conn(|conn| issues::list_relations(conn, &workspace.id, issue_id))
+    }
+
+    pub fn discover_github_repositories(&self, token: &str) -> CoreResult<Vec<GitHubRepo>> {
+        let client = crate::github_client::GitHubClient::new(token)?;
+        Ok(client.list_repositories()?.items)
+    }
+
+    pub fn import_github_issues(
+        &self,
+        token: &str,
+        account_login: &str,
+        user_id: i64,
+        owner: &str,
+        repo: &str,
+    ) -> CoreResult<ImportResult> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            crate::github_sync::import_issues(
+                tx,
+                &workspace.id,
+                token,
+                account_login,
+                user_id,
+                owner,
+                repo,
+            )
+        })
     }
 
     pub fn git_available(&self) -> GitAvailability {

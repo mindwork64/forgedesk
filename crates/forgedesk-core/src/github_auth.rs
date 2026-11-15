@@ -271,6 +271,29 @@ impl GitHubAuth {
         self.finish_token(parsed, access_token, Some((login, user_id, scopes)))
     }
 
+    /// Return a currently valid access token for provider requests. Refreshes
+    /// proactively when the stored token is within 60 seconds of expiry.
+    pub fn access_token(&self) -> CoreResult<String> {
+        self.hydrate_from_keyring()?;
+        let needs_refresh = {
+            let inner = self.lock()?;
+            inner
+                .token
+                .as_ref()
+                .map(|token| token.expires_at <= unix_now() + 60)
+                .unwrap_or(false)
+        };
+        if needs_refresh {
+            self.refresh()?;
+        }
+        let inner = self.lock()?;
+        inner
+            .token
+            .as_ref()
+            .map(|token| token.access_token.clone())
+            .ok_or_else(|| CoreError::auth("GitHub is not connected."))
+    }
+
     pub fn disconnect(&self) -> CoreResult<()> {
         if let Ok(entry) = entry() {
             let _ = entry.delete_credential();

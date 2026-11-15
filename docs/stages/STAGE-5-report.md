@@ -48,7 +48,9 @@ issue import/export and conflict UI remain pending. No remote write was attempte
 
 ## Not delivered (blocking live sync)
 
-- Live REST/GraphQL client, ETags, pagination, incremental issue/label/comment pull.
+- Live REST client for repository discovery and read-only issue import exists;
+  GraphQL, ETags, comment import, incremental cursor scheduling and field ownership
+  enforcement remain open.
 - Local→remote create/update/comment push and field ownership enforcement.
 - Dispatcher worker consuming the outbox; reconciliation against remote objects.
 - Sync conflict UI/resolution flow.
@@ -59,12 +61,14 @@ issue import/export and conflict UI remain pending. No remote write was attempte
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 49 |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 52 (+1 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Frontend typecheck/tests | `npm run typecheck`, `npm test` | PASS — 78 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 44 captures (auth dialog included) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 45 captures (auth + repository import) |
+| Live read-only import | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — cli/cli import, second run imported 0 and skipped links |
 | Jenkins build 8 | Sync foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
+| Jenkins build 10 | GitHub discovery/import | Pending commit/mirror push |
 | GitHub Actions | public repo `main` | SUCCESS — frontend, core Ubuntu/Windows, Tauri Linux/Windows, visual gates |
 | Live GitHub sync | — | NOT RUN — auth/provider client absent |
 

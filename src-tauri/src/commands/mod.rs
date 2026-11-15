@@ -12,6 +12,8 @@ use forgedesk_core::domain::{
     Workspace,
 };
 use forgedesk_core::github_auth::{DeviceFlowPoll, DeviceFlowStart, GitHubConnection};
+use forgedesk_core::github_client::GitHubRepo;
+use forgedesk_core::github_sync::ImportResult;
 use tauri::{AppHandle, Manager, State};
 
 use crate::state::AppState;
@@ -614,5 +616,35 @@ pub fn github_refresh(state: State<'_, AppState>) -> Result<GitHubConnection, Co
 pub fn github_disconnect(state: State<'_, AppState>) -> Result<(), CommandError> {
     state
         .with_github(|github| github.disconnect())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_discover_repositories(
+    state: State<'_, AppState>,
+) -> Result<Vec<GitHubRepo>, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.discover_github_repositories(&token))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_import_issues(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+) -> Result<ImportResult, CommandError> {
+    let (token, login, user_id) = state.with_github(|github| {
+        let token = github.access_token()?;
+        let connection = github
+            .connection()?
+            .ok_or_else(|| forgedesk_core::CoreError::auth("GitHub is not connected."))?;
+        Ok((token, connection.login, connection.user_id))
+    })?;
+    state
+        .with_service(|service| {
+            service.import_github_issues(&token, &login, user_id, &owner, &repo)
+        })
         .map_err(CommandError::from)
 }

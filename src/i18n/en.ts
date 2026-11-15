@@ -1073,6 +1073,24 @@ export default {
     disconnectConfirm: 'Disconnect',
   },
 
+  githubRepos: {
+    title: 'GitHub repositories',
+    discover: 'Discover repositories',
+    discoverError: 'Could not discover repositories',
+    searchPlaceholder: 'Search repositories…',
+    import: 'Import issues',
+    importing: 'Importing…',
+    imported: 'Imported {imported}, skipped {skipped}',
+    importError: 'Issue import failed',
+    private: 'Private',
+    public: 'Public',
+    noResults: 'No repositories available',
+    noIssues: 'No issues to import in this repository.',
+    limitHint:
+      'Imports up to 250 recently updated issues and creates/uses a local project named owner/repository. Remote comments and GitHub writes are not included.',
+    open: 'View imported project',
+  },
+
   about: {
     heading: 'A local-first development workspace',
     body: 'ForgeDesk brings issues, projects, repositories and pull requests into one desktop workspace backed by SQLite on this computer.',

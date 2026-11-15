@@ -430,6 +430,16 @@ const cases = [
     waitFor: '.fd-github-device',
   },
   {
+    name: 'gate3-github-repos-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/integrations',
+    openGithubRepos: true,
+    waitFor: '.fd-github-repos',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -718,6 +728,12 @@ async function main() {
       if (testCase.openGithubFlow) {
         await page.getByRole('button', { name: 'Reauthorize' }).click()
         await page.waitForSelector('.fd-github-device')
+        await page.waitForTimeout(250)
+      }
+
+      if (testCase.openGithubRepos) {
+        await page.getByRole('button', { name: 'Discover repositories' }).click()
+        await page.waitForSelector('.fd-github-repos')
         await page.waitForTimeout(250)
       }
 
@@ -1084,6 +1100,12 @@ async function main() {
         const cards = await page.locator('.fd-provider-card').count()
         caseReport.providerCards = cards
         assert(cards >= 4, `${testCase.name}: expected provider cards`, report.failures)
+      }
+
+      if (testCase.openGithubRepos) {
+        const repos = await page.locator('.fd-github-repo-row').count()
+        caseReport.githubRepos = repos
+        assert(repos >= 2, `${testCase.name}: expected GitHub repositories`, report.failures)
       }
 
       if (testCase.openGithubFlow) {

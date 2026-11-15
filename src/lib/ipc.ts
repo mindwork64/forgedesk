@@ -42,6 +42,8 @@ import type {
   DeviceFlowStart,
   DeviceFlowPoll,
   GitHubConnection,
+  GitHubRepo,
+  GitHubImportResult,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -230,4 +232,8 @@ export const api = {
   githubConnection: () => call<GitHubConnection | null>('github_connection'),
   githubRefresh: () => call<GitHubConnection>('github_refresh'),
   githubDisconnect: () => call<void>('github_disconnect'),
+  githubDiscoverRepositories: () =>
+    call<GitHubRepo[]>('github_discover_repositories'),
+  githubImportIssues: (owner: string, repo: string) =>
+    call<GitHubImportResult>('github_import_issues', { owner, repo }),
 }

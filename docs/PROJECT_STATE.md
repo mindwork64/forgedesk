@@ -31,14 +31,14 @@ through `user_version`. See ADR-0001…0006.
   table, add dialog, detail Overview/Branches/Recent commits, dirty guard UI.
 - **API Budget Manager:** formula `min(10%×limit, max(0, remaining−20%×limit))`,
   persisted observations/requests/queue/control, pause/resume, sanitized diagnostics,
-  46 core tests (including Stage 5 safety tests).
+  core tests include Stage 5 safety coverage.
 - **API Monitor:** connection/scheduler/dispatcher/observation/reset summary,
   GraphQL/REST/resource budget panels, secondary state, background allowance/reserve,
   queue, recent sanitized requests, export diagnostics.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 46 core, 78 frontend, 43 visual captures.
+- **Tests:** 52 core (+1 ignored live import), 78 frontend, 45 visual captures.
 
 ### Stage 5 — sync safety foundation (backend only)
 
@@ -52,8 +52,8 @@ through `user_version`. See ADR-0001…0006.
 - **GitHub App Device Flow auth:** start/poll/slow-down/expiry, `/user` validation,
   OS keyring storage with memory-only fallback, refresh token and disconnect.
   Live token acquisition + refresh were verified; no token is persisted in SQLite or
-  written to logs. Live issue import/export still requires the provider client and
-  outbox dispatcher.
+  written to logs. Read-only repository discovery + issue import is implemented and
+  live-tested; local→remote writes, comments and the outbox dispatcher remain open.
 
 ### Stages 1–3 (preserved)
 
@@ -65,18 +65,19 @@ through `user_version`. See ADR-0001…0006.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (49) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (52 + 1 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (78) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 43 captures (16/13/9/5 across Gates 0–3) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 45 captures (16/13/9/7 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
+| Jenkins build 10 | GitHub discovery/import snapshot | Pending commit/mirror push |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations

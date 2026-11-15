@@ -21,6 +21,8 @@ data requires Stage 4 authentication, which is not configured.
   real state/version/repository count; GitLab/Gitea planned.
 - GitHub Device Flow dialog with device code, verification URL, automatic polling,
   copy actions and keyring/memory storage state.
+- GitHub repository discovery + read-only issue import dialog (up to 250 recently
+  updated issues, idempotent remote links; no comments or GitHub writes).
 - API Monitor: connection/scheduler/dispatcher/last observation/reset summary,
   secondary-limit state, GraphQL/REST primary panels, resource buckets, background
   allowance/reserve, queue, recent sanitized requests, manual pause/resume and
@@ -38,8 +40,9 @@ data requires Stage 4 authentication, which is not configured.
 | 4 | `gate3-integrations-dark-1440.png` | 1440×900 | GitHub/Local/GitLab/Gitea cards |
 | 5 | `gate3-api-monitor-dark-1440.png` | 1440×900 | budgets, queue, request log |
 | 6 | `gate3-github-auth-dark-1440.png` | 1440×900 | Device Flow dialog with code |
+| 7 | `gate3-github-repos-dark-1440.png` | 1440×900 | discovered GitHub repos + import |
 
-Full run: **44 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 6 Gate 3),
+Full run: **45 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 7 Gate 3),
 `docs/ui/current/measurements.json`, zero assertion failures.
 
 ## Acceptance checklist

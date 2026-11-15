@@ -145,6 +145,8 @@ export type CommandName =
   | 'github_connection'
   | 'github_refresh'
   | 'github_disconnect'
+  | 'github_discover_repositories'
+  | 'github_import_issues'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -719,4 +721,25 @@ export interface DeviceFlowPoll {
   status: 'pending' | 'slow_down' | 'success'
   interval: number
   connection: GitHubConnection | null
+}
+
+export interface GitHubRepo {
+  id: number
+  name: string
+  fullName: string
+  private: boolean
+  defaultBranch: string | null
+  htmlUrl: string
+  description: string | null
+  updatedAt: string | null
+  owner: { login: string }
+}
+
+export interface GitHubImportResult {
+  imported: number
+  skipped: number
+  projectId: string
+  projectName: string
+  hasMore: boolean
+  pages: number
 }

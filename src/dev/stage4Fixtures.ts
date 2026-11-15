@@ -7,6 +7,8 @@ import type {
   GitDiffStat,
   GitLogEntry,
   GitHubConnection,
+  GitHubImportResult,
+  GitHubRepo,
   GitOverview,
   GitStatus,
   QueueJob,
@@ -466,6 +468,46 @@ export function handleStage4FixtureCommand<T>(
     case 'github_disconnect':
       githubConnected = false
       return { handled: true, value: undefined as T }
+    case 'github_discover_repositories':
+      return {
+        handled: true,
+        value: [
+          {
+            id: 1001,
+            name: 'forgedesk',
+            fullName: 'mindwork64/forgedesk',
+            private: false,
+            defaultBranch: 'main',
+            htmlUrl: 'https://github.com/mindwork64/forgedesk',
+            description: 'Local-first desktop workspace',
+            updatedAt: iso(30),
+            owner: { login: 'mindwork64' },
+          },
+          {
+            id: 1002,
+            name: 'exhi-capture',
+            fullName: 'eloraam/exhi-capture',
+            private: true,
+            defaultBranch: 'main',
+            htmlUrl: 'https://github.com/eloraam/exhi-capture',
+            description: 'Capture pipeline',
+            updatedAt: iso(90),
+            owner: { login: 'eloraam' },
+          },
+        ] satisfies GitHubRepo[] as T,
+      }
+    case 'github_import_issues':
+      return {
+        handled: true,
+        value: {
+          imported: 5,
+          skipped: 2,
+          projectId: 'project-forge',
+          projectName: 'mindwork64/forgedesk',
+          hasMore: false,
+          pages: 1,
+        } satisfies GitHubImportResult as T,
+      }
     case 'get_api_monitor':
       return { handled: true, value: monitor() as T }
     case 'set_api_paused':

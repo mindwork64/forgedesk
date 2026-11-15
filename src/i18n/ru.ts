@@ -969,8 +969,7 @@ export default {
   },
   integrations: {
     github: 'GitHub',
-    githubHint:
-      'Основной провайдер. GitHub App device flow настроен.',
+    githubHint: 'Основной провайдер. GitHub App device flow настроен.',
     notConnected: 'Не подключено',
     connect: 'Подключить',
     connectUnavailable: 'Учётные данные GitHub App не настроены в этой сборке.',
@@ -1071,6 +1070,24 @@ export default {
     disconnectTitle: 'Отключить GitHub?',
     disconnectBody: 'Локальный токен будет удалён. Локальные данные не удаляются.',
     disconnectConfirm: 'Отключить',
+  },
+
+  githubRepos: {
+    title: 'Репозитории GitHub',
+    discover: 'Найти репозитории',
+    discoverError: 'Не удалось получить репозитории',
+    searchPlaceholder: 'Поиск репозиториев…',
+    import: 'Импортировать задачи',
+    importing: 'Импорт…',
+    imported: 'Импортировано {imported}, пропущено {skipped}',
+    importError: 'Импорт задач не удался',
+    private: 'Приватный',
+    public: 'Публичный',
+    noResults: 'Нет доступных репозиториев',
+    noIssues: 'В этом репозитории нет задач для импорта.',
+    limitHint:
+      'Импортирует до 250 недавно обновлённых задач и создаёт/использует локальный проект owner/repository. Комментарии и запись на GitHub не входят.',
+    open: 'Открыть импортированный проект',
   },
 
   about: {

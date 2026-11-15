@@ -4,7 +4,12 @@ import { computed, ref } from 'vue'
 import { i18n } from '@/i18n'
 import { api, toIpcError } from '@/lib/ipc'
 import { useToastStore } from '@/stores/toasts'
-import type { DeviceFlowStart, GitHubConnection } from '@/types/ipc'
+import type {
+  DeviceFlowStart,
+  GitHubConnection,
+  GitHubImportResult,
+  GitHubRepo,
+} from '@/types/ipc'
 
 export const useGithubAuthStore = defineStore('githubAuth', () => {
   const t = i18n.global.t
@@ -15,6 +20,9 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   const polling = ref(false)
   const starting = ref(false)
   const error = ref<ReturnType<typeof toIpcError> | null>(null)
+  const repositories = ref<GitHubRepo[]>([])
+  const discovering = ref(false)
+  const importing = ref(false)
   let timer: ReturnType<typeof setTimeout> | null = null
 
   const connected = computed(() => connection.value?.connected === true)
@@ -104,6 +112,42 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     }
   }
 
+  async function discoverRepositories(): Promise<void> {
+    discovering.value = true
+    try {
+      repositories.value = await api.githubDiscoverRepositories()
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('githubRepos.discoverError'), wire.message, wire.detail)
+    } finally {
+      discovering.value = false
+    }
+  }
+
+  async function importIssues(
+    owner: string,
+    repo: string,
+  ): Promise<GitHubImportResult | null> {
+    importing.value = true
+    try {
+      const result = await api.githubImportIssues(owner, repo)
+      toast.success(
+        t('githubRepos.imported', {
+          imported: result.imported,
+          skipped: result.skipped,
+        }),
+        result.projectName,
+      )
+      return result
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('githubRepos.importError'), wire.message, wire.detail)
+      return null
+    } finally {
+      importing.value = false
+    }
+  }
+
   async function disconnect(): Promise<void> {
     try {
       await api.githubDisconnect()
@@ -122,11 +166,16 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     starting,
     error,
     connected,
+    repositories,
+    discovering,
+    importing,
     loadConnection,
     start,
     poll,
     cancel,
     refresh,
+    discoverRepositories,
+    importIssues,
     disconnect,
   }
 })

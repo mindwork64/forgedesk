@@ -161,6 +161,27 @@ pub fn get_link(
         .optional()?)
 }
 
+pub fn find_by_remote(
+    conn: &Connection,
+    workspace_id: &str,
+    provider: &str,
+    account_id: &str,
+    remote_id: &str,
+) -> CoreResult<Option<RemoteIssueLink>> {
+    Ok(conn
+        .query_row(
+            "SELECT l.id, l.local_issue_id, l.provider, l.account_id, l.repository_id, \
+                    l.remote_id, l.remote_number, l.remote_url, l.remote_updated_at, \
+                    l.last_synced_at, l.field_ownership, l.state, l.created_at, l.updated_at \
+             FROM remote_issue_link l JOIN issue i ON i.id = l.local_issue_id \
+             WHERE i.workspace_id = ?1 AND l.provider = ?2 AND l.account_id = ?3 \
+               AND l.remote_id = ?4",
+            rusqlite::params![workspace_id, provider, account_id, remote_id],
+            read_link,
+        )
+        .optional()?)
+}
+
 pub fn list_conflicts(conn: &Connection, workspace_id: &str) -> CoreResult<Vec<SyncConflict>> {
     let mut statement = conn.prepare(
         "SELECT c.id, c.local_issue_id, c.field, c.local_value, c.remote_value, \

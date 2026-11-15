@@ -10,6 +10,7 @@ import FdConfirmDialog from '@/components/ui/FdConfirmDialog.vue'
 import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useGitStore } from '@/stores/git'
 import GitHubDeviceDialog from './GitHubDeviceDialog.vue'
+import GitHubRepoDialog from './GitHubRepoDialog.vue'
 
 const git = useGitStore()
 const auth = useGithubAuthStore()
@@ -17,6 +18,7 @@ const router = useRouter()
 const { t } = useI18n()
 const connectOpen = ref(false)
 const disconnectOpen = ref(false)
+const reposOpen = ref(false)
 
 onMounted(async () => {
   await Promise.all([
@@ -75,6 +77,9 @@ onMounted(async () => {
           <template v-if="auth.connected">
             <FdButton variant="ghost" size="sm" @click="auth.refresh()">
               {{ t('githubAuth.refresh') }}
+            </FdButton>
+            <FdButton variant="ghost" size="sm" @click="reposOpen = true">
+              {{ t('githubRepos.discover') }}
             </FdButton>
             <FdButton variant="ghost" size="sm" @click="connectOpen = true">
               {{ t('githubAuth.reauthorize') }}
@@ -161,6 +166,7 @@ onMounted(async () => {
     </div>
 
     <GitHubDeviceDialog v-model:open="connectOpen" />
+    <GitHubRepoDialog v-model:open="reposOpen" />
 
     <FdConfirmDialog
       v-model="disconnectOpen"

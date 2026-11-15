@@ -104,6 +104,8 @@ pub fn run() {
             commands::github_connection,
             commands::github_refresh,
             commands::github_disconnect,
+            commands::github_discover_repositories,
+            commands::github_import_issues,
         ]);
 
     let app = builder
