@@ -164,6 +164,13 @@ export type CommandName =
   | 'inbox_archive'
   | 'inbox_mark_all_read'
   | 'get_insights'
+  | 'automation_list_rules'
+  | 'automation_create'
+  | 'automation_toggle'
+  | 'automation_delete'
+  | 'automation_preview'
+  | 'automation_run'
+  | 'automation_runs'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -928,4 +935,42 @@ export interface InsightsSummary {
   throughput: InsightPoint[]
   byStatus: InsightBucket[]
   byProject: InsightBucket[]
+}
+
+export interface AutomationRule {
+  id: string
+  name: string
+  enabled: boolean
+  triggerEvent: string
+  actionType: string
+  actionValue: string
+  lastRunAt: string | null
+  lastResult: string | null
+  runCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AutomationRun {
+  id: string
+  ruleId: string
+  eventId: string
+  status: string
+  message: string
+  createdAt: string
+}
+
+export interface AutomationEvent {
+  eventId: string
+  entityId: string
+  entityKey: string
+  entityTitle: string
+  createdAt: string
+}
+
+export interface AutomationInput {
+  name: string
+  triggerEvent: string
+  actionValue: string
+  enabled: boolean
 }

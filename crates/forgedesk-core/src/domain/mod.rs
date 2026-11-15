@@ -1,4 +1,5 @@
 pub mod api_budget;
+pub mod automation;
 pub mod git;
 pub mod inbox;
 pub mod insights;
@@ -12,6 +13,7 @@ pub mod time;
 pub mod workspace;
 
 pub use api_budget::*;
+pub use automation::*;
 pub use git::*;
 pub use inbox::*;
 pub use insights::*;

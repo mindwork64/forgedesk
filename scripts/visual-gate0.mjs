@@ -541,6 +541,15 @@ const cases = [
     waitFor: '.fd-insight-card',
   },
   {
+    name: 'gate4-automations-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/automations',
+    waitFor: '.fd-auto-row',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1233,6 +1242,12 @@ async function main() {
         caseReport.ciCommits = commits
         caseReport.ciChecks = checks
         assert(commits >= 3 && checks >= 3, `${testCase.name}: expected CI activity`, report.failures)
+      }
+
+      if (testCase.route === '/automations') {
+        const rows = await page.locator('.fd-auto-row').count()
+        caseReport.automationRows = rows
+        assert(rows >= 2, `${testCase.name}: expected automation rules`, report.failures)
       }
 
       if (testCase.route === '/insights') {

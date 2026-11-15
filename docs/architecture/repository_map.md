@@ -39,6 +39,7 @@ ForgeDesk/
 │   ├── github_activity.rs      Review queue + CI/check-runs reads
 │   ├── github_actions.rs       Permissioned merge/close/review actions
 │   ├── domain/inbox.rs         Inbox event/filter DTOs
+│   ├── domain/automation.rs    Automation rule/run DTOs
 │   ├── domain/
 │   │   ├── api_budget.rs       Budget observation/request/queue DTOs + formula
 │   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
@@ -69,6 +70,7 @@ ForgeDesk/
 │           ├── sync.rs         Sync links/cursors/outbox/conflicts
 │           ├── pull_links.rs   PR↔local issue links
 │           ├── inbox.rs        Inbox normalization/read state
+│           ├── automation.rs   Local automation rules/preview/runs
 │           ├── settings.rs     Settings JSON document
 │           └── workspace.rs    Workspace + human-key counter
 │
@@ -104,6 +106,7 @@ ForgeDesk/
 │   │   ├── githubAuth.ts       Device Flow/connection/repo selection
 │   │   ├── pullRequests.ts     PR list/detail state
 │   │   ├── inbox.ts            Inbox filters/read/archive state
+│   │   ├── automations.ts      Rule toggle/preview/run/history
 │   │   ├── apiMonitor.ts       API Monitor state/pause/diagnostics
 │   │   ├── ui.ts               Overlays, groups, viewport, chord hint
 │   │   └── toasts.ts           Bounded toast queue
@@ -137,6 +140,7 @@ ForgeDesk/
 │   │   ├── reviews/            Requested-review queue
 │   │   ├── ci/                 Commits + check-runs
 │   │   ├── inbox/              Inbox event list/triage
+│   │   ├── automations/        Local rules, preview, history
 │   │   ├── api-monitor/        Budgets, queue, request history
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections

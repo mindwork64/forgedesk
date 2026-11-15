@@ -123,6 +123,13 @@ pub fn run() {
             commands::inbox_archive,
             commands::inbox_mark_all_read,
             commands::get_insights,
+            commands::automation_list_rules,
+            commands::automation_create,
+            commands::automation_toggle,
+            commands::automation_delete,
+            commands::automation_preview,
+            commands::automation_run,
+            commands::automation_runs,
         ]);
 
     let app = builder

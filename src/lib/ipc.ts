@@ -55,6 +55,10 @@ import type {
   GitHubReview,
   InboxEvent,
   InsightsSummary,
+  AutomationRule,
+  AutomationRun,
+  AutomationEvent,
+  AutomationInput,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -311,4 +315,18 @@ export const api = {
   inboxMarkAllRead: () => call<number>('inbox_mark_all_read'),
   getInsights: (rangeDays: number) =>
     call<InsightsSummary>('get_insights', { rangeDays }),
+  automationListRules: () =>
+    call<AutomationRule[]>('automation_list_rules'),
+  automationCreate: (input: AutomationInput) =>
+    call<AutomationRule>('automation_create', { input }),
+  automationToggle: (ruleId: string, enabled: boolean) =>
+    call<AutomationRule>('automation_toggle', { ruleId, enabled }),
+  automationDelete: (ruleId: string) =>
+    call<void>('automation_delete', { ruleId }),
+  automationPreview: (ruleId: string) =>
+    call<AutomationEvent[]>('automation_preview', { ruleId }),
+  automationRun: (ruleId: string) =>
+    call<number>('automation_run', { ruleId }),
+  automationRuns: (ruleId: string) =>
+    call<AutomationRun[]>('automation_runs', { ruleId }),
 }

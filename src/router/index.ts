@@ -14,6 +14,7 @@ import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
 import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
 import InboxView from '@/features/inbox/InboxView.vue'
 import InsightsView from '@/features/insights/InsightsView.vue'
+import AutomationsView from '@/features/automations/AutomationsView.vue'
 import ReviewsView from '@/features/reviews/ReviewsView.vue'
 import CiView from '@/features/ci/CiView.vue'
 import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
@@ -224,7 +225,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/automations',
     name: 'automations',
-    component: PlaceholderView,
+    component: AutomationsView,
     meta: {
       titleKey: 'pages.automations.title',
       descriptionKey: 'pages.automations.description',

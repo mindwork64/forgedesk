@@ -2,6 +2,9 @@ pub mod error;
 
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
+use forgedesk_core::domain::automation::{
+    AutomationEvent, AutomationInput, AutomationRule, AutomationRun,
+};
 use forgedesk_core::domain::inbox::InboxEvent;
 use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
@@ -912,5 +915,69 @@ pub fn get_insights(
 ) -> Result<InsightsSummary, CommandError> {
     state
         .with_service(|service| service.insights(range_days))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_list_rules(
+    state: State<'_, AppState>,
+) -> Result<Vec<AutomationRule>, CommandError> {
+    state
+        .with_service(|service| service.automation_rules())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_create(
+    state: State<'_, AppState>,
+    input: AutomationInput,
+) -> Result<AutomationRule, CommandError> {
+    state
+        .with_service(|service| service.create_automation(&input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_toggle(
+    state: State<'_, AppState>,
+    rule_id: String,
+    enabled: bool,
+) -> Result<AutomationRule, CommandError> {
+    state
+        .with_service(|service| service.toggle_automation(&rule_id, enabled))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_delete(state: State<'_, AppState>, rule_id: String) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.delete_automation(&rule_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_preview(
+    state: State<'_, AppState>,
+    rule_id: String,
+) -> Result<Vec<AutomationEvent>, CommandError> {
+    state
+        .with_service(|service| service.preview_automation(&rule_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_run(state: State<'_, AppState>, rule_id: String) -> Result<i64, CommandError> {
+    state
+        .with_service(|service| service.run_automation(&rule_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn automation_runs(
+    state: State<'_, AppState>,
+    rule_id: String,
+) -> Result<Vec<AutomationRun>, CommandError> {
+    state
+        .with_service(|service| service.automation_runs(&rule_id))
         .map_err(CommandError::from)
 }

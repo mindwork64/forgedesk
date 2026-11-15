@@ -1,4 +1,11 @@
-import type { CommandName, InboxEvent, InsightsSummary } from '@/types/ipc'
+import type {
+  AutomationEvent,
+  AutomationRule,
+  AutomationRun,
+  CommandName,
+  InboxEvent,
+  InsightsSummary,
+} from '@/types/ipc'
 
 function iso(hoursAgo: number): string {
   return new Date(Date.now() - hoursAgo * 3_600_000).toISOString()
@@ -75,6 +82,56 @@ const insights: InsightsSummary = {
   ],
 }
 
+const automationRules: AutomationRule[] = [
+  {
+    id: 'rule-1',
+    name: 'Label new issues',
+    enabled: true,
+    triggerEvent: 'issue_created',
+    actionType: 'add_label',
+    actionValue: 'automated',
+    lastRunAt: iso(2),
+    lastResult: 'Applied to 1 event(s)',
+    runCount: 4,
+    createdAt: iso(100),
+    updatedAt: iso(2),
+  },
+  {
+    id: 'rule-2',
+    name: 'Mark status changes',
+    enabled: false,
+    triggerEvent: 'status_changed',
+    actionType: 'add_label',
+    actionValue: 'status-changed',
+    lastRunAt: null,
+    lastResult: null,
+    runCount: 0,
+    createdAt: iso(80),
+    updatedAt: iso(80),
+  },
+]
+
+const automationPreview: AutomationEvent[] = [
+  {
+    eventId: 'event-1',
+    entityId: 'issue-101',
+    entityKey: 'FD-141',
+    entityTitle: 'GitHub pull request workspace',
+    createdAt: iso(1),
+  },
+]
+
+const automationRuns: AutomationRun[] = [
+  {
+    id: 'run-1',
+    ruleId: 'rule-1',
+    eventId: 'event-1',
+    status: 'success',
+    message: 'Added label automated',
+    createdAt: iso(2),
+  },
+]
+
 export function handleStage7FixtureCommand<T>(
   command: CommandName,
 ): { handled: boolean; value?: T } {
@@ -89,6 +146,26 @@ export function handleStage7FixtureCommand<T>(
       return { handled: true, value: events.filter((event) => !event.read).length as T }
     case 'get_insights':
       return { handled: true, value: structuredClone(insights) as T }
+    case 'automation_list_rules':
+      return { handled: true, value: structuredClone(automationRules) as T }
+    case 'automation_create':
+      return {
+        handled: true,
+        value: structuredClone(automationRules[0]) as T,
+      }
+    case 'automation_toggle':
+      return {
+        handled: true,
+        value: structuredClone(automationRules[0]) as T,
+      }
+    case 'automation_delete':
+      return { handled: true, value: undefined as T }
+    case 'automation_preview':
+      return { handled: true, value: structuredClone(automationPreview) as T }
+    case 'automation_run':
+      return { handled: true, value: 1 as T }
+    case 'automation_runs':
+      return { handled: true, value: structuredClone(automationRuns) as T }
     default:
       return { handled: false }
   }

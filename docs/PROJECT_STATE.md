@@ -38,11 +38,11 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 81 core (+3 ignored live), 107 frontend, 55 visual captures.
+- **Tests:** 83 core (+3 ignored live), 107 frontend, 56 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
-- **Schema v7:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`, `pull_request_link`, `inbox_state`.
+- **Schema v8:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`, `pull_request_link`, `inbox_state`, `automation_rule`, `automation_run`.
 - Remote link ownership JSON, per-resource cursors (page/watermark/last success),
   idempotent outbox enqueue and closed state machine:
   `pending → dispatching → succeeded | failed_definite | outcome_unknown →
@@ -94,7 +94,7 @@ through `user_version`. See ADR-0001…0007.
 
 ### Stage 7 — Inbox/triage (partial)
 
-- **Schema v7:** `inbox_state` stores read/archived state for normalized activity events.
+- **Schema v7/v8:** `inbox_state` stores read/archived state; `automation_rule` and `automation_run` store local rules/history.
 - Inbox lists local issue activity (created, updated, status/labels, comments, archive,
   relations) with source badges, Today/Yesterday/Earlier groups, All/Unread/GitHub/
   Local/Sync filters, unread markers, mark read/unread, archive and mark-all-read.
@@ -104,7 +104,9 @@ through `user_version`. See ADR-0001…0007.
 - **Insights:** local aggregates for created/completed/open/overdue, average cycle
   time, 12-bucket completion throughput, status and project distribution, with
   `data through`; range 30/90/365 days.
-- Automations and Dashboards remain to do.
+- **Automations v1:** local trigger→label rules, enabled toggle, preview, idempotent
+  run with per-event dedupe, run history and last result. No remote writes.
+- Dashboards and external event ingestion remain to do.
 
 ### Stages 1–3 (preserved)
 
@@ -116,14 +118,14 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (81 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (83 + 3 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (107) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 55 captures (16/13/9/15/2 across Gates 0–4) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 56 captures (16/13/9/15/3 across Gates 0–4) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
@@ -167,6 +169,6 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Continue Stage 7: automations (rules, preview, run history, loop protection), then
-Dashboards with persisted 12-column layout. Remaining Stage 6 polish (inline comment
+Continue Stage 7: Dashboards with persisted 12-column layout and external event
+ingestion for Inbox. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.

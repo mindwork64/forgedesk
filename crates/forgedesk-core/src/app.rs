@@ -8,6 +8,7 @@ use crate::db::repositories::{
     workflow,
 };
 use crate::db::Database;
+use crate::domain::automation::{AutomationEvent, AutomationInput, AutomationRule, AutomationRun};
 use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
@@ -513,6 +514,54 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db.with_conn(|conn| {
             crate::db::repositories::insights::summary(conn, &workspace.id, range_days)
+        })
+    }
+
+    pub fn automation_rules(&self) -> CoreResult<Vec<AutomationRule>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| crate::db::repositories::automation::list_rules(conn, &workspace.id))
+    }
+
+    pub fn create_automation(&self, input: &AutomationInput) -> CoreResult<AutomationRule> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::automation::create_rule(conn, &workspace.id, input)
+        })
+    }
+
+    pub fn toggle_automation(&self, rule_id: &str, enabled: bool) -> CoreResult<AutomationRule> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::automation::set_enabled(conn, &workspace.id, rule_id, enabled)
+        })
+    }
+
+    pub fn delete_automation(&self, rule_id: &str) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::automation::delete_rule(conn, &workspace.id, rule_id)
+        })
+    }
+
+    pub fn preview_automation(&self, rule_id: &str) -> CoreResult<Vec<AutomationEvent>> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::automation::preview(conn, &workspace.id, rule_id)
+        })
+    }
+
+    pub fn run_automation(&self, rule_id: &str) -> CoreResult<i64> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::automation::run_rule(conn, &workspace.id, rule_id)
+        })
+    }
+
+    pub fn automation_runs(&self, rule_id: &str) -> CoreResult<Vec<AutomationRun>> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::automation::runs(conn, &workspace.id, rule_id)
         })
     }
 
