@@ -439,12 +439,12 @@ impl GitHubAuth {
         if inner.token.is_some() {
             return Ok(());
         }
-        let Ok(Some(serialized)) = self.store.load() else {
+        let Some(serialized) = self.store.load()? else {
             return Ok(());
         };
-        let Ok(token) = serde_json::from_str::<StoredToken>(&serialized) else {
-            return Ok(());
-        };
+        let token = serde_json::from_str::<StoredToken>(&serialized).map_err(|_| {
+            CoreError::auth("Saved GitHub credential is invalid; reconnect to GitHub.")
+        })?;
         inner.token = Some(token);
         inner.storage = "keyring".into();
         Ok(())
@@ -529,12 +529,23 @@ mod tests {
         value: Option<String>,
         delete_error: bool,
         entry_error: bool,
+        load_entry_error: bool,
+        load_error: bool,
+        loads: usize,
         deletes: usize,
     }
 
     impl CredentialStore for FakeStore {
         fn load(&self) -> CoreResult<Option<String>> {
-            Ok(self.0.lock().expect("fake").value.clone())
+            let mut state = self.0.lock().expect("fake");
+            state.loads += 1;
+            if state.load_entry_error {
+                return Err(CoreError::auth("keyring entry unavailable"));
+            }
+            if state.load_error {
+                return Err(CoreError::auth("keyring unavailable"));
+            }
+            Ok(state.value.clone())
         }
 
         fn save(&self, value: &str) -> CoreResult<()> {
@@ -586,6 +597,92 @@ mod tests {
         inner.pending = Some(pending());
         inner.storage = storage.into();
         inner.storage_warning = Some("warning".into());
+    }
+
+    fn stored_json() -> String {
+        serde_json::to_string(&stored_token()).expect("token json")
+    }
+
+    #[test]
+    fn hydrate_absent_credentials_is_not_an_error() {
+        let store = FakeStore::default();
+        let auth = auth_with(store);
+        auth.hydrate_from_keyring().expect("absent");
+        assert!(auth.inner.lock().expect("inner").token.is_none());
+    }
+
+    #[test]
+    fn hydrate_restores_valid_token() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").value = Some(stored_json());
+        let auth = auth_with(store);
+        auth.hydrate_from_keyring().expect("restore");
+        let inner = auth.inner.lock().expect("inner");
+        assert_eq!(
+            inner.token.as_ref().map(|token| token.login.as_str()),
+            Some("user")
+        );
+        assert_eq!(inner.storage, "keyring");
+        assert!(inner.storage_warning.is_none());
+    }
+
+    #[test]
+    fn hydrate_read_error_is_propagated_without_clearing_state() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").load_error = true;
+        let auth = auth_with(store);
+        let mut inner = auth.inner.lock().expect("inner");
+        inner.pending = Some(pending());
+        inner.storage_warning = Some("warning".into());
+        drop(inner);
+
+        let error = auth.hydrate_from_keyring().expect_err("read error");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        let inner = auth.inner.lock().expect("inner");
+        assert!(inner.token.is_none());
+        assert!(inner.pending.is_some());
+        assert!(inner.storage_warning.is_some());
+    }
+
+    #[test]
+    fn hydrate_entry_creation_error_is_propagated() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").load_entry_error = true;
+        let auth = auth_with(store);
+        auth.inner.lock().expect("inner").pending = Some(pending());
+
+        let error = auth.hydrate_from_keyring().expect_err("entry error");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        assert!(auth.inner.lock().expect("inner").pending.is_some());
+    }
+
+    #[test]
+    fn hydrate_invalid_json_is_safe_error_without_clearing_state() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").value = Some("not-json-secret".into());
+        let auth = auth_with(store);
+        let mut inner = auth.inner.lock().expect("inner");
+        inner.pending = Some(pending());
+        inner.storage_warning = Some("warning".into());
+        drop(inner);
+
+        let error = auth.hydrate_from_keyring().expect_err("invalid json");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        assert!(!error.user_message().contains("not-json-secret"));
+        let inner = auth.inner.lock().expect("inner");
+        assert!(inner.token.is_none());
+        assert!(inner.pending.is_some());
+        assert!(inner.storage_warning.is_some());
+    }
+
+    #[test]
+    fn hydrate_memory_token_does_not_touch_keyring() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").load_error = true;
+        let auth = auth_with(store.clone());
+        auth.inner.lock().expect("inner").token = Some(stored_token());
+        auth.hydrate_from_keyring().expect("memory token");
+        assert_eq!(store.0.lock().expect("fake").loads, 0);
     }
 
     #[test]

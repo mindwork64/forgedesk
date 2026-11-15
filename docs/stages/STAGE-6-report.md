@@ -35,6 +35,11 @@ screen remain open.
 - Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
   consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
   rejection and fails the whole request on later-page errors.
+- PR Files completeness: compares loaded files with `changed_files` and the 3000-file
+  API cap; warns for known-missing or indeterminate results without hiding patches.
+- Keyring read failures/invalid JSON return safe auth errors, keep state, and surface
+  as storage-unavailable (not disconnected) with retry and reauthorization available.
+  Memory-only tokens are not re-read from Keyring.
 
 ## Not delivered
 
@@ -53,8 +58,8 @@ screen remain open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 63 (+2 ignored live) |
-| Frontend | `npm run typecheck`, `npm test` | PASS — 78 |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 69 (+2 ignored live) |
+| Frontend | `npm run typecheck`, `npm test` | PASS — 89 |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (PR list/detail/files) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
 | Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |

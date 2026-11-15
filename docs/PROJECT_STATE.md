@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 63 core (+2 ignored live), 78 frontend, 48 visual captures.
+- **Tests:** 69 core (+2 ignored live), 89 frontend, 48 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -72,6 +72,11 @@ through `user_version`. See ADR-0001…0007.
   only after a successful credential delete; PR file pagination loads all pages
   (100/page) with cycle/non-advance protection and whole-request failure on later
   page errors.
+- PR Files completeness compares loaded files with `changed_files` and the GitHub
+  3000-file endpoint cap; incomplete/unknown states show a non-blocking warning while
+  loaded patches stay visible. Keyring read errors are no longer treated as
+  disconnected: UI shows saved-authorization-unavailable and still allows retry/
+  reauthorization; invalid saved JSON returns a safe auth error without deletion.
 - Split diff/line comments, requested-review queue, CI screen and PR↔issue links
   remain open.
 
@@ -85,12 +90,12 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (63 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (69 + 2 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (78) |
+| Frontend tests | `npm test` | PASS (89) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (16/13/9/10 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |

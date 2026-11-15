@@ -1062,6 +1062,10 @@ export default {
     authError: 'GitHub authorization failed',
     memoryOnly:
       'Secure credential storage is unavailable; the token is kept for this session only.',
+    storageUnavailable: 'Saved GitHub authorization unavailable',
+    storageUnavailableHint:
+      'ForgeDesk could not read saved GitHub credentials. Retry the check or reconnect; no saved credentials were deleted.',
+    retryCheck: 'Retry check',
     refreshed: 'GitHub token refreshed',
     refreshError: 'Could not refresh GitHub token',
     disconnected: 'GitHub disconnected',
@@ -1130,6 +1134,10 @@ export default {
       noCommits: 'No commits loaded.',
       noChecks: 'No checks reported.',
       noReviews: 'No reviews yet.',
+      filesIncomplete:
+        'Loaded {loaded} of {expected} files. GitHub\'s pull request files endpoint exposes at most {limit} files per pull request; the remaining {remaining} are not available through this endpoint.',
+      filesUnknown:
+        'Loaded {loaded} files. GitHub reported no total for this pull request, and the files endpoint is limited to {limit} files, so completeness cannot be confirmed.',
       noFiles: 'No files changed.',
       unknown: 'Unknown',
     },

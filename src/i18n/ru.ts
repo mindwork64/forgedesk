@@ -1061,6 +1061,10 @@ export default {
     startError: 'Не удалось начать авторизацию GitHub',
     authError: 'Авторизация GitHub не удалась',
     memoryOnly: 'Безопасное хранилище недоступно; токен хранится только до конца сессии.',
+    storageUnavailable: 'Сохранённая авторизация GitHub недоступна',
+    storageUnavailableHint:
+      'ForgeDesk не удалось прочитать сохранённые учётные данные GitHub. Повторите проверку или подключитесь заново; сохранённые данные не удалены.',
+    retryCheck: 'Проверить снова',
     refreshed: 'Токен GitHub обновлён',
     refreshError: 'Не удалось обновить токен GitHub',
     disconnected: 'GitHub отключён',
@@ -1129,6 +1133,10 @@ export default {
       noCommits: 'Коммиты не загружены.',
       noChecks: 'Проверки не найдены.',
       noReviews: 'Ревью пока нет.',
+      filesIncomplete:
+        'Загружено {loaded} из {expected} файлов. GitHub отдаёт через endpoint файлов pull request не более {limit}; оставшиеся {remaining} через него недоступны.',
+      filesUnknown:
+        'Загружено {loaded} файлов. GitHub не сообщил общее количество, а endpoint ограничен {limit} файлами; подтвердить полноту нельзя.',
       noFiles: 'Файлы не изменены.',
       unknown: 'Неизвестно',
     },

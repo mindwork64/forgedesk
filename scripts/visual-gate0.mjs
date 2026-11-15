@@ -1154,6 +1154,13 @@ async function main() {
         const files = await page.locator('.fd-pr-file').count()
         caseReport.pullFiles = files
         assert(files >= 2, `${testCase.name}: expected PR files`, report.failures)
+        const warning = await page.locator('.fd-pr-warning').innerText()
+        caseReport.prFilesWarning = warning
+        assert(
+          warning.includes('2 of 9') && warning.includes('3000'),
+          `${testCase.name}: expected incomplete files warning`,
+          report.failures,
+        )
       }
 
       if (testCase.openGithubRepos) {

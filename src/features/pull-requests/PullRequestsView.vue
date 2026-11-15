@@ -14,6 +14,7 @@ import FdIconButton from '@/components/ui/FdIconButton.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import FdSegmented from '@/components/ui/FdSegmented.vue'
 import GitHubRepoDialog from '@/features/integrations/GitHubRepoDialog.vue'
+import { assessFileCompleteness } from './fileCompleteness'
 import { formatRelative } from '@/lib/format'
 import { useAppStore } from '@/stores/app'
 import { useGithubAuthStore } from '@/stores/githubAuth'
@@ -33,6 +34,9 @@ const repoDialog = ref(false)
 const detailTab = ref<DetailTab>('overview')
 const selectedRepo = computed(() => auth.selectedRepo)
 const pull = computed(() => prs.detail?.pull ?? null)
+const fileCompleteness = computed(() =>
+  prs.detail ? assessFileCompleteness(prs.detail.files.length, prs.detail.pull.changedFiles) : null,
+)
 
 const stateOptions = computed(() => [
   { value: 'open', label: t('prs.open') },
@@ -246,6 +250,12 @@ function duration(check: GitHubCheckRun): string {
                 </div>
               </template>
               <template v-else>
+                <p v-if="fileCompleteness?.status === 'incomplete'" class="fd-pr-warning" role="status">
+                  {{ t('prs.detail.filesIncomplete', { loaded: fileCompleteness.loaded, expected: fileCompleteness.expected, remaining: fileCompleteness.remaining, limit: fileCompleteness.limit }) }}
+                </p>
+                <p v-else-if="fileCompleteness?.status === 'unknown'" class="fd-pr-warning" role="status">
+                  {{ t('prs.detail.filesUnknown', { loaded: fileCompleteness.loaded, limit: fileCompleteness.limit }) }}
+                </p>
                 <p v-if="prs.detail.files.length === 0" class="fd-pr-muted">{{ t('prs.detail.noFiles') }}</p>
                 <div v-for="file in prs.detail.files" :key="file.filename" class="fd-pr-file">
                   <div class="fd-pr-file__head">
@@ -297,6 +307,7 @@ function duration(check: GitHubCheckRun): string {
 .fd-pr-row-line { display: grid; grid-template-columns: 70px minmax(0, 1fr) 90px; gap: var(--fd-space-2); align-items: center; min-height: 30px; border-bottom: 1px solid var(--fd-border-subtle); color: var(--fd-text-secondary); font-size: var(--fd-text-11); }
 .fd-pr-review { display: grid; grid-template-columns: 90px 90px minmax(0, 1fr); gap: var(--fd-space-2); min-height: 30px; border-bottom: 1px solid var(--fd-border-subtle); font-size: var(--fd-text-11); }
 .fd-pr-review p { margin: 0; color: var(--fd-text-muted); }
+.fd-pr-warning { margin: 0 0 var(--fd-space-3); padding: 8px 10px; border: 1px solid var(--fd-warning); border-radius: var(--fd-radius-control); background: var(--fd-bg); color: var(--fd-text-secondary); font-size: var(--fd-text-11); line-height: var(--fd-line-body); }
 .fd-pr-file { margin-bottom: var(--fd-space-3); border: 1px solid var(--fd-border-subtle); border-radius: var(--fd-radius-control); overflow: hidden; }
 .fd-pr-file__head { display: flex; align-items: center; justify-content: space-between; gap: var(--fd-space-2); padding: 6px 8px; background: var(--fd-bg); }
 .fd-pr-file__head code { overflow: hidden; font-size: var(--fd-text-11); text-overflow: ellipsis; }

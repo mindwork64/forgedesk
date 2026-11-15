@@ -48,16 +48,29 @@ onMounted(async () => {
           </div>
           <span
             class="fd-provider-state"
-            :class="{ 'fd-provider-state--ok': auth.connected }"
+            :class="{
+              'fd-provider-state--ok': auth.connected,
+              'fd-provider-state--warn': auth.connectionUnavailable,
+            }"
           >
             {{
               auth.connected
                 ? t('apiMonitor.connectedAs', { login: auth.connection?.login })
-                : t('integrations.notConnected')
+                : auth.connectionUnavailable
+                  ? t('githubAuth.storageUnavailable')
+                  : t('integrations.notConnected')
             }}
           </span>
         </div>
-        <p v-if="!auth.connected" class="fd-provider-card__notice">
+        <p
+          v-if="auth.connectionUnavailable"
+          class="fd-provider-card__notice fd-provider-card__notice--warn"
+          role="status"
+        >
+          {{ t('githubAuth.storageUnavailableHint') }}
+          <span v-if="auth.error?.message"> {{ auth.error.message }}</span>
+        </p>
+        <p v-else-if="!auth.connected" class="fd-provider-card__notice">
           {{ t('githubAuth.hint') }}
         </p>
         <p v-else class="fd-provider-card__notice">
@@ -95,6 +108,14 @@ onMounted(async () => {
           <template v-else>
             <FdButton variant="primary" size="sm" @click="connectOpen = true">
               {{ t('integrations.connect') }}
+            </FdButton>
+            <FdButton
+              v-if="auth.connectionUnavailable"
+              variant="ghost"
+              size="sm"
+              @click="auth.loadConnection()"
+            >
+              {{ t('githubAuth.retryCheck') }}
             </FdButton>
             <span class="fd-provider-muted">{{ t('integrations.noAccount') }}</span>
           </template>
@@ -262,11 +283,20 @@ onMounted(async () => {
   color: var(--fd-success);
 }
 
+.fd-provider-state--warn {
+  color: var(--fd-warning);
+}
+
 .fd-provider-card__notice {
   padding: 8px 10px;
   border: 1px solid var(--fd-border-subtle);
   border-radius: var(--fd-radius-control);
   background: var(--fd-bg);
+}
+
+.fd-provider-card__notice--warn {
+  border-color: var(--fd-warning);
+  color: var(--fd-text-secondary);
 }
 
 .fd-provider-permissions {
