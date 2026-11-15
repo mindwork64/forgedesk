@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 52 core (+2 ignored live), 78 frontend, 48 visual captures.
+- **Tests:** 63 core (+2 ignored live), 78 frontend, 48 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -68,7 +68,12 @@ through `user_version`. See ADR-0001…0007.
   reviewer/state/body; Files shows unified patches with status and counts.
 - No merge, close, approve, comment or review submission is exposed.
 - Live read-only verification against `cli/cli` passed for list + detail.
-- Files/diff, requested-review queue, CI screen and PR↔issue links remain open.
+- Disconnect is idempotent, keyring-error-safe and clears memory/pending/warnings
+  only after a successful credential delete; PR file pagination loads all pages
+  (100/page) with cycle/non-advance protection and whole-request failure on later
+  page errors.
+- Split diff/line comments, requested-review queue, CI screen and PR↔issue links
+  remain open.
 
 ### Stages 1–3 (preserved)
 
@@ -80,7 +85,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (52 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (63 + 2 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |

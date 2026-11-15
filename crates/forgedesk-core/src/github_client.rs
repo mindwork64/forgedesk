@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use reqwest::blocking::Client;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -160,19 +162,23 @@ pub struct GitHubClient {
 
 impl GitHubClient {
     pub fn new(token: impl Into<String>) -> CoreResult<Self> {
+        let base = std::env::var("FORGEDESK_GITHUB_API_URL")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| DEFAULT_API.to_owned());
+        Self::with_base(token, base)
+    }
+
+    fn with_base(token: impl Into<String>, base: impl Into<String>) -> CoreResult<Self> {
         let http = Client::builder()
             .user_agent("ForgeDesk/0.1 (+https://github.com/mindwork64/forgedesk)")
             .timeout(std::time::Duration::from_secs(30))
             .build()
             .map_err(|error| CoreError::network(format!("HTTP client failed: {error}")))?;
-        let base = std::env::var("FORGEDESK_GITHUB_API_URL")
-            .ok()
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| DEFAULT_API.to_owned());
         Ok(Self {
             http,
             token: token.into(),
-            base: base.trim_end_matches('/').to_owned(),
+            base: base.into().trim_end_matches('/').to_owned(),
         })
     }
 
@@ -249,14 +255,40 @@ impl GitHubClient {
         repo: &str,
         number: i64,
     ) -> CoreResult<Vec<GitHubFile>> {
-        let path = format!(
-            "/repos/{}/{}/pulls/{}/files?per_page=100",
-            encode(owner),
-            encode(repo),
-            number
-        );
-        let page: Page<GitHubFile> = self.get_page(&path)?;
-        Ok(page.items)
+        let mut page_number = 1u32;
+        let mut seen = HashSet::new();
+        let mut files = Vec::new();
+        loop {
+            if !seen.insert(page_number) {
+                return Err(CoreError::network("GitHub file pagination loop detected."));
+            }
+            let path = format!(
+                "/repos/{}/{}/pulls/{}/files?per_page=100&page={page_number}",
+                encode(owner),
+                encode(repo),
+                number
+            );
+            let page: Page<GitHubFile> = self.get_page(&path)?;
+            if page.items.is_empty() {
+                if page.next_page.is_some() {
+                    return Err(CoreError::network(
+                        "GitHub returned an empty file page with a next page.",
+                    ));
+                }
+                break;
+            }
+            files.extend(page.items);
+            match page.next_page {
+                Some(next) if next > page_number => page_number = next,
+                Some(_) => {
+                    return Err(CoreError::network(
+                        "GitHub file pagination did not advance.",
+                    ))
+                }
+                None => break,
+            }
+        }
+        Ok(files)
     }
 
     pub fn list_check_runs(
@@ -401,7 +433,204 @@ fn map_status(status: StatusCode, body: &str, remaining: Option<i64>) -> CoreErr
 
 #[cfg(test)]
 mod tests {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::thread;
+
     use super::*;
+
+    struct MockServer {
+        base: String,
+    }
+
+    struct MockResponse {
+        status: u16,
+        body: String,
+        next_page: Option<u32>,
+    }
+
+    fn mock_server(responses: Vec<MockResponse>) -> MockServer {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("listener");
+        let address = listener.local_addr().expect("address");
+        let count = responses.len();
+        thread::spawn(move || {
+            for response in responses.into_iter().take(count) {
+                let Ok((mut stream, _)) = listener.accept() else {
+                    return;
+                };
+                let mut request = [0u8; 4096];
+                let _ = stream.read(&mut request);
+                let reason = if response.status == 200 {
+                    "OK"
+                } else {
+                    "Internal Server Error"
+                };
+                let link = response
+                    .next_page
+                    .map(|page| {
+                        format!("Link: <http://127.0.0.1/files?page={page}>; rel=\"next\"\r\n")
+                    })
+                    .unwrap_or_default();
+                let head = format!(
+                    "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n{}\r\n",
+                    response.status,
+                    reason,
+                    response.body.len(),
+                    link
+                );
+                let _ = stream.write_all(head.as_bytes());
+                let _ = stream.write_all(response.body.as_bytes());
+            }
+        });
+        MockServer {
+            base: format!("http://{address}"),
+        }
+    }
+
+    fn file(name: &str) -> String {
+        format!(
+            r#"{{"filename":"{name}","status":"modified","additions":1,"deletions":0,"changes":1,"patch":null,"previous_filename":null}}"#
+        )
+    }
+
+    fn body(files: &[&str]) -> String {
+        format!(
+            "[{}]",
+            files
+                .iter()
+                .map(|name| file(name))
+                .collect::<Vec<_>>()
+                .join(",")
+        )
+    }
+
+    fn client(server: &MockServer) -> GitHubClient {
+        GitHubClient::with_base("test-token", server.base.clone()).expect("client")
+    }
+
+    #[test]
+    fn file_pagination_single_page_without_next() {
+        let server = mock_server(vec![MockResponse {
+            status: 200,
+            body: body(&["a.rs", "b.rs"]),
+            next_page: None,
+        }]);
+        let files = client(&server).list_pull_files("o", "r", 1).expect("files");
+        assert_eq!(
+            files
+                .iter()
+                .map(|f| f.filename.as_str())
+                .collect::<Vec<_>>(),
+            ["a.rs", "b.rs"]
+        );
+    }
+
+    #[test]
+    fn file_pagination_multiple_pages_preserves_order() {
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: body(&["a.rs", "b.rs"]),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 200,
+                body: body(&["c.rs"]),
+                next_page: Some(3),
+            },
+            MockResponse {
+                status: 200,
+                body: body(&["d.rs"]),
+                next_page: None,
+            },
+        ]);
+        let files = client(&server).list_pull_files("o", "r", 7).expect("files");
+        assert_eq!(
+            files
+                .iter()
+                .map(|f| f.filename.as_str())
+                .collect::<Vec<_>>(),
+            ["a.rs", "b.rs", "c.rs", "d.rs"]
+        );
+    }
+
+    #[test]
+    fn file_pagination_empty_page_stops_without_partial_error() {
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: body(&["a.rs"]),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 200,
+                body: "[]".into(),
+                next_page: None,
+            },
+        ]);
+        let files = client(&server).list_pull_files("o", "r", 1).expect("files");
+        assert_eq!(files.len(), 1);
+    }
+
+    #[test]
+    fn file_pagination_empty_page_with_next_is_an_error() {
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: body(&["a.rs"]),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 200,
+                body: "[]".into(),
+                next_page: Some(3),
+            },
+        ]);
+        let error = client(&server)
+            .list_pull_files("o", "r", 1)
+            .expect_err("empty page with next must fail");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Network);
+    }
+
+    #[test]
+    fn file_pagination_second_page_error_fails_whole_request() {
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: body(&["a.rs"]),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 500,
+                body: r#"{"message":"boom"}"#.into(),
+                next_page: None,
+            },
+        ]);
+        let error = client(&server)
+            .list_pull_files("o", "r", 1)
+            .expect_err("second page must fail");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Network);
+    }
+
+    #[test]
+    fn file_pagination_cycle_is_rejected() {
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: body(&["a.rs"]),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 200,
+                body: body(&["b.rs"]),
+                next_page: Some(1),
+            },
+        ]);
+        let error = client(&server)
+            .list_pull_files("o", "r", 1)
+            .expect_err("cycle must fail");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Network);
+    }
 
     #[test]
     fn parses_next_page_and_encodes_names() {

@@ -32,6 +32,9 @@ screen remain open.
 - No fake PR data in production; connected screenshots use the build-gated harness.
 - Live read-only verification against `cli/cli`: list pulls + load detail/commits/
   reviews/check-runs succeeded.
+- Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
+  consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
+  rejection and fails the whole request on later-page errors.
 
 ## Not delivered
 
@@ -50,7 +53,7 @@ screen remain open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 52 (+2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 63 (+2 ignored live) |
 | Frontend | `npm run typecheck`, `npm test` | PASS — 78 |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (PR list/detail/files) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |

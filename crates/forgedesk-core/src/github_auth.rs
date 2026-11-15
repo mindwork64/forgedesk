@@ -93,14 +93,54 @@ struct Inner {
     storage_warning: Option<String>,
 }
 
+trait CredentialStore: Send + Sync {
+    fn load(&self) -> CoreResult<Option<String>>;
+    fn save(&self, value: &str) -> CoreResult<()>;
+    fn delete(&self) -> CoreResult<()>;
+}
+
+struct KeyringStore;
+
+impl CredentialStore for KeyringStore {
+    fn load(&self) -> CoreResult<Option<String>> {
+        match entry()?.get_password() {
+            Ok(value) => Ok(Some(value)),
+            Err(keyring::Error::NoEntry) => Ok(None),
+            Err(_) => Err(CoreError::auth(
+                "Secure credential store could not read the GitHub token.",
+            )),
+        }
+    }
+
+    fn save(&self, value: &str) -> CoreResult<()> {
+        entry()?.set_password(value).map_err(|_| {
+            CoreError::auth("Secure credential store could not save the GitHub token.")
+        })
+    }
+
+    fn delete(&self) -> CoreResult<()> {
+        match entry()?.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(_) => Err(CoreError::auth(
+                "Secure credential store could not delete the GitHub token.",
+            )),
+        }
+    }
+}
+
 pub struct GitHubAuth {
     client_id: String,
     http: Client,
+    store: Box<dyn CredentialStore>,
     inner: Mutex<Inner>,
 }
 
 impl GitHubAuth {
     pub fn new() -> CoreResult<Self> {
+        Self::with_store(Box::new(KeyringStore))
+    }
+
+    fn with_store(store: Box<dyn CredentialStore>) -> CoreResult<Self> {
         let client_id = std::env::var("FORGEDESK_GITHUB_CLIENT_ID")
             .ok()
             .filter(|value| !value.trim().is_empty())
@@ -113,6 +153,7 @@ impl GitHubAuth {
         Ok(Self {
             client_id,
             http,
+            store,
             inner: Mutex::new(Inner {
                 pending: None,
                 token: None,
@@ -295,10 +336,10 @@ impl GitHubAuth {
     }
 
     pub fn disconnect(&self) -> CoreResult<()> {
-        if let Ok(entry) = entry() {
-            let _ = entry.delete_credential();
-        }
         let mut inner = self.lock()?;
+        if inner.storage == "keyring" {
+            self.store.delete()?;
+        }
         inner.token = None;
         inner.pending = None;
         inner.storage = "memory".into();
@@ -377,11 +418,7 @@ impl GitHubAuth {
             .map_err(|error| CoreError::internal(format!("Token encoding failed: {error}")))?;
         let mut inner = self.lock()?;
         inner.token = Some(token.clone());
-        match entry().and_then(|entry| {
-            entry.set_password(&serialized).map_err(|error| {
-                CoreError::auth(format!("Secure credential store failed: {error}"))
-            })
-        }) {
+        match self.store.save(&serialized) {
             Ok(()) => {
                 inner.storage = "keyring".into();
                 inner.storage_warning = None;
@@ -402,10 +439,7 @@ impl GitHubAuth {
         if inner.token.is_some() {
             return Ok(());
         }
-        let Ok(entry) = entry() else {
-            return Ok(());
-        };
-        let Ok(serialized) = entry.get_password() else {
+        let Ok(Some(serialized)) = self.store.load() else {
             return Ok(());
         };
         let Ok(token) = serde_json::from_str::<StoredToken>(&serialized) else {
@@ -483,7 +517,158 @@ fn format_timestamp(value: i64) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use super::*;
+
+    #[derive(Clone, Default)]
+    struct FakeStore(Arc<Mutex<FakeState>>);
+
+    #[derive(Default)]
+    struct FakeState {
+        value: Option<String>,
+        delete_error: bool,
+        entry_error: bool,
+        deletes: usize,
+    }
+
+    impl CredentialStore for FakeStore {
+        fn load(&self) -> CoreResult<Option<String>> {
+            Ok(self.0.lock().expect("fake").value.clone())
+        }
+
+        fn save(&self, value: &str) -> CoreResult<()> {
+            self.0.lock().expect("fake").value = Some(value.to_owned());
+            Ok(())
+        }
+
+        fn delete(&self) -> CoreResult<()> {
+            let mut state = self.0.lock().expect("fake");
+            state.deletes += 1;
+            if state.entry_error {
+                return Err(CoreError::auth("entry failed"));
+            }
+            if state.delete_error {
+                return Err(CoreError::auth("delete failed"));
+            }
+            state.value = None;
+            Ok(())
+        }
+    }
+
+    fn stored_token() -> StoredToken {
+        StoredToken {
+            access_token: "access".into(),
+            refresh_token: "refresh".into(),
+            expires_at: 1,
+            refresh_expires_at: 2,
+            login: "user".into(),
+            user_id: 1,
+            scopes: String::new(),
+        }
+    }
+
+    fn pending() -> PendingDevice {
+        PendingDevice {
+            device_code: "device".into(),
+            interval: 5,
+            expires_at: 999,
+        }
+    }
+
+    fn auth_with(store: FakeStore) -> GitHubAuth {
+        GitHubAuth::with_store(Box::new(store)).expect("auth")
+    }
+
+    fn seed(auth: &GitHubAuth, storage: &str) {
+        let mut inner = auth.inner.lock().expect("inner");
+        inner.token = Some(stored_token());
+        inner.pending = Some(pending());
+        inner.storage = storage.into();
+        inner.storage_warning = Some("warning".into());
+    }
+
+    #[test]
+    fn disconnect_deletes_credential_and_clears_all_state() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").value = Some("secret".into());
+        let auth = auth_with(store.clone());
+        seed(&auth, "keyring");
+
+        auth.disconnect().expect("disconnect");
+
+        let fake = store.0.lock().expect("fake");
+        assert!(fake.value.is_none());
+        assert_eq!(fake.deletes, 1);
+        drop(fake);
+        let inner = auth.inner.lock().expect("inner");
+        assert!(inner.token.is_none());
+        assert!(inner.pending.is_none());
+        assert_eq!(inner.storage, "memory");
+        assert!(inner.storage_warning.is_none());
+    }
+
+    #[test]
+    fn disconnect_without_stored_entry_is_idempotent() {
+        let store = FakeStore::default();
+        let auth = auth_with(store.clone());
+        seed(&auth, "keyring");
+
+        auth.disconnect().expect("first disconnect");
+        auth.disconnect().expect("second disconnect");
+
+        let fake = store.0.lock().expect("fake");
+        assert!(fake.value.is_none());
+        assert_eq!(fake.deletes, 1, "memory-only repeat must not touch keyring");
+    }
+
+    #[test]
+    fn disconnect_delete_error_keeps_consistent_state() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").delete_error = true;
+        store.0.lock().expect("fake").value = Some("secret".into());
+        let auth = auth_with(store);
+        seed(&auth, "keyring");
+
+        let error = auth.disconnect().expect_err("delete must fail");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        let inner = auth.inner.lock().expect("inner");
+        assert!(inner.token.is_some());
+        assert!(inner.pending.is_some());
+        assert_eq!(inner.storage, "keyring");
+        assert!(inner.storage_warning.is_some());
+    }
+
+    #[test]
+    fn disconnect_entry_failure_is_reported_and_keeps_state() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").entry_error = true;
+        let auth = auth_with(store);
+        seed(&auth, "keyring");
+
+        let error = auth.disconnect().expect_err("entry failure must surface");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        let inner = auth.inner.lock().expect("inner");
+        assert!(inner.token.is_some());
+        assert!(inner.pending.is_some());
+        assert_eq!(inner.storage, "keyring");
+    }
+
+    #[test]
+    fn memory_only_disconnect_does_not_require_keyring() {
+        let store = FakeStore::default();
+        store.0.lock().expect("fake").delete_error = true;
+        let auth = auth_with(store.clone());
+        seed(&auth, "memory");
+
+        auth.disconnect().expect("memory disconnect");
+
+        assert_eq!(store.0.lock().expect("fake").deletes, 0);
+        let inner = auth.inner.lock().expect("inner");
+        assert!(inner.token.is_none());
+        assert!(inner.pending.is_none());
+        assert!(inner.storage_warning.is_none());
+    }
 
     #[test]
     fn token_response_parses_and_keeps_refresh() {
