@@ -101,6 +101,10 @@ export type CommandName =
   | 'add_issue_comment'
   | 'add_issue_relation'
   | 'remove_issue_relation'
+  | 'list_saved_views'
+  | 'create_saved_view'
+  | 'update_saved_view'
+  | 'delete_saved_view'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -259,18 +263,20 @@ export type FilterOperator =
   | 'lt'
   | 'lte'
 
-export type FilterNode =
-  | {
-      kind: 'condition'
-      field: FilterField
-      operator: FilterOperator
-      value?: unknown
-    }
-  | {
-      kind: 'group'
-      op: LogicalOp
-      conditions: FilterNode[]
-    }
+export interface FilterCondition {
+  kind: 'condition'
+  field: FilterField
+  operator: FilterOperator
+  value?: unknown
+}
+
+export interface FilterGroup {
+  kind: 'group'
+  op: LogicalOp
+  conditions: FilterNode[]
+}
+
+export type FilterNode = FilterCondition | FilterGroup
 
 export type SortField =
   | 'updatedAt'
@@ -332,4 +338,28 @@ export interface BatchIssueInput {
   addLabelNames?: string[]
   removeLabelNames?: string[]
   archive?: boolean | null
+}
+
+export interface SavedView {
+  id: string
+  name: string
+  filters: FilterNode | null
+  sort: SortSpec[]
+  groupBy: string | null
+  columns: string[]
+  density: 'standard' | 'compact'
+  isPinned: boolean
+  position: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SavedViewInput {
+  name: string
+  filters?: FilterNode | null
+  sort?: SortSpec[]
+  groupBy?: string | null
+  columns?: string[]
+  density?: 'standard' | 'compact' | null
+  isPinned?: boolean | null
 }

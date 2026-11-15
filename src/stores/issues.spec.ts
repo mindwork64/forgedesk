@@ -75,6 +75,42 @@ describe('issue store', () => {
     expect(store.issues[0].title).toBe('New store issue')
   })
 
+  it('loads and applies saved views', async () => {
+    const store = useIssueStore()
+    await store.loadSavedViews()
+    expect(store.savedViews.length).toBeGreaterThanOrEqual(2)
+    expect(store.pinnedViews.length).toBeGreaterThanOrEqual(1)
+
+    const view = store.savedViews.find((item) => item.id === 'view-active')
+    expect(view).toBeTruthy()
+    store.applyView(view!)
+    expect(store.filter).toEqual(view?.filters)
+    expect(store.activeViewId).toBe('view-active')
+    await store.load()
+    expect(store.issues.length).toBeGreaterThan(0)
+    expect(
+      store.issues.every(
+        (issue) => issue.priority === 'high' || issue.priority === 'urgent',
+      ),
+    ).toBe(true)
+  })
+
+  it('saves, pins and deletes a view', async () => {
+    const store = useIssueStore()
+    await store.loadSavedViews()
+    const saved = await store.saveView('Store view')
+    expect(saved).not.toBeNull()
+    expect(store.activeViewId).toBe(saved?.id)
+    expect(store.savedViews.some((view) => view.id === saved?.id)).toBe(true)
+
+    const pinned = await store.togglePin(saved!)
+    expect(pinned).toBe(true)
+    expect(store.pinnedViews.some((view) => view.id === saved?.id)).toBe(true)
+
+    expect(await store.deleteView(saved!.id)).toBe(true)
+    expect(store.savedViews.some((view) => view.id === saved?.id)).toBe(false)
+  })
+
   it('updates several issues in one batch', async () => {
     const store = useIssueStore()
     await store.load()

@@ -3,12 +3,12 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 
 use crate::backup::{self, BackupInfo};
-use crate::db::repositories::{issues, labels as label_repo, projects, workflow};
+use crate::db::repositories::{issues, labels as label_repo, projects, saved_views, workflow};
 use crate::db::Database;
 use crate::domain::{
     AppSettings, BatchIssueInput, CreateIssueInput, IssueDetail, IssueQuery, IssueRelation,
-    IssueSummary, Label, ProjectRef, RelationInputKind, SettingsPatch, StatusSummary,
-    UpdateIssueInput, WindowState, Workflow, Workspace,
+    IssueSummary, Label, ProjectRef, RelationInputKind, SavedView, SavedViewInput, SettingsPatch,
+    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
 
@@ -260,6 +260,30 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db
             .with_conn(|conn| issues::list_relations(conn, &workspace.id, issue_id))
+    }
+
+    pub fn list_saved_views(&self) -> CoreResult<Vec<SavedView>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| saved_views::list(conn, &workspace.id))
+    }
+
+    pub fn create_saved_view(&self, input: SavedViewInput) -> CoreResult<SavedView> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| saved_views::create(tx, &workspace.id, &input))
+    }
+
+    pub fn update_saved_view(&self, id: &str, input: SavedViewInput) -> CoreResult<SavedView> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| saved_views::update(tx, &workspace.id, id, &input))
+    }
+
+    pub fn delete_saved_view(&self, id: &str) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| saved_views::delete(tx, &workspace.id, id))
     }
 
     fn require_workspace(&self) -> CoreResult<Workspace> {

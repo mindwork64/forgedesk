@@ -79,3 +79,11 @@ Each entry is small and reversible unless noted.
     be assigned/filtered; project creation UI is Stage 3 and is not simulated.
 22. **Issue activity:** structured events, not localized strings; the UI localizes
     known kinds and falls back to the raw kind for future events.
+
+23. **Saved views** persist the query (filter/sort/groupBy) plus metadata
+    (columns/density/pin/position), not issue ids, so results stay current.
+24. **Filter editor scope:** the UI exposes `eq`, `neq`, `contains`, range and
+    empty operators; `in`/`notIn` remain backend-only until a multi-value control
+    is added.
+25. **Virtualization:** flat lists virtualize above 100 rows (40 px rows, 8-row
+    overscan); grouped lists are not windowed yet. The API page limit is 500.

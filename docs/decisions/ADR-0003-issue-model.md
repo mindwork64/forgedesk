@@ -61,7 +61,11 @@ durable now even though Projects/Cycles UI arrives later.
 11. **Stage 3 columns stay additive.**
     - Milestones, cycles, docs and attachments will be added by new migrations
       with nullable FKs rather than rewriting the issue table.
-12. **The client never builds filter SQL.**
+12. **Saved views store the query, not issue ids.**
+    - Name, filter tree, sort, groupBy, columns, density, pin and position are
+      persisted per workspace. Applying a view re-runs the query, so results stay
+      current as issues change. Pinning only affects the sidebar order.
+13. **The client never builds filter SQL.**
     - Vue sends the typed filter tree and receives summaries/details. The backend
       validates field/operator combinations and rejects unsupported ones.
 
@@ -69,7 +73,9 @@ durable now even though Projects/Cycles UI arrives later.
 
 - The schema is explicit and queryable; provider-neutral remote IDs stay opaque
   strings separate from local IDs.
-- The filter engine can back saved views later without another storage format.
+- Saved views persist the same typed filter/sort/groupBy shape in `saved_view`;
+  columns/density are stored for a later column chooser, while the current list
+  renders the fixed contract columns.
 - Status renaming/localization is possible without changing issue rows.
 - Workflow transitions, templates, watchers and attachments still need product
   UI/policy work; they are not simulated.

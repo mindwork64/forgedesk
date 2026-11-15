@@ -60,6 +60,10 @@ pub fn run() {
             commands::add_issue_comment,
             commands::add_issue_relation,
             commands::remove_issue_relation,
+            commands::list_saved_views,
+            commands::create_saved_view,
+            commands::update_saved_view,
+            commands::delete_saved_view,
         ]);
 
     let app = builder

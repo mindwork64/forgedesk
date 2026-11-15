@@ -1,14 +1,13 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15  
-**Stage:** 2 — Issues/Workflow/Search/Views (core flow delivered; gate PARTIAL)  
+**Stage:** 2 — Issues/Workflow/Search/Views (core + filters/views delivered; browser gate PASS)  
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
 
-Complete the remaining Stage 2 work: UI filter builder over the existing query
-engine, Saved Views API/UI, command-palette issue search, list virtualization, then
-close UI Gate 1.
+Close the Stage 2 verification loop (Jenkins snapshot, native-run note) and begin
+Stage 3: Projects, milestones and cycles, preserving the issue/workflow model.
 
 ## Architecture (locked)
 
@@ -26,6 +25,12 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
   parent cycle checks; project/label/status validation; comments; relations with
   inverse perspective; activity log; filtered/sorted list with FTS search; detail
   payload.
+- **View model:** server-side filter tree (AND/OR, one nested group), sort,
+  FTS search; Saved Views persisted with name/filter/sort/groupBy/columns/density/
+  pin/position; commands and store.
+- **List UX:** filter builder + active chips, sort menu, grouping menu, Saved Views
+  menu/save dialog/pin/delete, sidebar pinned views, command-palette issue search,
+  virtualized flat list above 100 rows.
 - **Tauri/API:** workflow/status/label/project/list/get/create/update/archive/
   batch/duplicate/comment/relation commands; typed frontend facade.
 - **UI:** My Issues list, Board with drag status changes, 440 px detail pane
@@ -34,7 +39,7 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
   archive/duplicate, global Esc close.
 - **Stage 1 foundation:** onboarding, settings, backups/restore, themes, navigation,
   command palette, shortcut sheet, en/ru.
-- **Tests:** 31 core, 70 frontend, token contract, visual gates (22 captures).
+- **Tests:** 34 core, 76 frontend, token contract, visual gates (29 captures).
 - **Jenkins:** local `ForgeDesk-CI` pipeline from a git daemon mirror; build 4 is
   green for the Stage 2 tree with archived visual-gate artifacts.
 
@@ -42,24 +47,26 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (31) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (34) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell clippy/typecheck | `cargo clippy/check -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (70) |
+| Frontend tests | `npm test` | PASS (76) |
 | Frontend build | `npm run build` | PASS; harness excluded |
-| Visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 22 captures (16 Gate 0 + 6 Gate 1) |
+| Visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 29 captures (16 Gate 0 + 13 Gate 1) |
 | Jenkins build 2 | `ForgeDesk-CI` #2 (Stage 1 snapshot) | SUCCESS — 234 s, artifacts archived |
-| Jenkins build 4 | Stage 2 snapshot `3f029a4` | SUCCESS — 67 s, 22 captures + measurements archived |
+| Jenkins build 4 | previous Stage 2 snapshot `3f029a4` | SUCCESS — 67 s, 22 captures archived |
+| Jenkins build 5 | filter/views/palette/virtualization snapshot | Pending commit/mirror push |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
 
-- UI filter builder and Saved Views API/UI are not implemented; backend query/filter
-  engine and `saved_view` table exist.
-- Command palette is actions/navigation only; no issue entity search.
-- No list virtualization; API limit 500 rows.
+- Saved Views persist `columns`/`density` but the list still uses fixed columns and
+  standard density; a column chooser/density toggle is not implemented.
+- Filter UI supports eq/neq/contains/range/isEmpty operators; backend `in`/`notIn`
+  exists but is not exposed in the editor.
+- Flat lists virtualize above 100 rows; grouped lists render all matching rows.
 - Workflow transitions/editor, issue templates, watchers, attachments, milestones/
   cycles fields are not implemented.
 - Board drag has no custom keyboard move gesture; detail status select is the
@@ -73,6 +80,6 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 
 ## Next step
 
-Stage 2 completion slice: filter builder UI (AND/OR one nested level) using
-`IssueQuery`, Saved Views create/apply/pin/delete, palette issue search, list
-virtualization, then rerun Jenkins + UI Gate 1 and update reports.
+Commit the completion slice, refresh the Jenkins mirror and run build 5; then start
+Stage 3 (Projects/milestones/cycles) and close the remaining native-run note when a
+WebKitGTK/WebView2 host is available.

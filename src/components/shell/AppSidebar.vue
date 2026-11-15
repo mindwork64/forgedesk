@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { PanelLeftClose } from '@lucide/vue'
+import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { NAV_GROUPS, PINNED_VIEWS, UTILITY_NAV, WORKSPACE_MARK } from '@/navigation'
+import { NAV_GROUPS, UTILITY_NAV, WORKSPACE_MARK } from '@/navigation'
 import { useAppStore } from '@/stores/app'
+import { useIssueStore } from '@/stores/issues'
 import { useUiStore } from '@/stores/ui'
 
 import FdIconButton from '../ui/FdIconButton.vue'
@@ -18,8 +20,19 @@ const props = defineProps<{
 const emit = defineEmits<{ (event: 'toggle'): void }>()
 
 const app = useAppStore()
+const issueStore = useIssueStore()
 const ui = useUiStore()
 const { t } = useI18n()
+
+watch(
+  () => app.workspace?.id,
+  (workspaceId) => {
+    if (workspaceId) {
+      void issueStore.loadSavedViews()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -82,16 +95,32 @@ const { t } = useI18n()
           :item="item"
           :collapsed="collapsed"
         />
-        <template v-if="group.id === 'workspace' && !collapsed && PINNED_VIEWS.length > 0">
+        <template
+          v-if="group.id === 'workspace' && !collapsed && issueStore.pinnedViews.length > 0"
+        >
           <div class="fd-sidebar__pinned">
             <span class="fd-sidebar__pinned-label">{{ t('nav.pinnedViews') }}</span>
             <RouterLink
-              v-for="view in PINNED_VIEWS"
+              v-for="view in issueStore.pinnedViews"
               :key="view.id"
-              :to="view.path"
-              class="fd-sidebar__pinned-link"
+              :to="{ path: '/my-issues', query: { view: view.id } }"
+              custom
+              v-slot="{ href, navigate }"
             >
-              {{ view.name }}
+              <a
+                :href="href"
+                class="fd-sidebar__pinned-link"
+                :class="{
+                  'fd-sidebar__pinned-link--active':
+                    view.id === issueStore.activeViewId,
+                }"
+                :aria-current="
+                  view.id === issueStore.activeViewId ? 'location' : undefined
+                "
+                @click="navigate"
+              >
+                {{ view.name }}
+              </a>
             </RouterLink>
           </div>
         </template>
@@ -269,6 +298,10 @@ const { t } = useI18n()
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.fd-sidebar__pinned-link--active {
+  color: var(--fd-text-primary);
 }
 
 .fd-sidebar__pinned-link:hover {

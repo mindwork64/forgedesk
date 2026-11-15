@@ -54,6 +54,11 @@ props change; do not re-read every component for unrelated work.
 | `EntityDetailPane` | `src/components/issues/EntityDetailPane.vue` | Base 440 px side pane / absolute overlay below 1280; Esc close |
 | `IssueDetailPane` | `src/components/issues/IssueDetailPane.vue` | Issue title/description/properties/hierarchy/relations/activity/comments |
 | `CreateIssueDialog` | `src/components/issues/CreateIssueDialog.vue` | 720 px create dialog, title autofocus, more properties |
+| `FilterBuilder` / `FilterGroupEditor` / `FilterConditionRow` | `src/components/issues/` | Typed AND/OR filter editor, one nested group |
+| `ActiveFilterChips` | `src/components/issues/ActiveFilterChips.vue` | Removable active-filter chips |
+| `SortMenu` / `GroupMenu` | `src/components/issues/` | Sort field/direction and client-side grouping |
+| `SavedViewsMenu` / `SaveViewDialog` | `src/components/issues/` | Apply/pin/delete and save/update/as-new |
+| `IssueList` virtualization | `src/components/issues/IssueList.vue` | Windowed rows above 100, grouped sections otherwise |
 
 ## Feature screens
 

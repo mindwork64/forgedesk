@@ -34,6 +34,7 @@ ForgeDesk/
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── domain/
 │   │   ├── issue.rs            Issue/status/label/filter/query DTOs + validation
+│   │   ├── saved_view.rs       Saved view DTO/validation
 │   │   ├── settings.rs         Typed AppSettings, patch validation, window state
 │   │   ├── workspace.rs        Single workspace validation
 │   │   └── time.rs             UTC RFC 3339 helpers
@@ -50,6 +51,7 @@ ForgeDesk/
 │           ├── comments.rs     Local comments
 │           ├── activity.rs     Structured activity log
 │           ├── projects.rs     Minimal project FK target for Stage 3
+│           ├── saved_views.rs  Persisted filter/sort/group views
 │           ├── settings.rs     Settings JSON document
 │           └── workspace.rs    Workspace + human-key counter
 │
@@ -92,7 +94,7 @@ ForgeDesk/
 │   ├── components/
 │   │   ├── shell/              AppShell, sidebar, header, breadcrumbs, status
 │   │   ├── layout/             PageHeader, PageToolbar
-│   │   ├── issues/             List/row/board/detail/create issue components
+│   │   ├── issues/             List/row/board/detail/create + filter/sort/views
 │   │   ├── ui/                 Fd* shared primitives
 │   │   ├── CommandPalette.vue
 │   │   ├── ShortcutsDialog.vue

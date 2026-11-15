@@ -4,8 +4,8 @@ use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
 use forgedesk_core::domain::{
     AppSettings, BatchIssueInput, CreateIssueInput, IssueDetail, IssueQuery, IssueSummary, Label,
-    ProjectRef, RelationInputKind, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState,
-    Workflow, Workspace,
+    ProjectRef, RelationInputKind, SavedView, SavedViewInput, SettingsPatch, StatusSummary,
+    UpdateIssueInput, WindowState, Workflow, Workspace,
 };
 use tauri::{AppHandle, Manager, State};
 
@@ -217,5 +217,40 @@ pub fn remove_issue_relation(
 ) -> Result<IssueDetail, CommandError> {
     state
         .with_service(|service| service.remove_issue_relation(&issue_id, &relation_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn list_saved_views(state: State<'_, AppState>) -> Result<Vec<SavedView>, CommandError> {
+    state
+        .with_service(|service| service.list_saved_views())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_saved_view(
+    state: State<'_, AppState>,
+    input: SavedViewInput,
+) -> Result<SavedView, CommandError> {
+    state
+        .with_service(|service| service.create_saved_view(input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn update_saved_view(
+    state: State<'_, AppState>,
+    id: String,
+    input: SavedViewInput,
+) -> Result<SavedView, CommandError> {
+    state
+        .with_service(|service| service.update_saved_view(&id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn delete_saved_view(state: State<'_, AppState>, id: String) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.delete_saved_view(&id))
         .map_err(CommandError::from)
 }

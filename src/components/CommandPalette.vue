@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  CircleDot,
   HardDrive,
   Keyboard,
   PanelLeftClose,
@@ -10,12 +11,16 @@ import {
 import type { Component } from 'vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import FdKbd from '@/components/ui/FdKbd.vue'
+import { api } from '@/lib/ipc'
+import { statusLabel } from '@/lib/issue'
 import { NAV_GROUPS, UTILITY_NAV } from '@/navigation'
 import { useAppStore } from '@/stores/app'
+import { useIssueStore } from '@/stores/issues'
 import { useUiStore } from '@/stores/ui'
+import type { IssueSummary } from '@/types/ipc'
 
 interface PaletteCommand {
   id: string
@@ -27,7 +32,7 @@ interface PaletteCommand {
 }
 
 interface PaletteSection {
-  key: 'actions' | 'navigation'
+  key: 'actions' | 'issues' | 'navigation'
   label: string
   offset: number
   items: PaletteCommand[]
@@ -35,13 +40,19 @@ interface PaletteSection {
 
 const ui = useUiStore()
 const app = useAppStore()
+const issueStore = useIssueStore()
+const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const query = ref('')
 const selectedIndex = ref(0)
 const input = ref<HTMLInputElement | null>(null)
+const issueResults = ref<IssueSummary[]>([])
+const issueSearching = ref(false)
 let previousFocus: HTMLElement | null = null
+let issueSearchTimer: ReturnType<typeof setTimeout> | null = null
+let issueSearchId = 0
 
 function close(): void {
   ui.closeCommandPalette()
@@ -120,31 +131,99 @@ function matches(command: PaletteCommand, needle: string): boolean {
 
 const needle = computed(() => query.value.trim().toLowerCase())
 
+const issueCommands = computed<PaletteCommand[]>(() =>
+  issueResults.value.map((issue) => ({
+    id: `issue-${issue.id}`,
+    label: `${issue.key} · ${issue.title}`,
+    hint: statusLabel(issue.status, t, te),
+    icon: CircleDot,
+    run: () => {
+      const alreadyOpen =
+        route.path === '/my-issues' && route.query.issue === issue.id
+      if (alreadyOpen) {
+        void issueStore.selectIssue(issue.id)
+      } else {
+        void router.push({ path: '/my-issues', query: { issue: issue.id } })
+      }
+    },
+  })),
+)
+
 const sections = computed<PaletteSection[]>(() => {
   const actions = actionCommands.value.filter((item) => matches(item, needle.value))
   const navigation = navigationCommands.value.filter((item) =>
     matches(item, needle.value),
   )
-  return [
-    {
+  const issues = issueCommands.value
+  let offset = 0
+  const result: PaletteSection[] = []
+  if (actions.length) {
+    result.push({
       key: 'actions',
       label: t('palette.actions'),
-      offset: 0,
+      offset,
       items: actions,
-    },
-    {
+    })
+    offset += actions.length
+  }
+  if (issues.length) {
+    result.push({
+      key: 'issues',
+      label: t('palette.issues'),
+      offset,
+      items: issues,
+    })
+    offset += issues.length
+  }
+  if (navigation.length) {
+    result.push({
       key: 'navigation',
       label: t('palette.navigation'),
-      offset: actions.length,
+      offset,
       items: navigation,
-    },
-  ].filter((section) => section.items.length > 0) as PaletteSection[]
+    })
+  }
+  return result
 })
 
 const flatItems = computed(() => sections.value.flatMap((section) => section.items))
 
-watch(needle, () => {
+watch(needle, (value) => {
   selectedIndex.value = 0
+  if (issueSearchTimer) {
+    clearTimeout(issueSearchTimer)
+    issueSearchTimer = null
+  }
+  if (!ui.commandPaletteOpen || value.length < 2) {
+    issueResults.value = []
+    issueSearching.value = false
+    issueSearchId += 1
+    return
+  }
+  const requestId = ++issueSearchId
+  issueResults.value = []
+  issueSearching.value = true
+  issueSearchTimer = setTimeout(async () => {
+    try {
+      const result = await api.listIssues({
+        search: value,
+        sort: [{ field: 'updatedAt', direction: 'desc' }],
+        includeArchived: false,
+        limit: 6,
+      })
+      if (requestId === issueSearchId) {
+        issueResults.value = result
+      }
+    } catch {
+      if (requestId === issueSearchId) {
+        issueResults.value = []
+      }
+    } finally {
+      if (requestId === issueSearchId) {
+        issueSearching.value = false
+      }
+    }
+  }, 180)
 })
 
 watch(
@@ -161,6 +240,13 @@ watch(
       document.body.style.overflow = ''
       previousFocus?.focus()
       previousFocus = null
+      issueSearchId += 1
+      issueResults.value = []
+      issueSearching.value = false
+      if (issueSearchTimer) {
+        clearTimeout(issueSearchTimer)
+        issueSearchTimer = null
+      }
     }
   },
 )
@@ -211,6 +297,9 @@ function onKeydown(event: KeyboardEvent): void {
 
 onBeforeUnmount(() => {
   document.body.style.overflow = ''
+  if (issueSearchTimer) {
+    clearTimeout(issueSearchTimer)
+  }
 })
 </script>
 
@@ -289,8 +378,16 @@ onBeforeUnmount(() => {
           </div>
 
           <div v-else class="fd-palette__empty" role="status">
-            <p class="fd-palette__empty-title">{{ t('palette.noResults') }}</p>
-            <p class="fd-palette__empty-hint">{{ t('palette.noResultsHint') }}</p>
+            <p class="fd-palette__empty-title">
+              {{ issueSearching ? t('palette.searching') : t('palette.noResults') }}
+            </p>
+            <p class="fd-palette__empty-hint">
+              {{
+                issueSearching
+                  ? t('palette.searchingHint')
+                  : t('palette.noResultsHint')
+              }}
+            </p>
           </div>
 
           <footer class="fd-palette__footer">

@@ -12,11 +12,16 @@ import type {
   IssueQuery,
   IssueRelation,
   IssueSummary,
+  FilterCondition,
+  FilterNode,
   IssueType,
   Label,
   Priority,
   ProjectRef,
   RelationInputKind,
+  SavedView,
+  SavedViewInput,
+  SortSpec,
   StatusSummary,
   UpdateIssueInput,
   Workflow,
@@ -501,6 +506,169 @@ function updateIssue(id: string, input: UpdateIssueInput): IssueDetail {
   return detailFor(id)
 }
 
+const savedViews: SavedView[] = [
+  {
+    id: 'view-active',
+    name: 'Active work',
+    filters: {
+      kind: 'condition',
+      field: 'priority',
+      operator: 'gte',
+      value: 'high',
+    },
+    sort: [{ field: 'priority', direction: 'desc' }],
+    groupBy: 'status',
+    columns: ['key', 'title', 'status', 'priority', 'project', 'labels', 'updated'],
+    density: 'standard',
+    isPinned: true,
+    position: 0,
+    createdAt: iso(240),
+    updatedAt: iso(24),
+  },
+  {
+    id: 'view-recent',
+    name: 'Recently updated',
+    filters: null,
+    sort: [{ field: 'updatedAt', direction: 'desc' }],
+    groupBy: null,
+    columns: ['key', 'title', 'status', 'priority', 'updated'],
+    density: 'standard',
+    isPinned: false,
+    position: 1,
+    createdAt: iso(200),
+    updatedAt: iso(20),
+  },
+]
+
+const PRIORITY_RANK: Record<Priority, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+  urgent: 4,
+}
+
+function filterValue(issue: IssueSummary, field: FilterCondition['field']): unknown {
+  switch (field) {
+    case 'status':
+      return issue.status.id
+    case 'statusCategory':
+      return issue.status.category
+    case 'priority':
+      return issue.priority
+    case 'type':
+      return issue.issueType
+    case 'project':
+      return issue.project?.id ?? null
+    case 'label':
+      return issue.labels.map((label) => label.id)
+    case 'estimate':
+      return issue.estimate
+    case 'startDate':
+      return issue.startDate
+    case 'dueDate':
+      return issue.dueDate
+    case 'createdAt':
+      return issue.createdAt
+    case 'updatedAt':
+      return issue.updatedAt
+    case 'title':
+      return issue.title
+    case 'parent':
+      return issue.parentId
+    case 'archived':
+      return issue.archivedAt !== null
+    case 'source':
+      return issue.source
+    default:
+      return null
+  }
+}
+
+function matchesFilter(issue: IssueSummary, node: FilterNode): boolean {
+  if (node.kind === 'group') {
+    const values = node.conditions.map((child) => matchesFilter(issue, child))
+    return node.op === 'or' ? values.some(Boolean) : values.every(Boolean)
+  }
+  const actual = filterValue(issue, node.field)
+  const expected = node.value
+  const comparable = (value: unknown): number | string => {
+    if (node.field === 'priority') {
+      return PRIORITY_RANK[String(value) as Priority] ?? 0
+    }
+    if (node.field === 'estimate') {
+      return typeof value === 'number' ? value : -1
+    }
+    if (node.field === 'archived') {
+      return value === true ? 1 : 0
+    }
+    return typeof value === 'number' || typeof value === 'string' ? value : String(value ?? '')
+  }
+  switch (node.operator) {
+    case 'isEmpty':
+      return actual === null || actual === undefined || actual === '' || (Array.isArray(actual) && actual.length === 0)
+    case 'isNotEmpty':
+      return !(actual === null || actual === undefined || actual === '' || (Array.isArray(actual) && actual.length === 0))
+    case 'contains':
+      return String(actual ?? '').toLowerCase().includes(String(expected ?? '').toLowerCase())
+    case 'eq':
+      return Array.isArray(actual)
+        ? actual.includes(expected)
+        : actual === expected || String(actual) === String(expected)
+    case 'neq':
+      return Array.isArray(actual)
+        ? !actual.includes(expected)
+        : actual !== expected && String(actual) !== String(expected)
+    case 'gt':
+      return comparable(actual) > comparable(expected)
+    case 'gte':
+      return comparable(actual) >= comparable(expected)
+    case 'lt':
+      return comparable(actual) < comparable(expected)
+    case 'lte':
+      return comparable(actual) <= comparable(expected)
+    case 'in':
+      return Array.isArray(expected) && expected.includes(actual)
+    case 'notIn':
+      return Array.isArray(expected) && !expected.includes(actual)
+    default:
+      return true
+  }
+}
+
+function sortIssues(result: IssueSummary[], sort: SortSpec[] | undefined): IssueSummary[] {
+  const first = sort?.[0]
+  if (!first) {
+    return result.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  }
+  const direction = first.direction === 'asc' ? 1 : -1
+  const value = (issue: IssueSummary): string | number => {
+    switch (first.field) {
+      case 'priority':
+        return PRIORITY_RANK[issue.priority]
+      case 'status':
+        return statuses.findIndex((status) => status.id === issue.status.id)
+      case 'title':
+        return issue.title.toLowerCase()
+      case 'estimate':
+        return issue.estimate ?? -1
+      case 'dueDate':
+        return issue.dueDate ?? ''
+      case 'createdAt':
+        return issue.createdAt
+      case 'updatedAt':
+      default:
+        return issue.updatedAt
+    }
+  }
+  return result.sort((a, b) => {
+    const left = value(a)
+    const right = value(b)
+    if (left === right) return 0
+    return left < right ? -direction : direction
+  })
+}
+
 export function handleIssueFixtureCommand<T>(
   command: CommandName,
   args?: Record<string, unknown>,
@@ -514,14 +682,88 @@ export function handleIssueFixtureCommand<T>(
       return { handled: true, value: structuredClone(labels) as T }
     case 'list_projects':
       return { handled: true, value: structuredClone(projects) as T }
+    case 'list_saved_views':
+      return {
+        handled: true,
+        value: structuredClone(
+          savedViews
+            .slice()
+            .sort(
+              (a, b) =>
+                Number(b.isPinned) - Number(a.isPinned) ||
+                a.position - b.position,
+            ),
+        ) as T,
+      }
+    case 'create_saved_view': {
+      const input = (args?.input ?? {}) as SavedViewInput
+      const created: SavedView = {
+        id: `view-${Date.now()}`,
+        name: input.name.trim(),
+        filters: input.filters
+          ? (JSON.parse(JSON.stringify(input.filters)) as FilterNode)
+          : null,
+        sort: JSON.parse(JSON.stringify(input.sort ?? [])),
+        groupBy: input.groupBy ?? null,
+        columns: [...(input.columns ?? [
+          'key',
+          'title',
+          'status',
+          'priority',
+          'project',
+          'labels',
+          'updated',
+        ])],
+        density: input.density ?? 'standard',
+        isPinned: input.isPinned ?? false,
+        position: savedViews.length,
+        createdAt: iso(0),
+        updatedAt: iso(0),
+      }
+      savedViews.push(created)
+      return { handled: true, value: structuredClone(created) as T }
+    }
+    case 'update_saved_view': {
+      const id = String(args?.id ?? '')
+      const input = (args?.input ?? {}) as SavedViewInput
+      const index = savedViews.findIndex((view) => view.id === id)
+      if (index < 0) {
+        throw { code: 'not_found', message: 'Saved view not found' }
+      }
+      const existing = savedViews[index]!
+      const updated: SavedView = {
+        ...existing,
+        name: input.name.trim(),
+        filters: input.filters
+          ? (JSON.parse(JSON.stringify(input.filters)) as FilterNode)
+          : null,
+        sort: JSON.parse(JSON.stringify(input.sort ?? [])),
+        groupBy: input.groupBy ?? null,
+        columns: input.columns ? [...input.columns] : existing.columns,
+        density: input.density ?? existing.density,
+        isPinned: input.isPinned ?? false,
+        updatedAt: iso(0),
+      }
+      savedViews[index] = updated
+      return { handled: true, value: structuredClone(updated) as T }
+    }
+    case 'delete_saved_view': {
+      const id = String(args?.id ?? '')
+      const index = savedViews.findIndex((view) => view.id === id)
+      if (index >= 0) {
+        savedViews.splice(index, 1)
+      }
+      return { handled: true, value: undefined as T }
+    }
     case 'list_issues': {
       const query = (args?.query ?? {}) as IssueQuery
       const needle = query.search?.trim().toLowerCase() ?? ''
       let result = issues
         .filter((issue) => (query.includeArchived ? true : !issue.archivedAt))
         .filter((issue) => !needle || issue.title.toLowerCase().includes(needle))
+        .filter((issue) => !query.filter || matchesFilter(issue, query.filter))
         .slice()
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      result = sortIssues(result, query.sort)
       const offset = query.offset ?? 0
       const limit = query.limit ?? 500
       result = result.slice(offset, offset + limit)

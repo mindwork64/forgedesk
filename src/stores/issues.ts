@@ -13,6 +13,9 @@ import type {
   Label,
   ProjectRef,
   RelationInputKind,
+  SavedView,
+  SavedViewInput,
+  SortSpec,
   StatusSummary,
   UpdateIssueInput,
   Workflow,
@@ -47,6 +50,13 @@ export const useIssueStore = defineStore('issues', () => {
   const error = ref<IpcError | null>(null)
   const view = ref<'list' | 'board'>(loadView())
   const search = ref('')
+  const filter = ref<IssueQuery['filter']>(null)
+  const sort = ref<SortSpec[]>([
+    { field: 'updatedAt', direction: 'desc' },
+  ])
+  const groupBy = ref<string | null>(null)
+  const savedViews = ref<SavedView[]>([])
+  const activeViewId = ref<string | null>(null)
   const selectedId = ref<string | null>(null)
   const detail = ref<IssueDetail | null>(null)
   const detailLoading = ref(false)
@@ -85,6 +95,13 @@ export const useIssueStore = defineStore('issues', () => {
       issues: issues.value.filter((issue) => issue.status.id === status.id),
     })),
   )
+  const pinnedViews = computed(() =>
+    savedViews.value.filter((view) => view.isPinned),
+  )
+  const activeView = computed(
+    () =>
+      savedViews.value.find((view) => view.id === activeViewId.value) ?? null,
+  )
 
   async function loadReference(): Promise<void> {
     const [nextWorkflow, nextLabels, nextProjects] = await Promise.all([
@@ -106,7 +123,10 @@ export const useIssueStore = defineStore('issues', () => {
         await loadReference()
       }
       const query: IssueQuery = {
-        sort: [{ field: 'updatedAt', direction: 'desc' }],
+        filter: filter.value,
+        sort: sort.value.length
+          ? sort.value
+          : [{ field: 'updatedAt', direction: 'desc' }],
         search: search.value.trim() || null,
         includeArchived: false,
         limit: 500,
@@ -123,6 +143,123 @@ export const useIssueStore = defineStore('issues', () => {
       if (requestId === listRequestId) {
         loading.value = false
       }
+    }
+  }
+
+  function setFilter(next: IssueQuery['filter']): void {
+    filter.value = next
+    activeViewId.value = null
+    void load()
+  }
+
+  function setSort(next: SortSpec[]): void {
+    sort.value = next.length
+      ? next
+      : [{ field: 'updatedAt', direction: 'desc' }]
+    activeViewId.value = null
+    void load()
+  }
+
+  function setGroupBy(next: string | null): void {
+    groupBy.value = next
+    activeViewId.value = null
+  }
+
+  async function loadSavedViews(): Promise<void> {
+    try {
+      savedViews.value = await api.listSavedViews()
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      // A missing workspace simply means there is nothing to pin yet.
+      if (wire.code !== 'not_found') {
+        toast.error(t('views.loadError'), wire.message)
+      }
+    }
+  }
+
+  function applyView(view: SavedView): void {
+    filter.value = view.filters
+    sort.value = view.sort.length
+      ? view.sort
+      : [{ field: 'updatedAt', direction: 'desc' }]
+    groupBy.value = view.groupBy
+    activeViewId.value = view.id
+    void load()
+  }
+
+  async function saveView(
+    name: string,
+    overwriteId: string | null = null,
+  ): Promise<SavedView | null> {
+    const existing = overwriteId
+      ? savedViews.value.find((view) => view.id === overwriteId) ?? null
+      : null
+    const input: SavedViewInput = {
+      name,
+      filters: filter.value,
+      sort: sort.value,
+      groupBy: groupBy.value,
+      columns: [
+        'key',
+        'title',
+        'status',
+        'priority',
+        'project',
+        'labels',
+        'updated',
+      ],
+      density: 'standard',
+      isPinned: existing?.isPinned ?? false,
+    }
+    try {
+      const saved = overwriteId
+        ? await api.updateSavedView(overwriteId, input)
+        : await api.createSavedView(input)
+      await loadSavedViews()
+      activeViewId.value = saved.id
+      toast.success(t('views.saved'), saved.name)
+      return saved
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('views.saveError'), wire.message, wire.detail)
+      return null
+    }
+  }
+
+  async function deleteView(id: string): Promise<boolean> {
+    try {
+      await api.deleteSavedView(id)
+      if (activeViewId.value === id) {
+        activeViewId.value = null
+      }
+      await loadSavedViews()
+      toast.success(t('views.deleted'))
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('views.deleteError'), wire.message, wire.detail)
+      return false
+    }
+  }
+
+  async function togglePin(view: SavedView): Promise<boolean> {
+    const input: SavedViewInput = {
+      name: view.name,
+      filters: view.filters,
+      sort: view.sort,
+      groupBy: view.groupBy,
+      columns: view.columns,
+      density: view.density,
+      isPinned: !view.isPinned,
+    }
+    try {
+      await api.updateSavedView(view.id, input)
+      await loadSavedViews()
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('views.pinError'), wire.message, wire.detail)
+      return false
     }
   }
 
@@ -330,6 +467,11 @@ export const useIssueStore = defineStore('issues', () => {
     error,
     view,
     search,
+    filter,
+    sort,
+    groupBy,
+    savedViews,
+    activeViewId,
     selectedId,
     detail,
     detailLoading,
@@ -337,8 +479,18 @@ export const useIssueStore = defineStore('issues', () => {
     isEmpty,
     selectedSummary,
     board,
+    pinnedViews,
+    activeView,
     load,
     loadReference,
+    loadSavedViews,
+    applyView,
+    saveView,
+    deleteView,
+    togglePin,
+    setFilter,
+    setSort,
+    setGroupBy,
     setView,
     setSearch,
     selectIssue,

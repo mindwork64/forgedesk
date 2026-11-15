@@ -227,6 +227,80 @@ const cases = [
     waitFor: '[data-testid="issue-detail-title"]',
   },
   {
+    name: 'gate1-filter-builder-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    openFilter: true,
+    addFilterCondition: true,
+    waitFor: '.fd-filter-row',
+  },
+  {
+    name: 'gate1-filter-applied-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    openFilter: true,
+    addFilterCondition: true,
+    applyFilter: true,
+    waitFor: '.fd-filter-chip',
+  },
+  {
+    name: 'gate1-grouped-list-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    groupBy: 'status',
+    waitFor: '.fd-issue-group__head',
+  },
+  {
+    name: 'gate1-active-view-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    savedView: 'Active work',
+    waitFor: '.fd-issue-group__head',
+  },
+  {
+    name: 'gate1-saved-views-menu-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    openSavedViews: true,
+    waitFor: '.fd-saved-views',
+  },
+  {
+    name: 'gate1-save-view-dialog-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    openSavedViews: true,
+    openSaveView: true,
+    waitFor: '.fd-save-view',
+  },
+  {
+    name: 'gate1-palette-issues-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    paletteQuery: 'capture',
+    waitFor: '.fd-palette',
+  },
+  {
     name: 'gate0-startup-error-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -469,6 +543,60 @@ async function main() {
         await page.waitForSelector('[data-testid="issue-detail-title"]')
       }
 
+      if (testCase.openFilter) {
+        await page.getByRole('button', { name: /^Filter/ }).first().click()
+        await page.waitForSelector('.fd-filter-builder')
+      }
+
+      if (testCase.addFilterCondition) {
+        await page.getByRole('button', { name: 'Add condition' }).click()
+        await page.waitForSelector('.fd-filter-row')
+      }
+
+      if (testCase.applyFilter) {
+        await page.getByRole('button', { name: 'Apply filters' }).click()
+      }
+
+      if (testCase.groupBy) {
+        await page.getByRole('button', { name: /^Group/ }).first().click()
+        await page.waitForSelector('.fd-group-menu')
+        await page.locator('.fd-group-menu select').selectOption(testCase.groupBy)
+        await page.getByRole('button', { name: 'Apply', exact: true }).click()
+        await page.waitForSelector('.fd-issue-group__head')
+      }
+
+      if (testCase.savedView) {
+        await page
+          .getByRole('button', { name: 'Saved view', exact: true })
+          .first()
+          .click()
+        await page.waitForSelector('.fd-saved-views')
+        await page
+          .getByRole('button', { name: testCase.savedView, exact: true })
+          .click()
+        await page.waitForTimeout(400)
+      }
+
+      if (testCase.openSavedViews) {
+        await page
+          .getByRole('button', { name: 'Saved view', exact: true })
+          .first()
+          .click()
+        await page.waitForSelector('.fd-saved-views')
+      }
+
+      if (testCase.openSaveView) {
+        await page.getByRole('button', { name: 'Save view', exact: true }).click()
+        await page.waitForSelector('.fd-save-view')
+      }
+
+      if (testCase.paletteQuery) {
+        await page.keyboard.press('Control+k')
+        await page.waitForSelector('.fd-palette')
+        await page.fill('.fd-palette__input', testCase.paletteQuery)
+        await page.waitForTimeout(450)
+      }
+
       if (testCase.openCreate) {
         await page.getByRole('button', { name: 'New issue' }).click()
         await page.waitForSelector('.fd-issue-create')
@@ -683,10 +811,54 @@ async function main() {
         )
       }
 
+      if (testCase.addFilterCondition && !testCase.applyFilter) {
+        const rows = await page.locator('.fd-filter-row').count()
+        caseReport.filterRows = rows
+        assert(rows >= 1, `${testCase.name}: expected a filter condition row`, report.failures)
+      }
+
+      if (testCase.applyFilter) {
+        const chips = await page.locator('.fd-filter-chip').count()
+        const rows = await page.locator('[data-testid="issue-row"]').count()
+        caseReport.filterChips = chips
+        caseReport.filteredRows = rows
+        assert(chips >= 1, `${testCase.name}: expected an active filter chip`, report.failures)
+        assert(rows > 0 && rows < 12, `${testCase.name}: filter did not reduce the list`, report.failures)
+      }
+
+      if (testCase.groupBy || testCase.savedView) {
+        const groups = await page.locator('.fd-issue-group__head').count()
+        caseReport.groups = groups
+        assert(groups >= 2, `${testCase.name}: expected grouped list sections`, report.failures)
+      }
+
+      if (testCase.openSavedViews && !testCase.openSaveView) {
+        const count = await page.locator('.fd-saved-views__row').count()
+        caseReport.savedViews = count
+        assert(count >= 2, `${testCase.name}: expected seeded saved views`, report.failures)
+      }
+
+      if (testCase.openSaveView) {
+        const visible = await page.locator('.fd-save-view').isVisible()
+        assert(visible, `${testCase.name}: save view dialog is not visible`, report.failures)
+      }
+
+      if (testCase.paletteQuery) {
+        const issues = await page
+          .locator('.fd-palette__group')
+          .filter({ hasText: 'Issues' })
+          .locator('.fd-palette__item')
+          .count()
+        caseReport.paletteIssueResults = issues
+        assert(issues >= 1, `${testCase.name}: palette returned no issue results`, report.failures)
+      }
+
       if (
         testCase.route === '/my-issues' &&
         !testCase.onboarding &&
         !testCase.error &&
+        !testCase.applyFilter &&
+        !testCase.savedView &&
         testCase.interaction !== 'chord'
       ) {
         const rows = await page.locator('[data-testid="issue-row"]').count()

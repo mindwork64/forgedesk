@@ -14,9 +14,13 @@ APIs and schema may still evolve with migrations.
 - Server-side whitelisted filter engine, FTS search, sorting and pagination.
 - My Issues list, Board with drag status changes, 440 px detail pane, create
   dialog, inline property editing, bulk actions and detail relations/comments.
-- 31 core tests, 70 frontend tests, 22 visual-gate captures.
-- Remaining for Stage 2: filter builder, saved views UI/API, palette entity search,
-  virtualization, full UI Gate 1 acceptance.
+- Filter builder (AND/OR, one nested group), active chips, sort/group menus.
+- Saved Views: persisted filter/sort/groupBy/columns/density, pinning, sidebar
+  links, save/update/as-new/delete; command-palette issue search.
+- Flat-list virtualization above 100 rows.
+- 34 core tests, 76 frontend tests, 29 visual-gate captures.
+- Stage 2 browser/core gate PASS; native-window verification and saved-view
+  column/density application remain open.
 
 ### Stage 1 — Desktop foundation, UI Gate 0
 

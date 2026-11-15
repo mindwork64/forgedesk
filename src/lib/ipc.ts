@@ -15,6 +15,8 @@ import type {
   ProjectRef,
   RelationInputKind,
   RestoreResult,
+  SavedView,
+  SavedViewInput,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -134,4 +136,10 @@ export const api = {
     }),
   removeIssueRelation: (issueId: string, relationId: string) =>
     call<IssueDetail>('remove_issue_relation', { issueId, relationId }),
+  listSavedViews: () => call<SavedView[]>('list_saved_views'),
+  createSavedView: (input: SavedViewInput) =>
+    call<SavedView>('create_saved_view', { input }),
+  updateSavedView: (id: string, input: SavedViewInput) =>
+    call<SavedView>('update_saved_view', { id, input }),
+  deleteSavedView: (id: string) => call<void>('delete_saved_view', { id }),
 }

@@ -3,8 +3,9 @@
 **Gate:** Issues and Views (`06_UI_UX_SPEC.md` §12)  
 **Stage:** 2  
 **Date:** 2026-11-15  
-**Verdict:** PARTIAL — core list/board/detail/create/search flow passes; filters,
-saved views and command-palette entity search are not implemented yet.
+**Verdict:** PASS for the browser-rendered Stage 2 scope; native-window capture is
+SKIPPED. Saved-view column selection and density are persisted but not yet applied
+to the list.
 
 ## Delivered
 
@@ -20,6 +21,14 @@ saved views and command-palette entity search are not implemented yet.
   type, project and expanded labels/estimate/dates; `Ctrl+Enter` submits.
 - Search in view backed by local FTS5; debounced input; empty/loading/error states.
 - Bulk toolbar: selected count, status, priority, archive confirmation, clear.
+- Filter builder: AND/OR root, one nested group, field/operator/value editor,
+  active filter chips, clear/apply.
+- Sort and grouping menus; grouped list sections with counts.
+- Saved Views: save/update/as-new, apply, pin/unpin to sidebar, delete confirmation;
+  filter/sort/groupBy persisted; columns/density stored.
+- Command palette searches local issues (FTS-backed API), keyboard-selects and opens
+  the detail pane.
+- Flat list virtualizes above 100 rows; 16-row reference list remains fully visible.
 - Keyboard: `Ctrl+K` palette, `G` chords, `?` help, `Esc` closes the detail pane
   (global and inside the pane), visible focus states.
 - English/Russian labels for all new UI, default workflow status names localized
@@ -35,8 +44,15 @@ saved views and command-palette entity search are not implemented yet.
 | 4 | `gate1-my-issues-board-dark-1440.png` | 1440×900 | Board, 5 status columns (first four 4/4/4/3 cards) |
 | 5 | `gate1-create-dialog-dark-1440.png` | 1440×900 | Create dialog, 720 px |
 | 6 | `gate1-detail-activity-dark-1440.png` | 1440×900 | Relations, activity and comments after scroll |
+| 7 | `gate1-filter-builder-dark-1440.png` | 1440×900 | Filter builder, condition row |
+| 8 | `gate1-filter-applied-dark-1440.png` | 1440×900 | Filter chip + reduced list |
+| 9 | `gate1-grouped-list-dark-1440.png` | 1440×900 | Status grouping with counts |
+| 10 | `gate1-active-view-dark-1440.png` | 1440×900 | Pinned “Active work” view applied |
+| 11 | `gate1-saved-views-menu-dark-1440.png` | 1440×900 | Saved Views menu |
+| 12 | `gate1-save-view-dialog-dark-1440.png` | 1440×900 | Save view dialog |
+| 13 | `gate1-palette-issues-dark-1440.png` | 1440×900 | Palette issue search |
 
-Full run: **22 captures** (16 Gate 0 + 6 Gate 1), `docs/ui/current/measurements.json`,
+Full run: **29 captures** (16 Gate 0 + 13 Gate 1), `docs/ui/current/measurements.json`,
 zero assertion failures.
 
 ## Acceptance checklist
@@ -55,11 +71,11 @@ zero assertion failures.
 | Loading/empty/error states | PASS | list store state machine; empty action |
 | Offline/local-only state | PASS | header/status strip, no network calls |
 | Keyboard navigation, focus, Esc | PASS | palette/chord/help/detail close |
-| Filters (AND/OR, one nested group) | FAIL — backend only | UI builder not implemented |
-| Saved views (save/apply/pin/restore) | FAIL — schema only | API/UI not implemented |
-| Command palette issue search | FAIL | palette is actions/navigation only |
-| Virtualization for >100 rows | FAIL | not implemented; limit 500 |
-| Full UI Gate 1 screenshot set | PARTIAL | 6 Gate 1 captures; filter/saved-view states absent |
+| Filters (AND/OR, one nested group) | PASS | builder + chips; default-status filter returns 4 rows |
+| Saved views (save/apply/pin/restore) | PASS with caveat | persist/apply/pin/delete; columns/density stored but list stays fixed |
+| Command palette issue search | PASS | 6 local results for “capture”; keyboard opens detail |
+| Virtualization for >100 rows | PASS flat list | 250-row component test; grouped mode renders all |
+| Full UI Gate 1 screenshot set | PASS | 13 Gate 1 captures; filters/views/palette/grouping included |
 | Native Tauri window capture | SKIPPED | WebKitGTK absent; no native runtime |
 
 ## Composition notes
@@ -76,7 +92,8 @@ zero assertion failures.
 
 ## Conclusion
 
-The core Stage 2 interaction model passes visual and behavioral acceptance. The
-gate is intentionally marked **PARTIAL** until filters, saved views, palette entity
-search, virtualization and the native-window capture are delivered. Native runtime
-verification remains open and is not claimed as passed.
+The browser-rendered Stage 2 interaction model passes visual and behavioral
+acceptance: issue CRUD, list/board/detail, filters, saved views, grouping, palette
+search and flat-list virtualization are covered. Native-window verification remains
+open and is not claimed as passed. Saved-view column selection/density and
+in/notIn filter UI remain follow-ups.

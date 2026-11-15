@@ -56,6 +56,13 @@ Query parameters used by the harness: `theme=dark|light`,
 | 20 | `gate1-my-issues-board-dark-1440.png` | 1440×900 | Dark | 240 px | board, first four columns 4/4/4/3 |
 | 21 | `gate1-create-dialog-dark-1440.png` | 1440×900 | Dark | 240 px | create dialog 720 px |
 | 22 | `gate1-detail-activity-dark-1440.png` | 1440×900 | Dark | 240 px | relations/activity/comments |
+| 23 | `gate1-filter-builder-dark-1440.png` | 1440×900 | Dark | 240 px | filter builder with a condition |
+| 24 | `gate1-filter-applied-dark-1440.png` | 1440×900 | Dark | 240 px | filter chip, 4-row result |
+| 25 | `gate1-grouped-list-dark-1440.png` | 1440×900 | Dark | 240 px | status grouping + counts |
+| 26 | `gate1-active-view-dark-1440.png` | 1440×900 | Dark | 240 px | pinned “Active work” view |
+| 27 | `gate1-saved-views-menu-dark-1440.png` | 1440×900 | Dark | 240 px | saved views menu |
+| 28 | `gate1-save-view-dialog-dark-1440.png` | 1440×900 | Dark | 240 px | save view dialog |
+| 29 | `gate1-palette-issues-dark-1440.png` | 1440×900 | Dark | 240 px | palette issue search |
 
 ## Measured geometry
 
@@ -69,9 +76,11 @@ From `docs/ui/current/measurements.json` (tolerance ±2 px):
 | light 1280 collapsed | 64 | 48 | 24 | 24 px | `rgb(245,246,248)` | none |
 | dark 1100 collapsed | 64 | 48 | 24 | 24 px | `rgb(14,17,23)` | none |
 
-Gate 1 measurements: 16 list rows; detail pane 440 px at 1440 and 1100 (absolute
-overlay at 1100); board 5 columns with first four card counts 4/4/4/3; create dialog
-720 px; no console errors.
+Gate 1 measurements: 16 baseline list rows; detail pane 440 px at 1440 and 1100
+(absolute overlay at 1100); board 5 columns with first four card counts 4/4/4/3;
+create dialog 720 px; filter state 1 chip / 4 rows; grouped list 5 sections; saved
+views menu 2 rows; palette issue search 6 results; no console errors. The component
+test covers 250 virtual rows (fewer than 30 in DOM).
 
 Additional automated assertions:
 

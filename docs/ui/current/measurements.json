@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-15T05:01:07.015Z",
-  "baseUrl": "http://127.0.0.1:33499",
+  "generatedAt": "2026-11-15T07:37:33.046Z",
+  "baseUrl": "http://127.0.0.1:46213",
   "harness": true,
   "cases": [
     {
@@ -300,7 +300,7 @@
       "route": "/settings/storage",
       "screenshot": "docs/ui/current/gate0-restore-dialog-dark-1440.png",
       "consoleErrors": [],
-      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 6:01 AM. Current data is saved as a safety snapshot first.CancelRestore backup"
+      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 8:37 AM. Current data is saved as a safety snapshot first.CancelRestore backup"
     },
     {
       "name": "gate0-onboarding-dark-1440",
@@ -347,7 +347,7 @@
       "route": "/my-issues",
       "screenshot": "docs/ui/current/gate0-toast-dark-1440.png",
       "consoleErrors": [],
-      "toastText": "Backup createdSnapshot forgedesk-1794718875181-413624a2 was written to the local backups folder.",
+      "toastText": "Backup createdSnapshot forgedesk-1794728261542-288277a3 was written to the local backups folder.",
       "issueRows": 16
     },
     {
@@ -437,6 +437,74 @@
       "issueRows": 16
     },
     {
+      "name": "gate1-filter-builder-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-filter-builder-dark-1440.png",
+      "consoleErrors": [],
+      "filterRows": 1,
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-filter-applied-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-filter-applied-dark-1440.png",
+      "consoleErrors": [],
+      "filterChips": 1,
+      "filteredRows": 4
+    },
+    {
+      "name": "gate1-grouped-list-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-grouped-list-dark-1440.png",
+      "consoleErrors": [],
+      "groups": 5,
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-active-view-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-active-view-dark-1440.png",
+      "consoleErrors": [],
+      "groups": 3
+    },
+    {
+      "name": "gate1-saved-views-menu-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-saved-views-menu-dark-1440.png",
+      "consoleErrors": [],
+      "savedViews": 2,
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-save-view-dialog-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-save-view-dialog-dark-1440.png",
+      "consoleErrors": [],
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-palette-issues-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-palette-issues-dark-1440.png",
+      "consoleErrors": [],
+      "paletteIssueResults": 6,
+      "issueRows": 16
+    },
+    {
       "name": "gate0-startup-error-dark-1440",
       "viewport": "1440x900",
       "theme": "dark",
@@ -469,6 +537,13 @@
     "docs/ui/current/gate1-my-issues-board-dark-1440.png",
     "docs/ui/current/gate1-create-dialog-dark-1440.png",
     "docs/ui/current/gate1-detail-activity-dark-1440.png",
+    "docs/ui/current/gate1-filter-builder-dark-1440.png",
+    "docs/ui/current/gate1-filter-applied-dark-1440.png",
+    "docs/ui/current/gate1-grouped-list-dark-1440.png",
+    "docs/ui/current/gate1-active-view-dark-1440.png",
+    "docs/ui/current/gate1-saved-views-menu-dark-1440.png",
+    "docs/ui/current/gate1-save-view-dialog-dark-1440.png",
+    "docs/ui/current/gate1-palette-issues-dark-1440.png",
     "docs/ui/current/gate0-startup-error-dark-1440.png"
   ]
 }

@@ -1,8 +1,8 @@
 # Stage 2 report — Issues, workflow, search and views
 
 **Date:** 2026-11-15  
-**Status:** PARTIAL — vertical issue flow is implemented; filters/saved views UI,
-templates, watchers, attachments and workflow editing remain open.  
+**Status:** COMPLETE for the browser/core Stage 2 scope; native-window verification
+and saved-view column/density application remain open.  
 **Schema:** v2
 
 ## Scope delivered
@@ -25,10 +25,12 @@ templates, watchers, attachments and workflow editing remain open.
   - list with whitelisted SQL filters, FTS5 search, sorting, limit/offset;
   - detail payload with parent, children, relations, comments and activity.
 - Tauri commands for workflow, statuses, labels, projects, list/get/create/update/
-  archive/batch/duplicate/comment/relation.
-- Tests: 31 core tests, including migration upgrade, key allocation, hierarchy
+  archive/batch/duplicate/comment/relation and Saved Views list/create/update/delete.
+- Saved Views repository: name/filter/sort/groupBy/columns/density/pin/position,
+  input validation, workspace scoping and JSON round-trip.
+- Tests: 34 core tests, including migration upgrade, key allocation, hierarchy
   cycle rejection, complex filters, FTS after rename, label/project/clear filters,
-  SQL-injection-shaped input, relations, comments and batch updates.
+  SQL-injection-shaped input, relations, comments, batch updates and Saved Views.
 
 ### Frontend
 
@@ -48,22 +50,29 @@ templates, watchers, attachments and workflow editing remain open.
 - Store: request-id guards for list/detail, serialized issue mutations, batch
   archive removal, local search debounce; loading/empty/error states.
 - Esc closes the detail pane from global focus; Esc inside the pane closes it too.
+- Filter builder (AND/OR, one nested group, field/operator/value editor), active
+  filter chips, sort menu, group menu, Saved Views menu/save dialog/pin/delete,
+  pinned sidebar views.
+- Command-palette issue search against the local SQLite/FTS API.
+- Flat-list virtualization above 100 rows with retained selection and row actions.
 - UI Gate 1 captures: list+detail, light list, board, create dialog, detail activity,
-  1100 px overlay.
+  1100 px overlay, filter builder/applied, grouped list, active view, saved views,
+  save dialog, palette issue search.
 
 ## Verification
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 31 |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 34 |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS — 70 |
+| Frontend tests | `npm test` | PASS — 76 |
 | Frontend build | `npm run build` | PASS |
-| UI visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 22 captures (16 Gate 0 + 6 Gate 1) |
+| UI visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 29 captures (16 Gate 0 + 13 Gate 1) |
 | Manual smoke | create → edit title → comment in harness browser | PASS |
-| Jenkins | `ForgeDesk-CI` build 4 (Stage 2 snapshot `3f029a4`) | SUCCESS — 31 core tests, 22 captures, 23 artifacts |
+| Jenkins | `ForgeDesk-CI` build 4 (previous snapshot `3f029a4`) | SUCCESS — 22 captures, 23 artifacts |
+| Jenkins | `ForgeDesk-CI` build 5 (completion snapshot) | Pending commit/mirror push |
 | Native Tauri run | — | SKIPPED (no WebKitGTK/sudo) |
 
 ## Acceptance mapping
@@ -73,22 +82,27 @@ templates, watchers, attachments and workflow editing remain open.
 | Create/edit/archive issues; batch priority/labels/status | PASS (priority/status/batch; labels via detail/editor) |
 | Link issues / relations | PASS |
 | Nested sub-issue + cycle prevention | PASS (backend + create-sub-issue UI) |
-| Filter by major fields | Backend PASS; UI filter builder NOT implemented |
-| Complex AND/OR filter | Backend PASS + test; UI NOT implemented |
-| Saved Views restore after restart | Schema exists; API/UI NOT implemented |
+| Filter by major fields | PASS — status, category, priority, type, project, label, estimate, dates, title, parent, archived, source |
+| Complex AND/OR filter | PASS — UI one nested group, backend validated; tests |
+| Saved Views restore after restart | PASS — persisted filter/sort/groupBy/pin; columns/density stored but not applied to list |
+| Sort and grouping | PASS — updated/created/priority/status/title/due/estimate; status/priority/project/type grouping |
 | Restart persistence | Core SQLite persistence tests PASS; native restart NOT run |
 | List/Board UI, detail pane, create/edit forms, search | PASS |
-| Command palette entity search | NOT implemented (navigation/actions only) |
+| Command palette entity search | PASS — local issue results, keyboard selection, opens detail |
 | Loading/empty/error states | PASS for list/detail; stale/pending N/A until providers |
 | Keyboard/focus | PASS subset; full audit in Gate 5 |
+| Virtualized list above 100 rows | PASS flat list; grouped mode renders all |
 | Screenshot-based acceptance for Gate 1 | PASS browser-rendered; native SKIPPED |
 
 ## Known limitations
 
-- No UI filter builder, saved-view save/apply/pin, or command-palette issue search.
+- Saved Views store columns/density but the list uses fixed columns and standard
+  density; no column chooser/density control yet.
+- Filter editor exposes eq/neq/contains/range/isEmpty; backend `in`/`notIn` has no
+  UI.
+- Grouped lists do not virtualize; flat lists do.
 - No workflow transition rules/editor; status can be selected freely.
 - No issue templates, watchers, attachments, milestone/cycle fields yet.
-- List virtualization is not implemented; the API limit is 500 rows.
 - Board drag has no custom keyboard move gesture (detail status select is the
   keyboard alternative).
 - Activity/comment editing and deletion are not exposed.
@@ -96,6 +110,6 @@ templates, watchers, attachments and workflow editing remain open.
 
 ## Next
 
-Stage 2 completion slice: filter builder (AND/OR, one nested level) bound to the
-existing query engine, saved-view API/UI with pinning, command-palette issue search,
-list virtualization, and UI Gate 1 acceptance report update.
+Commit/mirror and run Jenkins build 5; then Stage 3 — Projects, milestones and
+cycles, reusing the issue ownership/filter model. Native-window verification stays
+open until a WebKitGTK/WebView2 host is available.
