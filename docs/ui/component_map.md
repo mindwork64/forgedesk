@@ -122,6 +122,7 @@ props change; do not re-read every component for unrelated work.
 | `LinkIssueDialog` / merge/review dialogs | `src/features/pull-requests/` | Local PR link + confirmed review/merge actions |
 | `InboxView` | `src/features/inbox/` | Normalized activity inbox and triage actions |
 | `AutomationsView` | `src/features/automations/` | Local rule list/editor/preview/history |
+| `DashboardsView` | `src/features/dashboards/` | Persisted 12-column widget canvas |
 | `apiMonitor` store | `src/stores/apiMonitor.ts` | Budget state, pause/resume, diagnostics |
 | `ui` store | `src/stores/ui.ts` | Palette/shortcut overlays, sidebar groups, viewport width, chord hint |
 | `toasts` store | `src/stores/toasts.ts` | Bounded toast stack with timed dismissal |

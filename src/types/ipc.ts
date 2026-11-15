@@ -171,6 +171,11 @@ export type CommandName =
   | 'automation_preview'
   | 'automation_run'
   | 'automation_runs'
+  | 'dashboard_get'
+  | 'dashboard_add_widget'
+  | 'dashboard_remove_widget'
+  | 'dashboard_update_width'
+  | 'dashboard_reorder'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -973,4 +978,20 @@ export interface AutomationInput {
   triggerEvent: string
   actionValue: string
   enabled: boolean
+}
+
+export interface DashboardWidget {
+  id: string
+  dashboardId: string
+  kind: string
+  title: string
+  width: number
+  position: number
+}
+
+export interface Dashboard {
+  id: string
+  name: string
+  widgets: DashboardWidget[]
+  updatedAt: string
 }

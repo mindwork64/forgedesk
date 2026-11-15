@@ -15,6 +15,7 @@ import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
 import InboxView from '@/features/inbox/InboxView.vue'
 import InsightsView from '@/features/insights/InsightsView.vue'
 import AutomationsView from '@/features/automations/AutomationsView.vue'
+import DashboardsView from '@/features/dashboards/DashboardsView.vue'
 import ReviewsView from '@/features/reviews/ReviewsView.vue'
 import CiView from '@/features/ci/CiView.vue'
 import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
@@ -205,7 +206,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboards',
     name: 'dashboards',
-    component: PlaceholderView,
+    component: DashboardsView,
     meta: {
       titleKey: 'pages.dashboards.title',
       descriptionKey: 'pages.dashboards.description',

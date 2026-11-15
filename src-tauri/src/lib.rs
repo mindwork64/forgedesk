@@ -130,6 +130,11 @@ pub fn run() {
             commands::automation_preview,
             commands::automation_run,
             commands::automation_runs,
+            commands::dashboard_get,
+            commands::dashboard_add_widget,
+            commands::dashboard_remove_widget,
+            commands::dashboard_update_width,
+            commands::dashboard_reorder,
         ]);
 
     let app = builder

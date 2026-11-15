@@ -550,6 +550,15 @@ const cases = [
     waitFor: '.fd-auto-row',
   },
   {
+    name: 'gate4-dashboards-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/dashboards',
+    waitFor: '.fd-dash-widget',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1242,6 +1251,12 @@ async function main() {
         caseReport.ciCommits = commits
         caseReport.ciChecks = checks
         assert(commits >= 3 && checks >= 3, `${testCase.name}: expected CI activity`, report.failures)
+      }
+
+      if (testCase.route === '/dashboards') {
+        const widgets = await page.locator('.fd-dash-widget').count()
+        caseReport.dashboardWidgets = widgets
+        assert(widgets >= 3, `${testCase.name}: expected dashboard widgets`, report.failures)
       }
 
       if (testCase.route === '/automations') {

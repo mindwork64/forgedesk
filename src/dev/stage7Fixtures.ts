@@ -2,6 +2,7 @@ import type {
   AutomationEvent,
   AutomationRule,
   AutomationRun,
+  Dashboard,
   CommandName,
   InboxEvent,
   InsightsSummary,
@@ -132,6 +133,17 @@ const automationRuns: AutomationRun[] = [
   },
 ]
 
+const dashboard: Dashboard = {
+  id: 'dashboard-1',
+  name: 'Overview',
+  widgets: [
+    { id: 'widget-1', dashboardId: 'dashboard-1', kind: 'metric_open', title: 'Open issues', width: 3, position: 0 },
+    { id: 'widget-2', dashboardId: 'dashboard-1', kind: 'issues_recent', title: 'Recent issues', width: 6, position: 1 },
+    { id: 'widget-3', dashboardId: 'dashboard-1', kind: 'api_budget', title: 'API budget', width: 3, position: 2 },
+  ],
+  updatedAt: iso(1),
+}
+
 export function handleStage7FixtureCommand<T>(
   command: CommandName,
 ): { handled: boolean; value?: T } {
@@ -166,6 +178,13 @@ export function handleStage7FixtureCommand<T>(
       return { handled: true, value: 1 as T }
     case 'automation_runs':
       return { handled: true, value: structuredClone(automationRuns) as T }
+    case 'dashboard_get':
+      return { handled: true, value: structuredClone(dashboard) as T }
+    case 'dashboard_add_widget':
+    case 'dashboard_remove_widget':
+    case 'dashboard_update_width':
+    case 'dashboard_reorder':
+      return { handled: true, value: structuredClone(dashboard) as T }
     default:
       return { handled: false }
   }

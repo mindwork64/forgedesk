@@ -9,6 +9,7 @@ use crate::db::repositories::{
 };
 use crate::db::Database;
 use crate::domain::automation::{AutomationEvent, AutomationInput, AutomationRule, AutomationRun};
+use crate::domain::dashboard::Dashboard;
 use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
@@ -562,6 +563,41 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db.with_conn(|conn| {
             crate::db::repositories::automation::runs(conn, &workspace.id, rule_id)
+        })
+    }
+
+    pub fn dashboard(&self) -> CoreResult<Dashboard> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::dashboard::get_or_create(conn, &workspace.id)
+        })
+    }
+
+    pub fn dashboard_add_widget(&self, kind: &str, width: i64) -> CoreResult<Dashboard> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::dashboard::add_widget(conn, &workspace.id, kind, width)
+        })
+    }
+
+    pub fn dashboard_remove_widget(&self, widget_id: &str) -> CoreResult<Dashboard> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::dashboard::remove_widget(conn, &workspace.id, widget_id)
+        })
+    }
+
+    pub fn dashboard_update_width(&self, widget_id: &str, width: i64) -> CoreResult<Dashboard> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::dashboard::update_width(conn, &workspace.id, widget_id, width)
+        })
+    }
+
+    pub fn dashboard_reorder(&self, ids: &[String]) -> CoreResult<Dashboard> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::dashboard::reorder(conn, &workspace.id, ids)
         })
     }
 

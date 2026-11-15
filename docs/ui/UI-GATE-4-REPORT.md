@@ -11,8 +11,9 @@
 | 1 | `docs/ui/current/gate4-inbox-dark-1440.png` | 1440×900 | Inbox groups, filters, unread markers |
 | 2 | `docs/ui/current/gate4-insights-dark-1440.png` | 1440×900 | Insights metrics/charts |
 | 3 | `docs/ui/current/gate4-automations-dark-1440.png` | 1440×900 | automation rules and actions |
+| 4 | `docs/ui/current/gate4-dashboards-dark-1440.png` | 1440×900 | persisted dashboard widgets |
 
-Full run: **56 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 3 Gate 4).
+Full run: **57 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 4 Gate 4).
 
 ## Acceptance
 
@@ -27,7 +28,7 @@ Full run: **56 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 3 Gate
 | External sync events | NOT IMPLEMENTED | no producer yet |
 | Insights local aggregates | PASS | summary, throughput, status/project distribution |
 | Automations local rules/preview/run | PASS | toggle, preview, run, history |
-| Dashboards | NOT IMPLEMENTED | next slice |
+| Dashboards layout/widgets | PASS | persisted 12-column edit mode |
 
 ## Notes
 

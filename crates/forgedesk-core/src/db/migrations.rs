@@ -52,9 +52,14 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "automations",
         sql: include_str!("migrations/0008_automations.sql"),
     },
+    Migration {
+        version: 9,
+        name: "dashboards",
+        sql: include_str!("migrations/0009_dashboards.sql"),
+    },
 ];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 8;
+pub const CURRENT_SCHEMA_VERSION: i64 = 9;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -138,7 +143,7 @@ mod tests {
         .expect("workspace");
         tx.commit().expect("commit");
 
-        assert_eq!(run(&mut conn).expect("migrate to current"), 8);
+        assert_eq!(run(&mut conn).expect("migrate to current"), 9);
 
         let workflows: i64 = conn
             .query_row("SELECT count(*) FROM workflow", [], |row| row.get(0))

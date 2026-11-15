@@ -40,6 +40,7 @@ ForgeDesk/
 │   ├── github_actions.rs       Permissioned merge/close/review actions
 │   ├── domain/inbox.rs         Inbox event/filter DTOs
 │   ├── domain/automation.rs    Automation rule/run DTOs
+│   ├── domain/dashboard.rs     Dashboard/widget DTOs
 │   ├── domain/
 │   │   ├── api_budget.rs       Budget observation/request/queue DTOs + formula
 │   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
@@ -71,6 +72,7 @@ ForgeDesk/
 │           ├── pull_links.rs   PR↔local issue links
 │           ├── inbox.rs        Inbox normalization/read state
 │           ├── automation.rs   Local automation rules/preview/runs
+│           ├── dashboard.rs    Persisted dashboard layout/widgets
 │           ├── settings.rs     Settings JSON document
 │           └── workspace.rs    Workspace + human-key counter
 │
@@ -107,6 +109,7 @@ ForgeDesk/
 │   │   ├── pullRequests.ts     PR list/detail state
 │   │   ├── inbox.ts            Inbox filters/read/archive state
 │   │   ├── automations.ts      Rule toggle/preview/run/history
+│   │   ├── dashboard.ts        Layout/widget mutations
 │   │   ├── apiMonitor.ts       API Monitor state/pause/diagnostics
 │   │   ├── ui.ts               Overlays, groups, viewport, chord hint
 │   │   └── toasts.ts           Bounded toast queue
@@ -141,6 +144,7 @@ ForgeDesk/
 │   │   ├── ci/                 Commits + check-runs
 │   │   ├── inbox/              Inbox event list/triage
 │   │   ├── automations/        Local rules, preview, history
+│   │   ├── dashboards/         Persisted widget canvas/edit mode
 │   │   ├── api-monitor/        Budgets, queue, request history
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections

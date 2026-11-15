@@ -90,6 +90,7 @@ Query parameters used by the harness: `theme=dark|light`,
 | 54 | `gate4-inbox-dark-1440.png` | 1440×900 | Dark | 240 px | Inbox groups/filters/unread |
 | 55 | `gate4-insights-dark-1440.png` | 1440×900 | Dark | 240 px | Insights metrics and charts |
 | 56 | `gate4-automations-dark-1440.png` | 1440×900 | Dark | 240 px | automation rules and actions |
+| 57 | `gate4-dashboards-dark-1440.png` | 1440×900 | Dark | 240 px | persisted dashboard widgets |
 
 ## Measured geometry
 

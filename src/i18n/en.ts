@@ -1320,6 +1320,33 @@ export default {
     runError: 'Could not run automation',
   },
 
+  dashboardPage: {
+    edit: 'Edit dashboard',
+    done: 'Done',
+    addWidget: 'Add widget',
+    dataThrough: 'Data through',
+    loadError: 'Could not load dashboard',
+    empty: 'Dashboard is empty',
+    emptyBody: 'Add a widget to start.',
+    updateError: 'Could not update dashboard',
+    noData: 'No local data',
+    apiDisconnected: 'GitHub not connected',
+    noObservations: 'No budget observations',
+    paused: 'Background sync paused',
+    active: 'Background sync active',
+    width: 'Widget width',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
+    remove: 'Remove widget',
+    widgets: {
+      metric_open: 'Open issues',
+      metric_completed: 'Completed',
+      metric_overdue: 'Overdue',
+      issues_recent: 'Recent issues',
+      api_budget: 'API budget',
+    },
+  },
+
   about: {
     heading: 'A local-first development workspace',
     body: 'ForgeDesk brings issues, projects, repositories and pull requests into one desktop workspace backed by SQLite on this computer.',

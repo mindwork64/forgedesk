@@ -1319,6 +1319,33 @@ export default {
     runError: 'Не удалось выполнить автоматизацию',
   },
 
+  dashboardPage: {
+    edit: 'Редактировать',
+    done: 'Готово',
+    addWidget: 'Добавить виджет',
+    dataThrough: 'Данные по',
+    loadError: 'Не удалось загрузить dashboard',
+    empty: 'Dashboard пуст',
+    emptyBody: 'Добавьте виджет.',
+    updateError: 'Не удалось обновить dashboard',
+    noData: 'Локальных данных нет',
+    apiDisconnected: 'GitHub не подключён',
+    noObservations: 'Наблюдений бюджета нет',
+    paused: 'Фоновая синхронизация приостановлена',
+    active: 'Фоновая синхронизация активна',
+    width: 'Ширина виджета',
+    moveUp: 'Вверх',
+    moveDown: 'Вниз',
+    remove: 'Удалить виджет',
+    widgets: {
+      metric_open: 'Открытые задачи',
+      metric_completed: 'Завершено',
+      metric_overdue: 'Просрочено',
+      issues_recent: 'Последние задачи',
+      api_budget: 'Бюджет API',
+    },
+  },
+
   about: {
     heading: 'Локальное рабочее пространство для разработки',
     body: 'ForgeDesk объединяет задачи, проекты, репозитории и pull requests в одном desktop-пространстве на локальной базе SQLite.',

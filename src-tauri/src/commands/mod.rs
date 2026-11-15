@@ -5,6 +5,7 @@ use forgedesk_core::backup::BackupInfo;
 use forgedesk_core::domain::automation::{
     AutomationEvent, AutomationInput, AutomationRule, AutomationRun,
 };
+use forgedesk_core::domain::dashboard::Dashboard;
 use forgedesk_core::domain::inbox::InboxEvent;
 use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
@@ -979,5 +980,54 @@ pub fn automation_runs(
 ) -> Result<Vec<AutomationRun>, CommandError> {
     state
         .with_service(|service| service.automation_runs(&rule_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn dashboard_get(state: State<'_, AppState>) -> Result<Dashboard, CommandError> {
+    state
+        .with_service(|service| service.dashboard())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn dashboard_add_widget(
+    state: State<'_, AppState>,
+    kind: String,
+    width: i64,
+) -> Result<Dashboard, CommandError> {
+    state
+        .with_service(|service| service.dashboard_add_widget(&kind, width))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn dashboard_remove_widget(
+    state: State<'_, AppState>,
+    widget_id: String,
+) -> Result<Dashboard, CommandError> {
+    state
+        .with_service(|service| service.dashboard_remove_widget(&widget_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn dashboard_update_width(
+    state: State<'_, AppState>,
+    widget_id: String,
+    width: i64,
+) -> Result<Dashboard, CommandError> {
+    state
+        .with_service(|service| service.dashboard_update_width(&widget_id, width))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn dashboard_reorder(
+    state: State<'_, AppState>,
+    ids: Vec<String>,
+) -> Result<Dashboard, CommandError> {
+    state
+        .with_service(|service| service.dashboard_reorder(&ids))
         .map_err(CommandError::from)
 }

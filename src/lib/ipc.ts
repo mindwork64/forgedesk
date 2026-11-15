@@ -59,6 +59,7 @@ import type {
   AutomationRun,
   AutomationEvent,
   AutomationInput,
+  Dashboard,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -329,4 +330,13 @@ export const api = {
     call<number>('automation_run', { ruleId }),
   automationRuns: (ruleId: string) =>
     call<AutomationRun[]>('automation_runs', { ruleId }),
+  dashboardGet: () => call<Dashboard>('dashboard_get'),
+  dashboardAddWidget: (kind: string, width: number) =>
+    call<Dashboard>('dashboard_add_widget', { kind, width }),
+  dashboardRemoveWidget: (widgetId: string) =>
+    call<Dashboard>('dashboard_remove_widget', { widgetId }),
+  dashboardUpdateWidth: (widgetId: string, width: number) =>
+    call<Dashboard>('dashboard_update_width', { widgetId, width }),
+  dashboardReorder: (ids: string[]) =>
+    call<Dashboard>('dashboard_reorder', { ids }),
 }

@@ -2,6 +2,7 @@ pub mod activity;
 pub mod api_budget;
 pub mod automation;
 pub mod comments;
+pub mod dashboard;
 pub mod inbox;
 pub mod insights;
 pub mod issue_query;
