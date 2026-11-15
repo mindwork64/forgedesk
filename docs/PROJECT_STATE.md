@@ -82,7 +82,9 @@ through `user_version`. See ADR-0001…0007.
   confirms absence. Invalid saved JSON returns a safe auth error without deletion.
 - Reviews queue and CI/Activity screens are read-only and use GitHub search plus
   check-runs; commit selection lazily loads checks. Live read-only verification
-  passed for both endpoints.
+  passed for both endpoints. PR review comments are loaded and shown under the
+  matching file with path/line/author/body; split diff and thread resolution remain
+  open.
 - Split diff/line comments, review submission, merge/close, PR↔issue links and
   budget-aware PR request logging remain open.
 

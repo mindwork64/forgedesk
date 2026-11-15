@@ -36,6 +36,8 @@ screen remain open.
   read-only table opens the corresponding PR detail via `/pull-requests?pr=N`.
 - **CI / Activity screen:** default branch, recent commits, check-runs for the latest
   commit, and lazy per-commit check loading; read-only.
+- **PR review comments:** read-only comments loaded with the PR detail and shown under
+  the matching file with path, line, author and body.
 - Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
   consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
   rejection and fails the whole request on later-page errors.
@@ -49,7 +51,7 @@ screen remain open.
 
 ## Not delivered
 
-- Split diff, line comments and resolved-thread state.
+- Split diff, inline line placement and resolved-thread state.
 - Review submission, approve/request-changes, merge/close, merge readiness and
   permission-aware actions.
 - PR-to-local-issue linking, PR labels/assignees/milestones, merge queue.

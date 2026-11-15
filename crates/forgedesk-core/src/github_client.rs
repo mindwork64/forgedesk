@@ -155,6 +155,19 @@ struct GitHubSearchResult {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubReviewComment {
+    pub id: i64,
+    pub body: String,
+    pub path: String,
+    pub line: Option<i64>,
+    pub original_line: Option<i64>,
+    pub side: Option<String>,
+    pub user: Option<GitHubOwner>,
+    pub created_at: String,
+    pub html_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitHubFile {
     pub filename: String,
     pub status: String,
@@ -275,6 +288,21 @@ impl GitHubClient {
     ) -> CoreResult<Page<GitHubCommit>> {
         let path = format!(
             "/repos/{}/{}/pulls/{}/commits?per_page=50",
+            encode(owner),
+            encode(repo),
+            number
+        );
+        self.get_page(&path)
+    }
+
+    pub fn list_pull_comments(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> CoreResult<Page<GitHubReviewComment>> {
+        let path = format!(
+            "/repos/{}/{}/pulls/{}/comments?per_page=100",
             encode(owner),
             encode(repo),
             number

@@ -1201,6 +1201,11 @@ async function main() {
         assert(files >= 2, `${testCase.name}: expected PR files`, report.failures)
         const warning = await page.locator('.fd-pr-warning').innerText()
         caseReport.prFilesWarning = warning
+        if (testCase.openPullRow !== 1) {
+          const comments = await page.locator('.fd-pr-comment').count()
+          caseReport.prReviewComments = comments
+          assert(comments >= 1, `${testCase.name}: expected review comments`, report.failures)
+        }
         if (testCase.openPullRow === 1) {
           assert(
             warning.includes('500') && warning.includes('3000'),

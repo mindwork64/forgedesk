@@ -85,6 +85,10 @@ function openPull(item: GitHubPull): void {
   void prs.open(selectedRepo.value.owner, selectedRepo.value.name, item.number)
 }
 
+function fileComments(filename: string) {
+  return prs.detail?.comments.filter((comment) => comment.path === filename) ?? []
+}
+
 function checkTone(check: GitHubCheckRun): string {
   if (check.conclusion === 'success') return 'ok'
   if (check.conclusion === 'failure' || check.conclusion === 'timed_out') return 'fail'
@@ -278,6 +282,17 @@ function duration(check: GitHubCheckRun): string {
                   </div>
                   <pre v-if="file.patch" class="fd-pr-patch">{{ file.patch }}</pre>
                   <p v-else class="fd-pr-muted">—</p>
+                  <div
+                    v-for="comment in fileComments(file.filename)"
+                    :key="comment.id"
+                    class="fd-pr-comment"
+                  >
+                    <strong>
+                      {{ comment.user?.login ?? '—' }} ·
+                      {{ comment.path }}:{{ comment.line ?? comment.originalLine ?? '—' }}
+                    </strong>
+                    <p>{{ comment.body }}</p>
+                  </div>
                 </div>
               </template>
             </div>
@@ -325,6 +340,9 @@ function duration(check: GitHubCheckRun): string {
 .fd-pr-file { margin-bottom: var(--fd-space-3); border: 1px solid var(--fd-border-subtle); border-radius: var(--fd-radius-control); overflow: hidden; }
 .fd-pr-file__head { display: flex; align-items: center; justify-content: space-between; gap: var(--fd-space-2); padding: 6px 8px; background: var(--fd-bg); }
 .fd-pr-file__head code { overflow: hidden; font-size: var(--fd-text-11); text-overflow: ellipsis; }
+.fd-pr-comment { border-top: 1px solid var(--fd-border-subtle); padding: 8px; background: var(--fd-bg); }
+.fd-pr-comment strong { color: var(--fd-text-secondary); font-size: var(--fd-text-11); font-weight: var(--fd-weight-medium); }
+.fd-pr-comment p { margin: 4px 0 0; color: var(--fd-text-secondary); font-size: var(--fd-text-11); line-height: var(--fd-line-body); white-space: pre-wrap; }
 .fd-pr-patch { max-height: 280px; margin: 0; overflow: auto; padding: 8px; background: var(--fd-surface); color: var(--fd-text-secondary); font-family: var(--fd-font-mono); font-size: var(--fd-text-10); line-height: 1.5; white-space: pre; }
 .fd-pr-check--ok { color: var(--fd-success); }
 .fd-pr-check--fail { color: var(--fd-danger); }

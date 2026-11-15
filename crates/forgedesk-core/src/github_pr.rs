@@ -3,6 +3,7 @@ use serde::Serialize;
 use crate::error::CoreResult;
 use crate::github_client::{
     GitHubCheckRun, GitHubClient, GitHubCommit, GitHubFile, GitHubPull, GitHubReview,
+    GitHubReviewComment,
 };
 
 #[derive(Debug, Clone, Serialize)]
@@ -13,6 +14,7 @@ pub struct PullRequestDetail {
     pub reviews: Vec<GitHubReview>,
     pub checks: Vec<GitHubCheckRun>,
     pub files: Vec<GitHubFile>,
+    pub comments: Vec<GitHubReviewComment>,
 }
 
 pub fn list_pulls(
@@ -38,12 +40,14 @@ pub fn pull_detail(
     let reviews = client.list_pull_reviews(owner, repo, number)?.items;
     let checks = client.list_check_runs(owner, repo, &pull.head.sha)?;
     let files = client.list_pull_files(owner, repo, number)?;
+    let comments = client.list_pull_comments(owner, repo, number)?.items;
     Ok(PullRequestDetail {
         pull,
         commits,
         reviews,
         checks,
         files,
+        comments,
     })
 }
 

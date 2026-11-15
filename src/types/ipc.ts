@@ -815,12 +815,25 @@ export interface GitHubFile {
   previousFilename: string | null
 }
 
+export interface GitHubReviewComment {
+  id: number
+  body: string
+  path: string
+  line: number | null
+  originalLine: number | null
+  side: string | null
+  user: { login: string } | null
+  createdAt: string
+  htmlUrl: string | null
+}
+
 export interface PullRequestDetail {
   pull: GitHubPull
   commits: GitHubCommit[]
   reviews: GitHubReview[]
   checks: GitHubCheckRun[]
   files: GitHubFile[]
+  comments: GitHubReviewComment[]
 }
 
 export interface GitHubSearchIssue {

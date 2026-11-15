@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-15T11:59:33.917Z",
+  "generatedAt": "2026-11-15T13:26:12.190Z",
   "baseUrl": "http://127.0.0.1:4173",
   "harness": true,
   "cases": [
@@ -300,7 +300,7 @@
       "route": "/settings/storage",
       "screenshot": "docs/ui/current/gate0-restore-dialog-dark-1440.png",
       "consoleErrors": [],
-      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 12:59 PM. Current data is saved as a safety snapshot first.CancelRestore backup"
+      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 2:26 PM. Current data is saved as a safety snapshot first.CancelRestore backup"
     },
     {
       "name": "gate0-onboarding-dark-1440",
@@ -347,7 +347,7 @@
       "route": "/my-issues",
       "screenshot": "docs/ui/current/gate0-toast-dark-1440.png",
       "consoleErrors": [],
-      "toastText": "Backup createdSnapshot forgedesk-1794743982409-02cf9804 was written to the local backups folder.",
+      "toastText": "Backup createdSnapshot forgedesk-1794749180871-ca40baed was written to the local backups folder.",
       "issueRows": 16
     },
     {
@@ -669,7 +669,8 @@
       "consoleErrors": [],
       "pullDetail": "Add repository discovery for GitHub App accounts",
       "pullFiles": 2,
-      "prFilesWarning": "Loaded 2 of 9 files. The list is incomplete; 7 files were not returned. Loaded patches are shown below."
+      "prFilesWarning": "Loaded 2 of 9 files. The list is incomplete; 7 files were not returned. Loaded patches are shown below.",
+      "prReviewComments": 2
     },
     {
       "name": "gate3-pr-files-overlimit-dark-1440",

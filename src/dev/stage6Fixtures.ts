@@ -7,6 +7,7 @@ import type {
   GitHubFile,
   GitHubSearchIssue,
   CiOverview,
+  GitHubReviewComment,
   PullRequestDetail,
 } from '@/types/ipc'
 
@@ -123,12 +124,38 @@ const files: GitHubFile[] = [
   },
 ]
 
+const reviewComments: GitHubReviewComment[] = [
+  {
+    id: 701,
+    body: 'Please keep this aligned with the token vault error category.',
+    path: 'crates/forgedesk-core/src/github_auth.rs',
+    line: 184,
+    originalLine: 180,
+    side: 'RIGHT',
+    user: { login: 'mindwork64' },
+    createdAt: iso(3),
+    htmlUrl: 'https://github.com/mindwork64/forgedesk/pull/214#discussion_r701',
+  },
+  {
+    id: 702,
+    body: 'The warning should stay non-blocking while patches remain visible.',
+    path: 'src/features/pull-requests/PullRequestsView.vue',
+    line: 250,
+    originalLine: 246,
+    side: 'RIGHT',
+    user: { login: 'review-bot' },
+    createdAt: iso(5),
+    htmlUrl: null,
+  },
+]
+
 const detail: PullRequestDetail = {
   pull: pullOne,
   commits,
   reviews,
   checks,
   files,
+  comments: reviewComments,
 }
 
 const overLimitFiles: GitHubFile[] = Array.from({ length: 3000 }, (_, index) => ({
@@ -163,6 +190,7 @@ const overLimitDetail: PullRequestDetail = {
   reviews: [],
   checks: [],
   files: overLimitFiles,
+  comments: [],
 }
 
 export function handleStage6FixtureCommand<T>(
