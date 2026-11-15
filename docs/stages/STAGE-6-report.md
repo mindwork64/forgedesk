@@ -52,8 +52,8 @@ merge/close actions, requested-review queue and CI screen remain open.
 | Frontend | `npm run typecheck`, `npm test` | PASS — 78 |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 47 captures (PR list + detail added) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
-| Jenkins build 11 | Stage 6 read-only snapshot | Pending commit/mirror push |
-| GitHub Actions | public repo | Pending push |
+| Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
+| GitHub Actions | public repo `main` | SUCCESS |
 
 ## Next
 

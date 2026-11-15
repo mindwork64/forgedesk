@@ -93,7 +93,7 @@ through `user_version`. See ADR-0001…0007.
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
 | Jenkins build 10 | GitHub discovery/import `5d894e6` | SUCCESS — 124 s, 52 core tests, 45 captures, 46 artifacts |
-| Jenkins build 11 | Stage 6 read-only PR slice | Pending commit/mirror push |
+| Jenkins build 11 | Stage 6 read-only PR slice `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
