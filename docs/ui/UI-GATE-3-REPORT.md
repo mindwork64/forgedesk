@@ -26,7 +26,7 @@ data requires Stage 4 authentication, which is not configured.
 - Read-only Reviews queue and CI/Activity screens for the selected repository.
 - Pull Requests read-only table and 440px detail pane (Overview/Commits/Checks/
   Reviews/Files) for the selected discovered repository; incomplete and 3000-file
-  cap warnings preserve visible patches.
+  cap warnings preserve visible patches. Files support unified/split diff.
 - API Monitor: connection/scheduler/dispatcher/last observation/reset summary,
   secondary-limit state, GraphQL/REST primary panels, resource buckets, background
   allowance/reserve, queue, recent sanitized requests, manual pause/resume and
@@ -51,8 +51,9 @@ data requires Stage 4 authentication, which is not configured.
 | 11 | `gate3-pr-files-overlimit-dark-1440.png` | 1440×900 | 3000-file API cap warning |
 | 12 | `gate3-reviews-dark-1440.png` | 1440×900 | requested reviews queue |
 | 13 | `gate3-ci-dark-1440.png` | 1440×900 | commits + check-runs |
+| 14 | `gate3-pr-files-split-dark-1440.png` | 1440×900 | split diff |
 
-Full run: **51 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 13 Gate 3),
+Full run: **52 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 14 Gate 3),
 `docs/ui/current/measurements.json`, zero assertion failures.
 
 ## Acceptance checklist

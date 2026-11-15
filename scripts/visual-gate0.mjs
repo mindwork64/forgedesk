@@ -470,6 +470,18 @@ const cases = [
     waitFor: '[data-testid="detail-pane"]',
   },
   {
+    name: 'gate3-pr-files-split-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/pull-requests',
+    openPullRequest: true,
+    openPullFiles: true,
+    splitDiff: true,
+    waitFor: '[data-testid="detail-pane"]',
+  },
+  {
     name: 'gate3-pr-files-overlimit-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -800,6 +812,12 @@ async function main() {
       if (testCase.openPullFiles) {
         await page.getByRole('button', { name: 'Files', exact: true }).click()
         await page.waitForSelector('.fd-pr-file')
+        await page.waitForTimeout(200)
+      }
+
+      if (testCase.splitDiff) {
+        await page.getByRole('radio', { name: 'Split', exact: true }).click()
+        await page.waitForSelector('.fd-pr-split__row')
         await page.waitForTimeout(200)
       }
 
@@ -1205,6 +1223,11 @@ async function main() {
           const comments = await page.locator('.fd-pr-comment').count()
           caseReport.prReviewComments = comments
           assert(comments >= 1, `${testCase.name}: expected review comments`, report.failures)
+        }
+        if (testCase.splitDiff) {
+          const splitRows = await page.locator('.fd-pr-split__row').count()
+          caseReport.splitDiffRows = splitRows
+          assert(splitRows >= 2, `${testCase.name}: expected split diff rows`, report.failures)
         }
         if (testCase.openPullRow === 1) {
           assert(

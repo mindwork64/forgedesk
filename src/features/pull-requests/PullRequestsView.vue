@@ -15,6 +15,7 @@ import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import FdSegmented from '@/components/ui/FdSegmented.vue'
 import GitHubRepoDialog from '@/features/integrations/GitHubRepoDialog.vue'
 import { assessFileCompleteness } from './fileCompleteness'
+import { parseSplitDiff, type SplitDiffRow } from './splitDiff'
 import { formatRelative } from '@/lib/format'
 import { useAppStore } from '@/stores/app'
 import { useGithubAuthStore } from '@/stores/githubAuth'
@@ -33,11 +34,25 @@ const { t } = useI18n()
 const state = ref<'open' | 'closed' | 'all'>('open')
 const repoDialog = ref(false)
 const detailTab = ref<DetailTab>('overview')
+const diffMode = ref('unified')
 const selectedRepo = computed(() => auth.selectedRepo)
 const pull = computed(() => prs.detail?.pull ?? null)
 const fileCompleteness = computed(() =>
   prs.detail ? assessFileCompleteness(prs.detail.files.length, prs.detail.pull.changedFiles) : null,
 )
+const diffModes = computed(() => [
+  { value: 'unified', label: t('prs.detail.unified') },
+  { value: 'split', label: t('prs.detail.split') },
+])
+const splitDiffs = computed(() => {
+  const result = new Map<string, SplitDiffRow[]>()
+  if (diffMode.value === 'split' && prs.detail) {
+    for (const file of prs.detail.files) {
+      if (file.patch) result.set(file.filename, parseSplitDiff(file.patch))
+    }
+  }
+  return result
+})
 
 const stateOptions = computed(() => [
   { value: 'open', label: t('prs.open') },
@@ -265,6 +280,16 @@ function duration(check: GitHubCheckRun): string {
                 </div>
               </template>
               <template v-else>
+                <div
+                  v-if="prs.detail.files.some((file) => file.patch)"
+                  class="fd-pr-diff-mode"
+                >
+                  <FdSegmented
+                    v-model="diffMode"
+                    :options="diffModes"
+                    :label="t('prs.detail.diffView')"
+                  />
+                </div>
                 <p v-if="fileCompleteness?.reason === 'over-limit'" class="fd-pr-warning" role="status">
                   {{ t('prs.detail.filesOverLimit', { loaded: fileCompleteness.loaded, expected: fileCompleteness.expected, excess: fileCompleteness.excess, limit: fileCompleteness.limit }) }}
                 </p>
@@ -280,7 +305,26 @@ function duration(check: GitHubCheckRun): string {
                     <code>{{ file.filename }}</code>
                     <span class="fd-pr-muted">{{ file.status }} · +{{ file.additions }} −{{ file.deletions }}</span>
                   </div>
-                  <pre v-if="file.patch" class="fd-pr-patch">{{ file.patch }}</pre>
+                  <pre v-if="file.patch && diffMode === 'unified'" class="fd-pr-patch">{{ file.patch }}</pre>
+                  <div v-else-if="file.patch" class="fd-pr-split">
+                    <template
+                      v-for="(row, index) in splitDiffs.get(file.filename) ?? []"
+                      :key="index"
+                    >
+                      <div v-if="row.kind === 'hunk'" class="fd-pr-split__hunk">{{ row.text }}</div>
+                      <div v-else-if="row.kind === 'meta'" class="fd-pr-split__meta">{{ row.text }}</div>
+                      <div v-else class="fd-pr-split__row">
+                        <div class="fd-pr-split__cell" :class="`fd-pr-split__cell--${row.left?.kind ?? 'empty'}`">
+                          <span class="fd-pr-split__num">{{ row.left?.line ?? '' }}</span>
+                          <code>{{ row.left?.text ?? '' }}</code>
+                        </div>
+                        <div class="fd-pr-split__cell" :class="`fd-pr-split__cell--${row.right?.kind ?? 'empty'}`">
+                          <span class="fd-pr-split__num">{{ row.right?.line ?? '' }}</span>
+                          <code>{{ row.right?.text ?? '' }}</code>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
                   <p v-else class="fd-pr-muted">—</p>
                   <div
                     v-for="comment in fileComments(file.filename)"
@@ -340,6 +384,17 @@ function duration(check: GitHubCheckRun): string {
 .fd-pr-file { margin-bottom: var(--fd-space-3); border: 1px solid var(--fd-border-subtle); border-radius: var(--fd-radius-control); overflow: hidden; }
 .fd-pr-file__head { display: flex; align-items: center; justify-content: space-between; gap: var(--fd-space-2); padding: 6px 8px; background: var(--fd-bg); }
 .fd-pr-file__head code { overflow: hidden; font-size: var(--fd-text-11); text-overflow: ellipsis; }
+.fd-pr-diff-mode { display: flex; justify-content: flex-end; margin-bottom: var(--fd-space-2); }
+.fd-pr-split { max-height: 320px; overflow: auto; border-bottom: 1px solid var(--fd-border-subtle); font-family: var(--fd-font-mono); font-size: var(--fd-text-10); }
+.fd-pr-split__hunk { padding: 4px 8px; background: var(--fd-surface-hover); color: var(--fd-accent); }
+.fd-pr-split__meta { padding: 3px 8px; color: var(--fd-text-muted); }
+.fd-pr-split__row { display: grid; grid-template-columns: 1fr 1fr; }
+.fd-pr-split__cell { display: flex; gap: 6px; min-width: 0; padding: 1px 6px; border-right: 1px solid var(--fd-border-subtle); white-space: pre; }
+.fd-pr-split__cell code { overflow: hidden; text-overflow: ellipsis; }
+.fd-pr-split__num { flex: none; width: 26px; color: var(--fd-text-muted); text-align: right; user-select: none; }
+.fd-pr-split__cell--add { background: color-mix(in srgb, var(--fd-success) 12%, transparent); }
+.fd-pr-split__cell--del { background: color-mix(in srgb, var(--fd-danger) 12%, transparent); }
+.fd-pr-split__cell--empty { background: var(--fd-bg); }
 .fd-pr-comment { border-top: 1px solid var(--fd-border-subtle); padding: 8px; background: var(--fd-bg); }
 .fd-pr-comment strong { color: var(--fd-text-secondary); font-size: var(--fd-text-11); font-weight: var(--fd-weight-medium); }
 .fd-pr-comment p { margin: 4px 0 0; color: var(--fd-text-secondary); font-size: var(--fd-text-11); line-height: var(--fd-line-body); white-space: pre-wrap; }

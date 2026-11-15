@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 70 core (+3 ignored live), 103 frontend, 51 visual captures.
+- **Tests:** 70 core (+3 ignored live), 107 frontend, 52 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -82,9 +82,9 @@ through `user_version`. See ADR-0001…0007.
   confirms absence. Invalid saved JSON returns a safe auth error without deletion.
 - Reviews queue and CI/Activity screens are read-only and use GitHub search plus
   check-runs; commit selection lazily loads checks. Live read-only verification
-  passed for both endpoints. PR review comments are loaded and shown under the
-  matching file with path/line/author/body; split diff and thread resolution remain
-  open.
+  passed for both endpoints. PR review comments are shown under the matching file
+  with path/line/author/body. Files support Unified/Split diff modes; inline comment
+  placement and thread resolution remain open.
 - Split diff/line comments, review submission, merge/close, PR↔issue links and
   budget-aware PR request logging remain open.
 
@@ -103,9 +103,9 @@ through `user_version`. See ADR-0001…0007.
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (103) |
+| Frontend tests | `npm test` | PASS (107) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 51 captures (16/13/9/13 across Gates 0–3) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 52 captures (16/13/9/14 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |

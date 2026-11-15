@@ -38,6 +38,8 @@ screen remain open.
   commit, and lazy per-commit check loading; read-only.
 - **PR review comments:** read-only comments loaded with the PR detail and shown under
   the matching file with path, line, author and body.
+- **Diff modes:** Unified/Split toggle for loaded patches; Split pairs deletions and
+  additions with old/new line numbers.
 - Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
   consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
   rejection and fails the whole request on later-page errors.
@@ -51,7 +53,7 @@ screen remain open.
 
 ## Not delivered
 
-- Split diff, inline line placement and resolved-thread state.
+- Inline line placement and resolved-thread state.
 - Review submission, approve/request-changes, merge/close, merge readiness and
   permission-aware actions.
 - PR-to-local-issue linking, PR labels/assignees/milestones, merge queue.
@@ -66,8 +68,8 @@ screen remain open.
 | Check | Command | Result |
 |---|---|---|
 | Core tests | `cargo test -p forgedesk-core` | PASS — 70 (+3 ignored live) |
-| Frontend | `npm run typecheck`, `npm test` | PASS — 103 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 51 captures (PR, reviews, CI) |
+| Frontend | `npm run typecheck`, `npm test` | PASS — 107 |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 52 captures (PR unified/split, reviews, CI) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
 | Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
 | Jenkins build 12 | PR files/diff `3dc3ee1` | SUCCESS — 128 s, 52 core tests (+2 ignored), 48 captures, 49 artifacts |
