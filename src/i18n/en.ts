@@ -968,7 +968,7 @@ export default {
   },
   integrations: {
     github: 'GitHub',
-    githubHint: 'Primary provider. GitHub App device flow requires app credentials.',
+    githubHint: 'Primary provider. GitHub App device flow is configured.',
     notConnected: 'Not connected',
     connect: 'Connect',
     connectUnavailable: 'GitHub App credentials are not configured in this build.',
@@ -1047,6 +1047,30 @@ export default {
     forYou: 'ForgeDesk-observed usage',
     githubRemaining: 'GitHub-reported remaining',
     note: 'GitHub-reported values exclude usage from other apps between observations.',
+  },
+
+  githubAuth: {
+    title: 'Connect GitHub',
+    hint: 'Authorize ForgeDesk with your GitHub account using the device code.',
+    code: 'Device code',
+    open: 'Open GitHub device page',
+    url: 'Verification URL',
+    waiting: 'Waiting for authorization…',
+    cancel: 'Cancel',
+    connected: 'GitHub connected',
+    startError: 'Could not start GitHub authorization',
+    authError: 'GitHub authorization failed',
+    memoryOnly:
+      'Secure credential storage is unavailable; the token is kept for this session only.',
+    refreshed: 'GitHub token refreshed',
+    refreshError: 'Could not refresh GitHub token',
+    disconnected: 'GitHub disconnected',
+    disconnectError: 'Could not disconnect GitHub',
+    refresh: 'Refresh token',
+    reauthorize: 'Reauthorize',
+    disconnectTitle: 'Disconnect GitHub?',
+    disconnectBody: 'The local token is removed. Cached local data is not deleted.',
+    disconnectConfirm: 'Disconnect',
   },
 
   about: {

@@ -140,6 +140,11 @@ export type CommandName =
   | 'get_api_monitor'
   | 'set_api_paused'
   | 'export_api_diagnostics'
+  | 'github_start_device_flow'
+  | 'github_poll_device_flow'
+  | 'github_connection'
+  | 'github_refresh'
+  | 'github_disconnect'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -690,4 +695,28 @@ export interface ApiMonitorState {
   queue: QueueJob[]
   control: ApiControl
   lastObservation: string | null
+}
+
+export interface DeviceFlowStart {
+  userCode: string
+  verificationUri: string
+  expiresIn: number
+  interval: number
+}
+
+export interface GitHubConnection {
+  connected: boolean
+  login: string
+  userId: number
+  scopes: string
+  expiresAt: string
+  refreshExpiresAt: string
+  storage: 'keyring' | 'memory'
+  storageWarning: string | null
+}
+
+export interface DeviceFlowPoll {
+  status: 'pending' | 'slow_down' | 'success'
+  interval: number
+  connection: GitHubConnection | null
 }

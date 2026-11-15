@@ -420,6 +420,16 @@ const cases = [
     waitFor: '.fd-provider-card',
   },
   {
+    name: 'gate3-github-auth-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/integrations',
+    openGithubFlow: true,
+    waitFor: '.fd-github-device',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -703,6 +713,12 @@ async function main() {
           .getByRole('button', { name: testCase.savedView, exact: true })
           .click()
         await page.waitForTimeout(400)
+      }
+
+      if (testCase.openGithubFlow) {
+        await page.getByRole('button', { name: 'Reauthorize' }).click()
+        await page.waitForSelector('.fd-github-device')
+        await page.waitForTimeout(250)
       }
 
       if (testCase.openSavedViews) {
@@ -1068,6 +1084,12 @@ async function main() {
         const cards = await page.locator('.fd-provider-card').count()
         caseReport.providerCards = cards
         assert(cards >= 4, `${testCase.name}: expected provider cards`, report.failures)
+      }
+
+      if (testCase.openGithubFlow) {
+        const code = await page.locator('.fd-github-device__code-block strong').innerText()
+        caseReport.githubDeviceCode = code
+        assert(code === 'TEST-CODE', `${testCase.name}: device code missing`, report.failures)
       }
 
       if (testCase.route === '/api-monitor') {

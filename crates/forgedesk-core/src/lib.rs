@@ -10,6 +10,7 @@ pub mod db;
 pub mod domain;
 pub mod error;
 pub mod git;
+pub mod github_auth;
 
 pub use app::AppService;
 pub use error::{CoreError, WireError};

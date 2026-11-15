@@ -1,9 +1,9 @@
 # Stage 4 report — Local Git, GitHub foundation and API budgets
 
 **Date:** 2026-11-15  
-**Status:** PARTIAL — local Git and the API-budget foundation are implemented;
-GitHub App authentication, repository discovery and the live dispatcher require
-real GitHub App credentials/network and remain open.  
+**Status:** PARTIAL — local Git, the API-budget foundation and GitHub App Device
+Flow authentication are implemented; live provider client, discovery and dispatcher
+remain open.  
 **Schema:** v4
 
 ## Scope delivered
@@ -36,8 +36,13 @@ real GitHub App credentials/network and remain open.
 - Integrations screen shows GitHub as primary with read/write permission scope,
   connection state and honest "GitHub App credentials are not configured" state.
 - GitLab/Gitea are visibly planned for Stage 8; Local Git is real.
-- GitHub App auth/device flow, token storage/keychain, repository discovery and
-  selection are **not implemented** (no app credentials provided; no fake connect).
+- GitHub App Device Flow auth is implemented with the public client ID
+  `Iv23liclPWLrC2OpaeXz`: start/poll/slow-down/expiry handling, `/user` validation,
+  OS keyring storage with memory-only fallback, token refresh and disconnect.
+  Live acquisition + refresh verified separately; no token is stored in SQLite or
+  written to logs.
+- GitHub repository discovery/selection and the budget-aware provider client remain
+  open; Connect is real, but no repository sync is enabled yet.
 
 ### API Budget Manager foundation
 
@@ -77,8 +82,8 @@ real GitHub App credentials/network and remain open.
 | Dirty guard before branch switch/create | PASS backend tests + UI |
 | Unusual path/unicode, no shell injection | PASS tests |
 | Local repository attach/list/detail | PASS |
-| GitHub App auth/credentials | NOT implemented — requires app registration/credentials |
-| GitHub repository discovery/selection | NOT implemented — depends on auth |
+| GitHub App auth/credentials | PASS — Device Flow + keyring/memory vault; live token/refresh test |
+| GitHub repository discovery/selection | NOT implemented — auth exists, discovery client pending |
 | API Budget Manager model/formula | PASS |
 | Persisted observation/request log/queue/control | PASS foundation |
 | Serialized live dispatcher/scheduler | NOT implemented — no network provider yet |
@@ -88,8 +93,9 @@ real GitHub App credentials/network and remain open.
 
 ## Known limitations
 
-- GitHub App client ID/device flow, secure token storage, token refresh/revocation,
-  live HTTP client, GraphQL/REST adapters, ETag/cache and pagination are not built.
+- Live HTTP client, GraphQL/REST adapters, ETag/cache, pagination and provider
+  repository discovery are not built. Token revocation on the GitHub side is not
+  automated; Disconnect deletes the local keyring entry.
 - No provider repository discovery; only user-attached local clones.
 - No live dispatcher worker; queue persistence/UI exists but no provider request is
   enqueued or executed.

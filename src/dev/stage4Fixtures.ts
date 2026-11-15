@@ -6,6 +6,7 @@ import type {
   GitAvailability,
   GitDiffStat,
   GitLogEntry,
+  GitHubConnection,
   GitOverview,
   GitStatus,
   QueueJob,
@@ -280,6 +281,18 @@ let control: ApiControl = {
   updatedAt: iso(4),
 }
 
+let githubConnected = true
+const githubConnection: GitHubConnection = {
+  connected: true,
+  login: 'eloraam',
+  userId: 34349377,
+  scopes: '',
+  expiresAt: iso(-420),
+  refreshExpiresAt: iso(-14000),
+  storage: 'keyring',
+  storageWarning: null,
+}
+
 function overviewFor(id: string): GitOverview {
   const repository = repositories.find((item) => item.id === id)
   if (!repository) {
@@ -423,6 +436,36 @@ export function handleStage4FixtureCommand<T>(
           },
         ) as T,
       }
+    case 'github_connection':
+      return {
+        handled: true,
+        value: (githubConnected ? structuredClone(githubConnection) : null) as T,
+      }
+    case 'github_start_device_flow':
+      return {
+        handled: true,
+        value: {
+          userCode: 'TEST-CODE',
+          verificationUri: 'https://github.com/login/device',
+          expiresIn: 899,
+          interval: 5,
+        } as T,
+      }
+    case 'github_poll_device_flow':
+      githubConnected = true
+      return {
+        handled: true,
+        value: {
+          status: 'success',
+          interval: 5,
+          connection: structuredClone(githubConnection),
+        } as T,
+      }
+    case 'github_refresh':
+      return { handled: true, value: structuredClone(githubConnection) as T }
+    case 'github_disconnect':
+      githubConnected = false
+      return { handled: true, value: undefined as T }
     case 'get_api_monitor':
       return { handled: true, value: monitor() as T }
     case 'set_api_paused':

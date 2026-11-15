@@ -970,7 +970,7 @@ export default {
   integrations: {
     github: 'GitHub',
     githubHint:
-      'Основной провайдер. Для GitHub App device flow нужны учётные данные приложения.',
+      'Основной провайдер. GitHub App device flow настроен.',
     notConnected: 'Не подключено',
     connect: 'Подключить',
     connectUnavailable: 'Учётные данные GitHub App не настроены в этой сборке.',
@@ -1048,6 +1048,29 @@ export default {
     forYou: 'Расход, наблюдённый ForgeDesk',
     githubRemaining: 'Остаток по данным GitHub',
     note: 'Данные GitHub не учитывают расход других приложений между наблюдениями.',
+  },
+
+  githubAuth: {
+    title: 'Подключить GitHub',
+    hint: 'Авторизуйте ForgeDesk через GitHub с помощью device code.',
+    code: 'Код устройства',
+    open: 'Открыть страницу GitHub',
+    url: 'URL подтверждения',
+    waiting: 'Ожидание авторизации…',
+    cancel: 'Отмена',
+    connected: 'GitHub подключён',
+    startError: 'Не удалось начать авторизацию GitHub',
+    authError: 'Авторизация GitHub не удалась',
+    memoryOnly: 'Безопасное хранилище недоступно; токен хранится только до конца сессии.',
+    refreshed: 'Токен GitHub обновлён',
+    refreshError: 'Не удалось обновить токен GitHub',
+    disconnected: 'GitHub отключён',
+    disconnectError: 'Не удалось отключить GitHub',
+    refresh: 'Обновить токен',
+    reauthorize: 'Авторизовать заново',
+    disconnectTitle: 'Отключить GitHub?',
+    disconnectBody: 'Локальный токен будет удалён. Локальные данные не удаляются.',
+    disconnectConfirm: 'Отключить',
   },
 
   about: {

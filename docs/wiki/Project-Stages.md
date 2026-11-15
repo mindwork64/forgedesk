@@ -6,7 +6,7 @@
 | 2 | Issues, workflow, search, saved views, board | Complete |
 | 3 | Projects, initiatives, milestones, cycles, documents, roadmap | Partial |
 | 4 | Local Git, repositories, API budget foundation, API Monitor | Partial |
-| 5 | GitHub Issue synchronization | Foundation done; live sync blocked on GitHub App auth |
+| 5 | GitHub Issue synchronization | Auth done; live sync/client pending |
 | 6 | Pull requests, commits, checks, reviews | Not started |
 | 7 | Inbox, triage, automations, analytics, dashboards | Not started |
 | 8 | GitLab/Gitea providers | Not started |
@@ -27,5 +27,6 @@ observations.
 ## Stage 5 status
 
 The offline safety foundation exists (remote links, cursors, idempotent outbox state
-machine, conflicts). Live import/export and sync UI are blocked on a GitHub App
-client ID/registration and secure token storage. No live sync or write is attempted.
+machine, conflicts) and GitHub App Device Flow auth/token refresh is implemented and
+live-tested. Live import/export and sync UI are still pending the provider client,
+dispatcher and conflict screen. No mass sync or write is enabled yet.

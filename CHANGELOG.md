@@ -5,8 +5,10 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
-### Stage 5 — GitHub sync safety foundation (partial)
+### Stage 5 — GitHub sync safety foundation and auth (partial)
 
+- GitHub App Device Flow auth with keyring/memory token vault, `/user` validation,
+  refresh rotation and disconnect; live token+refresh scenario verified.
 - Schema v5: remote issue links, sync cursors, idempotent outbox, conflict records.
 - Closed outbox state machine including ambiguous-outcome reconciliation; no
   automatic retry of uncertain mutations.

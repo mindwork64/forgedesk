@@ -1,24 +1,28 @@
 <script setup lang="ts">
 import { GitBranch, GitFork, Lock, Plug } from '@lucide/vue'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import FdButton from '@/components/ui/FdButton.vue'
-import { useApiMonitorStore } from '@/stores/apiMonitor'
+import FdConfirmDialog from '@/components/ui/FdConfirmDialog.vue'
+import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useGitStore } from '@/stores/git'
+import GitHubDeviceDialog from './GitHubDeviceDialog.vue'
 
 const git = useGitStore()
-const api = useApiMonitorStore()
+const auth = useGithubAuthStore()
 const router = useRouter()
 const { t } = useI18n()
+const connectOpen = ref(false)
+const disconnectOpen = ref(false)
 
 onMounted(async () => {
   await Promise.all([
     git.loadAvailability(),
     git.loadRepositories(),
-    api.load(),
+    auth.loadConnection(),
   ])
 })
 </script>
@@ -42,20 +46,23 @@ onMounted(async () => {
           </div>
           <span
             class="fd-provider-state"
-            :class="{ 'fd-provider-state--ok': api.state?.connected }"
+            :class="{ 'fd-provider-state--ok': auth.connected }"
           >
             {{
-              api.state?.connected
-                ? t('apiMonitor.connectedAs', { login: api.state.accountLogin })
+              auth.connected
+                ? t('apiMonitor.connectedAs', { login: auth.connection?.login })
                 : t('integrations.notConnected')
             }}
           </span>
         </div>
-        <p v-if="!api.state?.connected" class="fd-provider-card__notice">
-          {{ t('integrations.connectUnavailable') }}
+        <p v-if="!auth.connected" class="fd-provider-card__notice">
+          {{ t('githubAuth.hint') }}
         </p>
         <p v-else class="fd-provider-card__notice">
           {{ t('integrations.lastSync') }}: {{ t('integrations.never') }}
+          <template v-if="auth.connection?.storageWarning">
+            · {{ auth.connection.storageWarning }}
+          </template>
         </p>
         <div class="fd-provider-permissions">
           <div>
@@ -65,13 +72,23 @@ onMounted(async () => {
           </div>
         </div>
         <div class="fd-provider-card__footer">
-          <template v-if="api.state?.connected">
-            <FdButton variant="ghost" size="sm" @click="router.push('/repositories')">
-              {{ t('integrations.manageRepositories') }}
+          <template v-if="auth.connected">
+            <FdButton variant="ghost" size="sm" @click="auth.refresh()">
+              {{ t('githubAuth.refresh') }}
+            </FdButton>
+            <FdButton variant="ghost" size="sm" @click="connectOpen = true">
+              {{ t('githubAuth.reauthorize') }}
+            </FdButton>
+            <FdButton
+              variant="ghost"
+              size="sm"
+              @click="disconnectOpen = true"
+            >
+              {{ t('integrations.disconnect') }}
             </FdButton>
           </template>
           <template v-else>
-            <FdButton variant="secondary" size="sm" disabled>
+            <FdButton variant="primary" size="sm" @click="connectOpen = true">
               {{ t('integrations.connect') }}
             </FdButton>
             <span class="fd-provider-muted">{{ t('integrations.noAccount') }}</span>
@@ -142,6 +159,17 @@ onMounted(async () => {
         </div>
       </section>
     </div>
+
+    <GitHubDeviceDialog v-model:open="connectOpen" />
+
+    <FdConfirmDialog
+      v-model="disconnectOpen"
+      :title="t('githubAuth.disconnectTitle')"
+      :body="t('githubAuth.disconnectBody')"
+      :confirm-label="t('githubAuth.disconnectConfirm')"
+      destructive
+      @confirm="auth.disconnect()"
+    />
   </div>
 </template>
 

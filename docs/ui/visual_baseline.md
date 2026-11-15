@@ -77,6 +77,7 @@ Query parameters used by the harness: `theme=dark|light`,
 | 41 | `gate3-repository-dirty-dark-1440.png` | 1440×900 | Dark | 240 px | dirty worktree guard |
 | 42 | `gate3-integrations-dark-1440.png` | 1440×900 | Dark | 240 px | provider integrations |
 | 43 | `gate3-api-monitor-dark-1440.png` | 1440×900 | Dark | 240 px | API Monitor budgets/history |
+| 44 | `gate3-github-auth-dark-1440.png` | 1440×900 | Dark | 240 px | GitHub Device Flow dialog |
 
 ## Measured geometry
 
@@ -96,7 +97,8 @@ create dialog 720 px; filter state 1 chip / 4 rows; grouped list 5 sections; sav
 views menu 2 rows; palette issue search 6 results; project dialog 560 px; project
 overview 6 tabs; 6 project issues; 2 initiatives; 2 linked projects; 5 cycle
 metrics; 3 documents; 3 roadmap bars; 2 local repositories; 3 repository branches;
-4 provider cards; 3 budget panels; queue rows; no console errors. Gate 3
+4 provider cards; 3 budget panels; queue rows; device code `TEST-CODE`; no console
+errors. Gate 3
 API/budget data is harness-only; production starts disconnected/empty. The
 component test covers 250 virtual rows (fewer than 30 in DOM).
 

@@ -1,14 +1,14 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15  
-**Stage:** 5 — GitHub sync safety foundation (live auth blocked)  
+**Stage:** 5 — GitHub sync foundation (auth done; live sync blocked)  
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
 
-Implement GitHub App authentication + live provider client so the Stage 5 sync
-foundation can connect to GitHub. Live synchronization is currently blocked; GitHub
-connection is intentionally not faked in production.
+Implement the live provider client and outbox dispatcher on top of the working
+GitHub App authentication. Live issue synchronization is still blocked; no fake sync
+or external write is enabled.
 
 ## Architecture (locked)
 
@@ -35,8 +35,9 @@ through `user_version`. See ADR-0001…0006.
 - **API Monitor:** connection/scheduler/dispatcher/observation/reset summary,
   GraphQL/REST/resource budget panels, secondary state, background allowance/reserve,
   queue, recent sanitized requests, export diagnostics.
-- **Integrations:** GitHub primary with readable scopes and honest unavailable auth;
-  Local Git real; GitLab/Gitea planned. No token/secret schema and no fake connect.
+- **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
+  keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
+  schema and no fake connect.
 - **Tests:** 46 core, 78 frontend, 43 visual captures.
 
 ### Stage 5 — sync safety foundation (backend only)
@@ -48,8 +49,11 @@ through `user_version`. See ADR-0001…0006.
   reconciling → succeeded | retry_safe | needs_user_action`.
 - Ambiguous outcomes cannot retry directly; tests cover idempotency, attempts,
   invalid transitions, reconciliation path, links, cursors and conflict resolution.
-- No provider network calls or sync UI yet: live import/export requires GitHub App
-  auth and a secure token vault. No fake sync control is rendered.
+- **GitHub App Device Flow auth:** start/poll/slow-down/expiry, `/user` validation,
+  OS keyring storage with memory-only fallback, refresh token and disconnect.
+  Live token acquisition + refresh were verified; no token is persisted in SQLite or
+  written to logs. Live issue import/export still requires the provider client and
+  outbox dispatcher.
 
 ### Stages 1–3 (preserved)
 
@@ -61,7 +65,7 @@ through `user_version`. See ADR-0001…0006.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (46) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (49) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
@@ -72,15 +76,18 @@ through `user_version`. See ADR-0001…0006.
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
+| Jenkins build 9 | Auth foundation snapshot | Pending commit/mirror push |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
 
-- GitHub App auth/device flow, secure token storage, token refresh/revocation and
-  live HTTP client are NOT implemented (no app credentials; no fake connection).
+- GitHub App auth is implemented, but live HTTP/GraphQL/REST client, ETag/pagination,
+  provider repository discovery and outbox dispatcher are NOT implemented.
 - Stage 5 has no live issue import/export, label/comment sync, sync UI, conflict
-  resolution UI or dispatcher consuming the outbox. Only the offline safety model
-  and tests exist.
+  resolution UI or dispatcher consuming the outbox. Only the safety model, auth and
+  tests exist.
+- Token storage uses OS keyring; when unavailable it falls back to session-only
+  memory and warns. Token revocation is local-only (Disconnect deletes the entry).
 - No GitHub repository discovery/selection; only user-attached local clones.
 - No dispatcher worker/network adapters/header parser/ETag/pagination; queue and
   request log have no producer in production yet. Observed-request counts are log
@@ -101,7 +108,6 @@ through `user_version`. See ADR-0001…0006.
 
 ## Next step
 
-GitHub App Device Flow with secure token storage (keychain/OS credential vault),
-live REST/GraphQL client, rate-limit header/`rateLimit` parsing, serialized
-dispatcher worker, repository discovery, then Stage 5 issue import/export and
-conflict UI.
+Live REST/GraphQL client with rate-limit header/`rateLimit` parsing, serialized
+dispatcher worker, GitHub repository discovery, then Stage 5 issue import/export and
+conflict UI. Authenticate first via Integrations → Connect.

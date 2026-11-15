@@ -1,9 +1,9 @@
 # Stage 5 report — GitHub Issue synchronization foundation
 
 **Date:** 2026-11-15  
-**Status:** BLOCKED/PARTIAL — the local sync-safety foundation is implemented; live
-GitHub import/export is blocked on GitHub App authentication and a live provider
-client. No remote write was attempted.  
+**Status:** PARTIAL — the local sync-safety foundation and GitHub App Device Flow
+authentication are implemented and token acquisition/refresh were live-tested. Live
+issue import/export and conflict UI remain pending. No remote write was attempted.  
 **Schema:** v5
 
 ## Delivered foundation
@@ -26,9 +26,28 @@ client. No remote write was attempted.
 - No Tauri sync UI or provider calls: without auth, a Sync button would be fake.
 - No tokens/secrets in the schema or logs.
 
+## GitHub App authentication (delivered)
+
+- Built-in public GitHub App Client ID with `FORGEDESK_GITHUB_CLIENT_ID` override.
+- Device Flow: start/device code, polling interval/expiration handling, `slow_down`,
+  denial/expiry errors; public UI shows code/URL and polls automatically.
+- Token exchange validates `/user`, stores in OS keyring when available; memory-only
+  fallback with explicit session warning when the keyring is unavailable.
+- Refresh token flow implemented and tested; automatic refresh within 60s of expiry;
+  disconnect removes the stored credential.
+- **Live verification (manual test scenario):**
+  - device code issued (`interval 5`, `expires_in 899`);
+  - authorization completed;
+  - token response: bearer, expiry 28800s, refresh token present, refresh expiry
+    present, no scopes;
+  - `/user` returned `mindwork64` (id 34349377), HTTP 200, rate 5000/4996;
+  - refresh exchange returned HTTP 200 with new access + refresh tokens and 28800s
+    expiry.
+- Raw verification used in-memory tokens only; no token was written to the repo,
+  docs, screenshots or logs.
+
 ## Not delivered (blocking live sync)
 
-- GitHub App Device Flow, app client ID registration and secure token vault.
 - Live REST/GraphQL client, ETags, pagination, incremental issue/label/comment pull.
 - Local→remote create/update/comment push and field ownership enforcement.
 - Dispatcher worker consuming the outbox; reconciliation against remote objects.
@@ -40,23 +59,20 @@ client. No remote write was attempted.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 46 |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 49 |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Frontend typecheck/tests | `npm run typecheck`, `npm test` | PASS — 78 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 43 captures (no Stage 5 UI yet) |
-| Jenkins | `ForgeDesk-CI` build 8 (`6d6bf52`) | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 44 captures (auth dialog included) |
+| Jenkins build 8 | Sync foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
+| Jenkins build 9 | Auth foundation snapshot | Pending commit/mirror push |
 | Live GitHub sync | — | NOT RUN — auth/provider client absent |
 
-## Required next decision/action
+## Next
 
-Provide/configure a GitHub App client ID and choose secure token storage (OS
-keychain/credential vault) before enabling Connect. Then implement:
+1. Budget-aware REST/GraphQL client and rate-limit parser backed by the token vault.
+2. Provider account persistence and repository discovery after auth.
+3. Outbox dispatcher with reconciliation for ambiguous mutations.
+4. Issue/label/comment pull + explicit local→remote write with field ownership.
+5. Conflict UI and manual sync/status controls.
 
-1. Device Flow polling exactly per server responses (interval/expiration/slow_down).
-2. Token vault + refresh/revocation; no token columns in SQLite.
-3. Budget-aware REST/GraphQL client and rate-limit parser.
-4. Outbox dispatcher with reconciliation for ambiguous mutations.
-5. Issue/label/comment pull + explicit local→remote write with field ownership.
-6. Conflict UI and manual sync/status controls.
-
-Until then the app must show GitHub as not connected and must not offer a fake sync.
+No mass synchronization is enabled until these exist and are tested.

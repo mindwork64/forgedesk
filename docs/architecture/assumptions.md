@@ -109,8 +109,9 @@ Each entry is small and reversible unless noted.
     are canonicalized and must be attached by the user; branch create/switch require
     a clean worktree and Git's own ref validation.
 32. **Credentials:** provider account rows contain identity/scopes/status, never
-    tokens. GitHub Connect stays unavailable until an OS credential vault + App
-    device flow are implemented.
+    tokens. GitHub App Device Flow auth is implemented; tokens live in the OS
+    keyring, with session-only memory fallback if no keyring exists. No plaintext
+    token file or SQLite token column is allowed.
 33. **API budgets:** background allowance is
     `min(10% × limit, max(0, remaining − 20% × limit))`; unknown observations yield
     zero allowance. GitHub-reported remaining is never presented as ForgeDesk usage.

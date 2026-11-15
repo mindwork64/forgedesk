@@ -39,6 +39,9 @@ import type {
   GitOverview,
   Repository,
   RepositoryInput,
+  DeviceFlowStart,
+  DeviceFlowPoll,
+  GitHubConnection,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -221,4 +224,10 @@ export const api = {
   setApiPaused: (paused: boolean, reason = '') =>
     call<ApiControl>('set_api_paused', { paused, reason }),
   exportApiDiagnostics: () => call<string>('export_api_diagnostics'),
+  githubStartDeviceFlow: () =>
+    call<DeviceFlowStart>('github_start_device_flow'),
+  githubPollDeviceFlow: () => call<DeviceFlowPoll>('github_poll_device_flow'),
+  githubConnection: () => call<GitHubConnection | null>('github_connection'),
+  githubRefresh: () => call<GitHubConnection>('github_refresh'),
+  githubDisconnect: () => call<void>('github_disconnect'),
 }

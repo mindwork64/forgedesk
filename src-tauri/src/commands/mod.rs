@@ -11,6 +11,7 @@ use forgedesk_core::domain::{
     SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow,
     Workspace,
 };
+use forgedesk_core::github_auth::{DeviceFlowPoll, DeviceFlowStart, GitHubConnection};
 use tauri::{AppHandle, Manager, State};
 
 use crate::state::AppState;
@@ -574,5 +575,44 @@ pub fn set_api_paused(
 pub fn export_api_diagnostics(state: State<'_, AppState>) -> Result<String, CommandError> {
     state
         .with_service(|service| service.export_api_diagnostics())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_start_device_flow(
+    state: State<'_, AppState>,
+) -> Result<DeviceFlowStart, CommandError> {
+    state
+        .with_github(|github| github.start_device_flow())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_poll_device_flow(state: State<'_, AppState>) -> Result<DeviceFlowPoll, CommandError> {
+    state
+        .with_github(|github| github.poll_device_flow())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_connection(
+    state: State<'_, AppState>,
+) -> Result<Option<GitHubConnection>, CommandError> {
+    state
+        .with_github(|github| github.connection())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_refresh(state: State<'_, AppState>) -> Result<GitHubConnection, CommandError> {
+    state
+        .with_github(|github| github.refresh())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_disconnect(state: State<'_, AppState>) -> Result<(), CommandError> {
+    state
+        .with_github(|github| github.disconnect())
         .map_err(CommandError::from)
 }

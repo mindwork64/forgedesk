@@ -77,6 +77,15 @@ pub enum CoreError {
 
     #[error("internal error: {message}")]
     Internal { message: String },
+
+    #[error("authentication error: {message}")]
+    Auth { message: String },
+
+    #[error("network error: {message}")]
+    Network { message: String },
+
+    #[error("unsupported capability: {message}")]
+    UnsupportedCapability { message: String },
 }
 
 impl CoreError {
@@ -118,6 +127,24 @@ impl CoreError {
         }
     }
 
+    pub fn auth(message: impl Into<String>) -> Self {
+        Self::Auth {
+            message: message.into(),
+        }
+    }
+
+    pub fn network(message: impl Into<String>) -> Self {
+        Self::Network {
+            message: message.into(),
+        }
+    }
+
+    pub fn unsupported(message: impl Into<String>) -> Self {
+        Self::UnsupportedCapability {
+            message: message.into(),
+        }
+    }
+
     pub fn internal(message: impl Into<String>) -> Self {
         Self::Internal {
             message: message.into(),
@@ -134,6 +161,9 @@ impl CoreError {
             Self::NotFound { .. } => ErrorCategory::NotFound,
             Self::Startup { .. } => ErrorCategory::Startup,
             Self::Internal { .. } => ErrorCategory::Internal,
+            Self::Auth { .. } => ErrorCategory::Auth,
+            Self::Network { .. } => ErrorCategory::Network,
+            Self::UnsupportedCapability { .. } => ErrorCategory::UnsupportedCapability,
         }
     }
 
@@ -148,6 +178,9 @@ impl CoreError {
             Self::NotFound { entity } => format!("{entity} was not found."),
             Self::Startup { message } => message.clone(),
             Self::Internal { message } => message.clone(),
+            Self::Auth { message } => message.clone(),
+            Self::Network { message } => message.clone(),
+            Self::UnsupportedCapability { message } => message.clone(),
         }
     }
 
@@ -162,6 +195,9 @@ impl CoreError {
                 Some(self.to_string())
             }
             Self::Internal { .. } => None,
+            Self::Auth { .. } | Self::Network { .. } | Self::UnsupportedCapability { .. } => {
+                Some(self.to_string())
+            }
         }
     }
 

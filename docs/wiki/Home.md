@@ -20,6 +20,6 @@ with Rust (Tauri 2), Vue 3 + TypeScript and SQLite.
   cycle analytics are follow-ups.
 - Stage 4 — Local Git and API budget foundation: partial; GitHub App auth, live
   provider client and dispatcher remain open.
-- Stage 5 — GitHub issue synchronization: blocked on GitHub App authentication.
+- Stage 5 — GitHub issue synchronization: auth foundation done; live sync pending.
 
 The source of truth for project status is `docs/PROJECT_STATE.md` in the repository.

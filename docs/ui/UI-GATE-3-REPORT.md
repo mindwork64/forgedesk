@@ -16,9 +16,11 @@ data requires Stage 4 authentication, which is not configured.
 - Repository detail with Overview/Branches/Recent commits, dirty/clean badge,
   ahead/behind/upstream, diff stat, branch list with switch actions and guarded
   branch creation.
-- Integrations: GitHub primary card with connection state and readable read/write
-  scopes; Local Git real state/version/repository count; GitLab/Gitea planned;
-  GitHub App credentials unavailable explained, no fake connect.
+- Integrations: GitHub primary card with real Device Flow connect/reauthorize/
+  refresh/disconnect, connection state and readable read/write scopes; Local Git
+  real state/version/repository count; GitLab/Gitea planned.
+- GitHub Device Flow dialog with device code, verification URL, automatic polling,
+  copy actions and keyring/memory storage state.
 - API Monitor: connection/scheduler/dispatcher/last observation/reset summary,
   secondary-limit state, GraphQL/REST primary panels, resource buckets, background
   allowance/reserve, queue, recent sanitized requests, manual pause/resume and
@@ -35,8 +37,9 @@ data requires Stage 4 authentication, which is not configured.
 | 3 | `gate3-repository-dirty-dark-1440.png` | 1440×900 | dirty worktree + guard |
 | 4 | `gate3-integrations-dark-1440.png` | 1440×900 | GitHub/Local/GitLab/Gitea cards |
 | 5 | `gate3-api-monitor-dark-1440.png` | 1440×900 | budgets, queue, request log |
+| 6 | `gate3-github-auth-dark-1440.png` | 1440×900 | Device Flow dialog with code |
 
-Full run: **43 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 5 Gate 3),
+Full run: **44 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 6 Gate 3),
 `docs/ui/current/measurements.json`, zero assertion failures.
 
 ## Acceptance checklist
@@ -47,13 +50,14 @@ Full run: **43 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 5 Gate 3),
 | Add local repository validation | PASS backend tests | duplicate/path canonicalization |
 | Repository detail branches/commits | PASS | 3 branches + commit log |
 | Dirty worktree guard visible | PASS | dirty badge, disabled switch, warning |
-| Integrations GitHub primary with scopes | PASS | read/write lists, honest state |
-| No fake GitHub connection in production | PASS | disabled Connect, credentials notice |
+| Integrations GitHub primary with scopes | PASS | real Connect + read/write lists |
+| GitHub Device Flow code/polling UI | PASS | code/URL, auto-poll, keyring/memory state |
+| Live token acquisition + refresh | PASS (manual) | `/user` 200, refresh 200, new token pair |
 | API Monitor primary budgets/resource | PASS with fixtures | 2 primary panels + search bucket |
 | API Monitor queue/request history | PASS with fixtures | 2 queue jobs, 3 requests |
 | Pause/resume background sync | PASS | persisted api_control |
 | Diagnostics export sanitized | PASS | JSON copy, no tokens/payloads |
-| Live GitHub auth/discovery | NOT implemented | needs App credentials |
+| GitHub repository discovery | NOT implemented | auth ready; client pending |
 | PR/Reviews/CI screens | NOT in Stage 4 | Stage 6 |
 | Native Tauri capture | SKIPPED | no WebKitGTK runtime |
 
@@ -69,6 +73,6 @@ Full run: **43 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 5 Gate 3),
 ## Conclusion
 
 The delivered Stage 4 screens pass browser visual acceptance for local Git and the
-API budget foundation. The gate remains **PARTIAL** until GitHub App auth, live
-repository discovery, dispatcher and provider-backed API Monitor data exist. Native
-Tauri verification remains open.
+API budget foundation. The gate remains **PARTIAL** until live provider client, repository discovery,
+dispatcher and provider-backed API Monitor data exist. Native Tauri verification
+remains open.

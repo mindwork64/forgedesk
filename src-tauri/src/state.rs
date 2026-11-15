@@ -3,6 +3,7 @@ use std::sync::Mutex;
 
 use forgedesk_core::app::Bootstrap;
 use forgedesk_core::domain::WindowState;
+use forgedesk_core::github_auth::GitHubAuth;
 use forgedesk_core::{AppService, CoreError, WireError};
 
 /// Shared shell state. The service is `None` only when startup failed; the
@@ -14,6 +15,7 @@ pub struct AppState {
 
 struct Inner {
     service: Option<AppService>,
+    github: Option<GitHubAuth>,
     startup_error: Option<WireError>,
 }
 
@@ -34,6 +36,7 @@ impl AppState {
         Self {
             inner: Mutex::new(Inner {
                 service,
+                github: None,
                 startup_error,
             }),
         }
@@ -72,6 +75,24 @@ impl AppState {
             .as_ref()
             .ok_or_else(|| WireError::from(&CoreError::startup("ForgeDesk is not ready.")))?;
         f(service).map_err(|error| WireError::from(&error))
+    }
+
+    pub fn with_github<T>(
+        &self,
+        f: impl FnOnce(&GitHubAuth) -> Result<T, CoreError>,
+    ) -> Result<T, WireError> {
+        let mut inner = self.lock()?;
+        if let Some(error) = &inner.startup_error {
+            return Err(error.clone());
+        }
+        if inner.github.is_none() {
+            inner.github = Some(GitHubAuth::new().map_err(WireError::from)?);
+        }
+        let github = inner
+            .github
+            .as_ref()
+            .ok_or_else(|| WireError::from(&CoreError::startup("GitHub auth is not ready.")))?;
+        f(github).map_err(WireError::from)
     }
 
     pub fn with_service_mut<T>(

@@ -11,8 +11,10 @@ import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import { formatDateTime } from '@/lib/format'
 import { useAppStore } from '@/stores/app'
 import { useApiMonitorStore } from '@/stores/apiMonitor'
+import { useGithubAuthStore } from '@/stores/githubAuth'
 
 const api = useApiMonitorStore()
+const auth = useGithubAuthStore()
 const app = useAppStore()
 const { t } = useI18n()
 
@@ -73,7 +75,7 @@ function budgetTitle(family: string): string {
 }
 
 onMounted(() => {
-  void api.load()
+  void Promise.all([api.load(), auth.loadConnection()])
 })
 </script>
 
@@ -123,8 +125,10 @@ onMounted(() => {
             <span>{{ t('apiMonitor.connection') }}</span>
             <strong>
               {{
-                state.connected
-                  ? t('apiMonitor.connectedAs', { login: state.accountLogin })
+                auth.connected || state.connected
+                  ? t('apiMonitor.connectedAs', {
+                      login: auth.connection?.login ?? state.accountLogin,
+                    })
                   : t('apiMonitor.notConnected')
               }}
             </strong>
