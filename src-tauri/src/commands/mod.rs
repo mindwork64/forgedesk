@@ -1031,3 +1031,15 @@ pub fn dashboard_reorder(
         .with_service(|service| service.dashboard_reorder(&ids))
         .map_err(CommandError::from)
 }
+
+#[tauri::command]
+pub fn github_sync_pull_events(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+) -> Result<i64, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.sync_github_pull_events(&token, &owner, &repo))
+        .map_err(CommandError::from)
+}

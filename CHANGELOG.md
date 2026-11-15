@@ -9,7 +9,8 @@ APIs and schema may still evolve with migrations.
 
 - Schema v7 `inbox_state`; normalized local activity Inbox with filters, unread/
   archive actions, grouping and detail pane.
-- 85 core tests (+3 ignored live), 107 frontend, 57 visual captures.
+- 87 core tests (+3 ignored live), 107 frontend, 57 visual captures.
+- PR state event ingestion and merge→local task completion automation (live-tested).
 - Persisted 12-column Dashboards with metric/recent-issue/API-budget widgets.
 - Local Insights aggregates and automation rules with preview/run history.
 

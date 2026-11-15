@@ -171,6 +171,14 @@ fn describe(kind: &str, data: &Value, issue_title: &str) -> (String, String) {
         "relation_added" => ("Relation added".into(), String::new()),
         "relation_removed" => ("Relation removed".into(), String::new()),
         "duplicated" => ("Issue duplicated".into(), String::new()),
+        "pr_merged" => (
+            "Pull request merged".into(),
+            format!("#{} completed this issue", text("number")),
+        ),
+        "pr_state_changed" => (
+            "Pull request updated".into(),
+            format!("#{} is now {}", text("number"), text("state")),
+        ),
         other => (other.replace('_', " "), issue_title.into()),
     }
 }

@@ -135,6 +135,7 @@ pub fn run() {
             commands::dashboard_remove_widget,
             commands::dashboard_update_width,
             commands::dashboard_reorder,
+            commands::github_sync_pull_events,
         ]);
 
     let app = builder

@@ -209,6 +209,8 @@ pub struct GitHubMergeResult {
     pub merged: bool,
     pub message: String,
     pub sha: Option<String>,
+    #[serde(default)]
+    pub completed_issue_key: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

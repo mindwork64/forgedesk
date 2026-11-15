@@ -176,6 +176,7 @@ export type CommandName =
   | 'dashboard_remove_widget'
   | 'dashboard_update_width'
   | 'dashboard_reorder'
+  | 'github_sync_pull_events'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -901,6 +902,7 @@ export interface GitHubMergeResult {
   merged: boolean
   message: string
   sha: string | null
+  completedIssueKey: string | null
 }
 
 export interface InboxEvent {

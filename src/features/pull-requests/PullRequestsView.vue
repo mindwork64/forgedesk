@@ -18,6 +18,7 @@ import GitHubRepoDialog from '@/features/integrations/GitHubRepoDialog.vue'
 import LinkIssueDialog from './LinkIssueDialog.vue'
 import MergePullDialog from './MergePullDialog.vue'
 import ReviewPullDialog from './ReviewPullDialog.vue'
+import { api } from '@/lib/ipc'
 import { assessFileCompleteness } from './fileCompleteness'
 import { parseSplitDiff, type SplitDiffRow } from './splitDiff'
 import { formatRelative } from '@/lib/format'
@@ -76,8 +77,14 @@ const tabs = computed(() => [
 ])
 
 async function load(): Promise<void> {
-  if (selectedRepo.value) {
-    await prs.load(selectedRepo.value.owner, selectedRepo.value.name, state.value)
+  if (!selectedRepo.value) return
+  await prs.load(selectedRepo.value.owner, selectedRepo.value.name, state.value)
+  if (auth.connected) {
+    try {
+      await api.githubSyncPullEvents(selectedRepo.value.owner, selectedRepo.value.name)
+    } catch {
+      // PR list remains usable when event ingestion is unavailable.
+    }
   }
 }
 

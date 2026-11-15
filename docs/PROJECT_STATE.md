@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15
-**Stage:** 7 — Inbox/triage started (partial); Stage 5 sync writes remain partial
+**Stage:** 7 — COMPLETE (DoD); Stage 5 sync writes remain partial
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 85 core (+3 ignored live), 107 frontend, 57 visual captures.
+- **Tests:** 87 core (+3 ignored live), 107 frontend, 57 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -108,7 +108,12 @@ through `user_version`. See ADR-0001…0007.
   run with per-event dedupe, run history and last result. No remote writes.
 - **Dashboards:** persisted 12-column layout, default metric/recent-issues/API-budget
   widgets, edit mode with add/remove/width/reorder; local data only.
-- External event ingestion and end-to-end merge→task automation remain to do.
+- **External PR events:** on PR list refresh ForgeDesk syncs linked PR states; changes
+  are deduped and written as `pr_merged`/`pr_state_changed` activity, visible in Inbox
+  as GitHub-source events.
+- **End-to-end completion:** merging a linked PR marks the local issue Done, records
+  `pr_merged` activity and updates the link state; live-tested on the test repository.
+- Triage routing/assignment and real-time webhooks remain out of scope for v1.
 
 ### Stages 1–3 (preserved)
 
@@ -120,7 +125,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (85 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (87 + 3 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
@@ -171,6 +176,6 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Complete Stage 7: external GitHub event ingestion/dedup and end-to-end
-merge→task completion automation. Then Stage 8 provider adapters. Remaining Stage 6 polish (inline comment
+Stage 8: capability-driven GitLab/Gitea provider adapters with contract tests. Stage 5
+sync writes and Stage 6/7 polish remain tracked. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.

@@ -209,6 +209,7 @@ const mergeResult: GitHubMergeResult = {
   merged: true,
   message: 'Pull request successfully merged',
   sha: 'f1e2d3c4b5a6978877665544332211aabbccddee',
+  completedIssueKey: 'FD-142',
 }
 
 const submittedReview: GitHubReview = {
@@ -266,6 +267,8 @@ export function handleStage6FixtureCommand<T>(
       }
     case 'github_submit_review':
       return { handled: true, value: structuredClone(submittedReview) as T }
+    case 'github_sync_pull_events':
+      return { handled: true, value: 0 as T }
     default:
       return { handled: false }
   }

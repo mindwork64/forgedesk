@@ -339,4 +339,6 @@ export const api = {
     call<Dashboard>('dashboard_update_width', { widgetId, width }),
   dashboardReorder: (ids: string[]) =>
     call<Dashboard>('dashboard_reorder', { ids }),
+  githubSyncPullEvents: (owner: string, repo: string) =>
+    call<number>('github_sync_pull_events', { owner, repo }),
 }

@@ -444,7 +444,7 @@ impl AppService {
         expected_sha: Option<&str>,
         confirmed: bool,
     ) -> CoreResult<GitHubMergeResult> {
-        crate::github_actions::merge_pull(
+        let mut result = crate::github_actions::merge_pull(
             token,
             owner,
             repo,
@@ -452,7 +452,51 @@ impl AppService {
             method,
             expected_sha,
             confirmed,
-        )
+        )?;
+        if result.merged {
+            let workspace = self.require_workspace()?;
+            let key = self.db.with_transaction(|conn| {
+                crate::db::repositories::pull_links::complete_linked_issue(
+                    conn,
+                    &workspace.id,
+                    "github",
+                    &format!("{owner}/{repo}"),
+                    number,
+                )
+            })?;
+            result.completed_issue_key = key;
+        }
+        Ok(result)
+    }
+
+    pub fn sync_github_pull_events(&self, token: &str, owner: &str, repo: &str) -> CoreResult<i64> {
+        let client = crate::github_client::GitHubClient::new(token)?;
+        let mut pulls = client.list_pulls(owner, repo, "open")?.items;
+        pulls.extend(client.list_pulls(owner, repo, "closed")?.items);
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            let mut changed = 0;
+            for pull in &pulls {
+                let state = if pull.merged_at.is_some() {
+                    "merged"
+                } else {
+                    pull.state.as_str()
+                };
+                if crate::db::repositories::pull_links::sync_pull_state(
+                    conn,
+                    &workspace.id,
+                    "github",
+                    &format!("{owner}/{repo}"),
+                    pull.number,
+                    state,
+                    &pull.title,
+                    &pull.html_url,
+                )? {
+                    changed += 1;
+                }
+            }
+            Ok(changed)
+        })
     }
 
     pub fn github_close_pull(
