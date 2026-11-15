@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 69 core (+2 ignored live), 89 frontend, 48 visual captures.
+- **Tests:** 69 core (+2 ignored live), 93 frontend, 49 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -72,11 +72,13 @@ through `user_version`. See ADR-0001…0007.
   only after a successful credential delete; PR file pagination loads all pages
   (100/page) with cycle/non-advance protection and whole-request failure on later
   page errors.
-- PR Files completeness compares loaded files with `changed_files` and the GitHub
-  3000-file endpoint cap; incomplete/unknown states show a non-blocking warning while
-  loaded patches stay visible. Keyring read errors are no longer treated as
-  disconnected: UI shows saved-authorization-unavailable and still allows retry/
-  reauthorization; invalid saved JSON returns a safe auth error without deletion.
+- PR Files completeness distinguishes a below-cap incomplete list from files exceeding
+  the 3000-file endpoint cap and from unknown completeness at the cap; warnings are
+  non-blocking and loaded patches stay visible.
+- Credential-storage failures use the stable `credential_storage` wire code. Only that
+  code shows saved-authorization-unavailable; auth/network/internal failures show a
+  separate connection-check error, with retry/reauthorization. Invalid saved JSON
+  returns a safe auth error without deletion.
 - Split diff/line comments, requested-review queue, CI screen and PR↔issue links
   remain open.
 
@@ -95,9 +97,9 @@ through `user_version`. See ADR-0001…0007.
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (89) |
+| Frontend tests | `npm test` | PASS (93) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (16/13/9/10 across Gates 0–3) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 49 captures (16/13/9/11 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |

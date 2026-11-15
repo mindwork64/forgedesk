@@ -1066,6 +1066,9 @@ export default {
     storageUnavailableHint:
       'ForgeDesk could not read saved GitHub credentials. Retry the check or reconnect; no saved credentials were deleted.',
     retryCheck: 'Retry check',
+    connectionCheckFailed: 'GitHub connection check failed',
+    connectionCheckFailedHint:
+      'ForgeDesk could not verify the saved GitHub connection. Retry the check or reconnect; this is not a confirmed disconnected state.',
     refreshed: 'GitHub token refreshed',
     refreshError: 'Could not refresh GitHub token',
     disconnected: 'GitHub disconnected',
@@ -1135,7 +1138,9 @@ export default {
       noChecks: 'No checks reported.',
       noReviews: 'No reviews yet.',
       filesIncomplete:
-        'Loaded {loaded} of {expected} files. GitHub\'s pull request files endpoint exposes at most {limit} files per pull request; the remaining {remaining} are not available through this endpoint.',
+        'Loaded {loaded} of {expected} files. The list is incomplete; {remaining} files were not returned. Loaded patches are shown below.',
+      filesOverLimit:
+        'Loaded {loaded} of {expected} files. {excess} files exceed the GitHub endpoint limit of {limit} and cannot be retrieved through this endpoint. Loaded patches are shown below.',
       filesUnknown:
         'Loaded {loaded} files. GitHub reported no total for this pull request, and the files endpoint is limited to {limit} files, so completeness cannot be confirmed.',
       noFiles: 'No files changed.',

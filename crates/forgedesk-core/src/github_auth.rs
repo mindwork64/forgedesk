@@ -106,7 +106,7 @@ impl CredentialStore for KeyringStore {
         match entry()?.get_password() {
             Ok(value) => Ok(Some(value)),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(_) => Err(CoreError::auth(
+            Err(_) => Err(CoreError::credential_storage(
                 "Secure credential store could not read the GitHub token.",
             )),
         }
@@ -114,14 +114,16 @@ impl CredentialStore for KeyringStore {
 
     fn save(&self, value: &str) -> CoreResult<()> {
         entry()?.set_password(value).map_err(|_| {
-            CoreError::auth("Secure credential store could not save the GitHub token.")
+            CoreError::credential_storage(
+                "Secure credential store could not save the GitHub token.",
+            )
         })
     }
 
     fn delete(&self) -> CoreResult<()> {
         match entry()?.delete_credential() {
             Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-            Err(_) => Err(CoreError::auth(
+            Err(_) => Err(CoreError::credential_storage(
                 "Secure credential store could not delete the GitHub token.",
             )),
         }
@@ -540,10 +542,10 @@ mod tests {
             let mut state = self.0.lock().expect("fake");
             state.loads += 1;
             if state.load_entry_error {
-                return Err(CoreError::auth("keyring entry unavailable"));
+                return Err(CoreError::credential_storage("keyring entry unavailable"));
             }
             if state.load_error {
-                return Err(CoreError::auth("keyring unavailable"));
+                return Err(CoreError::credential_storage("keyring unavailable"));
             }
             Ok(state.value.clone())
         }
@@ -557,10 +559,10 @@ mod tests {
             let mut state = self.0.lock().expect("fake");
             state.deletes += 1;
             if state.entry_error {
-                return Err(CoreError::auth("entry failed"));
+                return Err(CoreError::credential_storage("entry failed"));
             }
             if state.delete_error {
-                return Err(CoreError::auth("delete failed"));
+                return Err(CoreError::credential_storage("delete failed"));
             }
             state.value = None;
             Ok(())
@@ -637,7 +639,11 @@ mod tests {
         drop(inner);
 
         let error = auth.hydrate_from_keyring().expect_err("read error");
-        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        assert_eq!(
+            error.category(),
+            crate::error::ErrorCategory::CredentialStorage
+        );
+        assert_eq!(error.category().code(), "credential_storage");
         let inner = auth.inner.lock().expect("inner");
         assert!(inner.token.is_none());
         assert!(inner.pending.is_some());
@@ -652,7 +658,10 @@ mod tests {
         auth.inner.lock().expect("inner").pending = Some(pending());
 
         let error = auth.hydrate_from_keyring().expect_err("entry error");
-        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        assert_eq!(
+            error.category(),
+            crate::error::ErrorCategory::CredentialStorage
+        );
         assert!(auth.inner.lock().expect("inner").pending.is_some());
     }
 
@@ -728,7 +737,10 @@ mod tests {
         seed(&auth, "keyring");
 
         let error = auth.disconnect().expect_err("delete must fail");
-        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        assert_eq!(
+            error.category(),
+            crate::error::ErrorCategory::CredentialStorage
+        );
         let inner = auth.inner.lock().expect("inner");
         assert!(inner.token.is_some());
         assert!(inner.pending.is_some());
@@ -744,7 +756,10 @@ mod tests {
         seed(&auth, "keyring");
 
         let error = auth.disconnect().expect_err("entry failure must surface");
-        assert_eq!(error.category(), crate::error::ErrorCategory::Auth);
+        assert_eq!(
+            error.category(),
+            crate::error::ErrorCategory::CredentialStorage
+        );
         let inner = auth.inner.lock().expect("inner");
         assert!(inner.token.is_some());
         assert!(inner.pending.is_some());

@@ -470,6 +470,18 @@ const cases = [
     waitFor: '[data-testid="detail-pane"]',
   },
   {
+    name: 'gate3-pr-files-overlimit-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/pull-requests',
+    openPullRequest: true,
+    openPullRow: 1,
+    openPullFiles: true,
+    waitFor: '[data-testid="detail-pane"]',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -762,7 +774,7 @@ async function main() {
       }
 
       if (testCase.openPullRequest) {
-        await page.locator('.fd-pr-row').first().click()
+        await page.locator('.fd-pr-row').nth(testCase.openPullRow ?? 0).click()
         await page.waitForSelector('[data-testid="detail-pane"]')
         await page.waitForTimeout(300)
       }
@@ -1147,7 +1159,8 @@ async function main() {
       if (testCase.openPullRequest) {
         const title = await page.locator('.fd-pr-detail-header strong').innerText()
         caseReport.pullDetail = title
-        assert(title.includes('repository discovery'), `${testCase.name}: PR detail missing`, report.failures)
+        const expectedTitle = testCase.openPullRow === 1 ? 'API Monitor' : 'repository discovery'
+        assert(title.includes(expectedTitle), `${testCase.name}: PR detail missing`, report.failures)
       }
 
       if (testCase.openPullFiles) {
@@ -1156,11 +1169,19 @@ async function main() {
         assert(files >= 2, `${testCase.name}: expected PR files`, report.failures)
         const warning = await page.locator('.fd-pr-warning').innerText()
         caseReport.prFilesWarning = warning
-        assert(
-          warning.includes('2 of 9') && warning.includes('3000'),
-          `${testCase.name}: expected incomplete files warning`,
-          report.failures,
-        )
+        if (testCase.openPullRow === 1) {
+          assert(
+            warning.includes('500') && warning.includes('3000'),
+            `${testCase.name}: expected API-cap files warning`,
+            report.failures,
+          )
+        } else {
+          assert(
+            warning.includes('2 of 9') && !warning.includes('3000'),
+            `${testCase.name}: expected non-cap incomplete warning`,
+            report.failures,
+          )
+        }
       }
 
       if (testCase.openGithubRepos) {

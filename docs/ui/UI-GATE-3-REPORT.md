@@ -24,7 +24,8 @@ data requires Stage 4 authentication, which is not configured.
 - GitHub repository discovery + read-only issue import dialog (up to 250 recently
   updated issues, idempotent remote links; no comments or GitHub writes).
 - Pull Requests read-only table and 440px detail pane (Overview/Commits/Checks/
-  Reviews/Files) for the selected discovered repository.
+  Reviews/Files) for the selected discovered repository; incomplete and 3000-file
+  cap warnings preserve visible patches.
 - API Monitor: connection/scheduler/dispatcher/last observation/reset summary,
   secondary-limit state, GraphQL/REST primary panels, resource buckets, background
   allowance/reserve, queue, recent sanitized requests, manual pause/resume and
@@ -46,8 +47,9 @@ data requires Stage 4 authentication, which is not configured.
 | 8 | `gate3-prs-dark-1440.png` | 1440×900 | PR table with Open/Closed/All |
 | 9 | `gate3-pr-detail-dark-1440.png` | 1440×900 | PR detail tabs/reviews/checks |
 | 10 | `gate3-pr-files-dark-1440.png` | 1440×900 | unified PR file patches |
+| 11 | `gate3-pr-files-overlimit-dark-1440.png` | 1440×900 | 3000-file API cap warning |
 
-Full run: **48 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 10 Gate 3),
+Full run: **49 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 11 Gate 3),
 `docs/ui/current/measurements.json`, zero assertion failures.
 
 ## Acceptance checklist

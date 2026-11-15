@@ -129,14 +129,38 @@ const detail: PullRequestDetail = {
   files,
 }
 
+const overLimitFiles: GitHubFile[] = Array.from({ length: 3000 }, (_, index) => ({
+  filename: `src/generated/file-${index + 1}.ts`,
+  status: 'modified',
+  additions: 1,
+  deletions: 0,
+  changes: 1,
+  patch: null,
+  previousFilename: null,
+}))
+
+const overLimitDetail: PullRequestDetail = {
+  pull: { ...pullTwo, changedFiles: 3500 },
+  commits: [],
+  reviews: [],
+  checks: [],
+  files: overLimitFiles,
+}
+
 export function handleStage6FixtureCommand<T>(
   command: CommandName,
+  args?: Record<string, unknown>,
 ): { handled: boolean; value?: T } {
   switch (command) {
     case 'github_list_pulls':
       return { handled: true, value: [pullOne, pullTwo] as T }
     case 'github_pull_detail':
-      return { handled: true, value: structuredClone(detail) as T }
+      return {
+        handled: true,
+        value: structuredClone(
+          Number(args?.number) === pullTwo.number ? overLimitDetail : detail,
+        ) as T,
+      }
     default:
       return { handled: false }
   }

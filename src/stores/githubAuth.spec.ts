@@ -16,14 +16,15 @@ const connection: GitHubConnection = {
   storageWarning: null,
 }
 
-let mode: 'error' | 'none' | 'connected' = 'none'
+let mode: 'none' | 'connected' = 'none'
+let errorCode: string | null = null
 
 function installTransport(): void {
   setDevTransport(async <T,>(command: CommandName) => {
     switch (command) {
       case 'github_connection':
-        if (mode === 'error') {
-          throw { code: 'auth', message: 'Secure credential store could not read the GitHub token.' }
+        if (errorCode) {
+          throw { code: errorCode, message: `connection failed: ${errorCode}` }
         }
         return (mode === 'connected' ? structuredClone(connection) : null) as T
       case 'github_start_device_flow':
@@ -43,6 +44,7 @@ describe('github auth store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     mode = 'none'
+    errorCode = null
     installTransport()
   })
 
@@ -50,39 +52,56 @@ describe('github auth store', () => {
     const store = useGithubAuthStore()
     await store.loadConnection()
     expect(store.connected).toBe(false)
-    expect(store.connectionUnavailable).toBe(false)
+    expect(store.storageUnavailable).toBe(false)
+    expect(store.connectionCheckFailed).toBe(false)
     expect(store.error).toBeNull()
   })
 
-  it('distinguishes keyring read failure from disconnected', async () => {
-    mode = 'error'
+  it('classifies credential storage failures as storage unavailable', async () => {
+    errorCode = 'credential_storage'
     const store = useGithubAuthStore()
     await store.loadConnection()
     expect(store.connected).toBe(false)
-    expect(store.connectionUnavailable).toBe(true)
-    expect(store.error?.code).toBe('auth')
+    expect(store.storageUnavailable).toBe(true)
+    expect(store.connectionCheckFailed).toBe(false)
+    expect(store.error?.code).toBe('credential_storage')
   })
 
+  it.each(['auth', 'network', 'internal'])(
+    'keeps %s failures as a generic connection-check error',
+    async (code) => {
+      errorCode = code
+      const store = useGithubAuthStore()
+      await store.loadConnection()
+      expect(store.connected).toBe(false)
+      expect(store.storageUnavailable).toBe(false)
+      expect(store.connectionCheckFailed).toBe(true)
+      expect(store.error?.code).toBe(code)
+    },
+  )
+
   it('clears unavailable state after a successful connection', async () => {
-    mode = 'error'
+    errorCode = 'credential_storage'
     const store = useGithubAuthStore()
     await store.loadConnection()
-    expect(store.connectionUnavailable).toBe(true)
+    expect(store.storageUnavailable).toBe(true)
 
+    errorCode = null
     mode = 'connected'
     await store.loadConnection()
     expect(store.connected).toBe(true)
-    expect(store.connectionUnavailable).toBe(false)
+    expect(store.storageUnavailable).toBe(false)
+    expect(store.connectionCheckFailed).toBe(false)
     expect(store.error).toBeNull()
   })
 
   it('allows reauthorization while storage is unavailable', async () => {
-    mode = 'error'
+    errorCode = 'credential_storage'
     const store = useGithubAuthStore()
     await store.loadConnection()
     await store.start()
     expect(store.flow?.userCode).toBe('TEST-CODE')
-    expect(store.connectionUnavailable).toBe(true)
+    expect(store.storageUnavailable).toBe(true)
     store.cancel()
   })
 })

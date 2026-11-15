@@ -250,8 +250,11 @@ function duration(check: GitHubCheckRun): string {
                 </div>
               </template>
               <template v-else>
-                <p v-if="fileCompleteness?.status === 'incomplete'" class="fd-pr-warning" role="status">
-                  {{ t('prs.detail.filesIncomplete', { loaded: fileCompleteness.loaded, expected: fileCompleteness.expected, remaining: fileCompleteness.remaining, limit: fileCompleteness.limit }) }}
+                <p v-if="fileCompleteness?.reason === 'over-limit'" class="fd-pr-warning" role="status">
+                  {{ t('prs.detail.filesOverLimit', { loaded: fileCompleteness.loaded, expected: fileCompleteness.expected, excess: fileCompleteness.excess, limit: fileCompleteness.limit }) }}
+                </p>
+                <p v-else-if="fileCompleteness?.status === 'incomplete'" class="fd-pr-warning" role="status">
+                  {{ t('prs.detail.filesIncomplete', { loaded: fileCompleteness.loaded, expected: fileCompleteness.expected, remaining: fileCompleteness.remaining }) }}
                 </p>
                 <p v-else-if="fileCompleteness?.status === 'unknown'" class="fd-pr-warning" role="status">
                   {{ t('prs.detail.filesUnknown', { loaded: fileCompleteness.loaded, limit: fileCompleteness.limit }) }}

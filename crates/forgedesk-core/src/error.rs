@@ -22,6 +22,7 @@ pub enum ErrorCategory {
     RateLimitPrimary,
     RateLimitSecondary,
     UnsupportedCapability,
+    CredentialStorage,
 }
 
 impl ErrorCategory {
@@ -42,6 +43,7 @@ impl ErrorCategory {
             Self::RateLimitPrimary => "rate_limit_primary",
             Self::RateLimitSecondary => "rate_limit_secondary",
             Self::UnsupportedCapability => "unsupported_capability",
+            Self::CredentialStorage => "credential_storage",
         }
     }
 }
@@ -86,6 +88,9 @@ pub enum CoreError {
 
     #[error("unsupported capability: {message}")]
     UnsupportedCapability { message: String },
+
+    #[error("credential storage error: {message}")]
+    CredentialStorage { message: String },
 }
 
 impl CoreError {
@@ -145,6 +150,12 @@ impl CoreError {
         }
     }
 
+    pub fn credential_storage(message: impl Into<String>) -> Self {
+        Self::CredentialStorage {
+            message: message.into(),
+        }
+    }
+
     pub fn internal(message: impl Into<String>) -> Self {
         Self::Internal {
             message: message.into(),
@@ -164,6 +175,7 @@ impl CoreError {
             Self::Auth { .. } => ErrorCategory::Auth,
             Self::Network { .. } => ErrorCategory::Network,
             Self::UnsupportedCapability { .. } => ErrorCategory::UnsupportedCapability,
+            Self::CredentialStorage { .. } => ErrorCategory::CredentialStorage,
         }
     }
 
@@ -181,6 +193,7 @@ impl CoreError {
             Self::Auth { message } => message.clone(),
             Self::Network { message } => message.clone(),
             Self::UnsupportedCapability { message } => message.clone(),
+            Self::CredentialStorage { message } => message.clone(),
         }
     }
 
@@ -195,9 +208,10 @@ impl CoreError {
                 Some(self.to_string())
             }
             Self::Internal { .. } => None,
-            Self::Auth { .. } | Self::Network { .. } | Self::UnsupportedCapability { .. } => {
-                Some(self.to_string())
-            }
+            Self::Auth { .. }
+            | Self::Network { .. }
+            | Self::UnsupportedCapability { .. }
+            | Self::CredentialStorage { .. } => Some(self.to_string()),
         }
     }
 

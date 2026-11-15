@@ -35,11 +35,13 @@ screen remain open.
 - Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
   consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
   rejection and fails the whole request on later-page errors.
-- PR Files completeness: compares loaded files with `changed_files` and the 3000-file
-  API cap; warns for known-missing or indeterminate results without hiding patches.
-- Keyring read failures/invalid JSON return safe auth errors, keep state, and surface
-  as storage-unavailable (not disconnected) with retry and reauthorization available.
-  Memory-only tokens are not re-read from Keyring.
+- PR Files completeness: separates below-cap incomplete lists from files exceeding the
+  3000-file API cap and unknown completeness at the cap; loaded patches stay visible.
+- Keyring read failures use the stable `credential_storage` wire code. UI distinguishes
+  storage unavailable from auth/network/internal connection-check failures, never
+  reports a confirmed disconnected state after a failed check, and keeps retry plus
+  reauthorization available. Invalid JSON is a safe auth error without deletion;
+  memory-only tokens are not re-read from Keyring.
 
 ## Not delivered
 
@@ -59,8 +61,8 @@ screen remain open.
 | Check | Command | Result |
 |---|---|---|
 | Core tests | `cargo test -p forgedesk-core` | PASS — 69 (+2 ignored live) |
-| Frontend | `npm run typecheck`, `npm test` | PASS — 89 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 48 captures (PR list/detail/files) |
+| Frontend | `npm run typecheck`, `npm test` | PASS — 93 |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 49 captures (PR list/detail/files + cap warning) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
 | Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
 | Jenkins build 12 | PR files/diff `3dc3ee1` | SUCCESS — 128 s, 52 core tests (+2 ignored), 48 captures, 49 artifacts |

@@ -50,24 +50,34 @@ onMounted(async () => {
             class="fd-provider-state"
             :class="{
               'fd-provider-state--ok': auth.connected,
-              'fd-provider-state--warn': auth.connectionUnavailable,
+              'fd-provider-state--warn': auth.storageUnavailable || auth.connectionCheckFailed,
             }"
           >
             {{
               auth.connected
                 ? t('apiMonitor.connectedAs', { login: auth.connection?.login })
-                : auth.connectionUnavailable
+                : auth.storageUnavailable
                   ? t('githubAuth.storageUnavailable')
-                  : t('integrations.notConnected')
+                  : auth.connectionCheckFailed
+                    ? t('githubAuth.connectionCheckFailed')
+                    : t('integrations.notConnected')
             }}
           </span>
         </div>
         <p
-          v-if="auth.connectionUnavailable"
+          v-if="auth.storageUnavailable"
           class="fd-provider-card__notice fd-provider-card__notice--warn"
           role="status"
         >
           {{ t('githubAuth.storageUnavailableHint') }}
+          <span v-if="auth.error?.message"> {{ auth.error.message }}</span>
+        </p>
+        <p
+          v-else-if="auth.connectionCheckFailed"
+          class="fd-provider-card__notice fd-provider-card__notice--warn"
+          role="status"
+        >
+          {{ t('githubAuth.connectionCheckFailedHint') }}
           <span v-if="auth.error?.message"> {{ auth.error.message }}</span>
         </p>
         <p v-else-if="!auth.connected" class="fd-provider-card__notice">
@@ -110,7 +120,7 @@ onMounted(async () => {
               {{ t('integrations.connect') }}
             </FdButton>
             <FdButton
-              v-if="auth.connectionUnavailable"
+              v-if="auth.storageUnavailable || auth.connectionCheckFailed"
               variant="ghost"
               size="sm"
               @click="auth.loadConnection()"

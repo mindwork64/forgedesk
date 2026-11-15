@@ -30,9 +30,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
 
   const connected = computed(() => connection.value?.connected === true)
   const storageUnavailable = ref(false)
-  const connectionUnavailable = computed(
-    () => !connected.value && storageUnavailable.value,
-  )
+  const connectionCheckFailed = ref(false)
 
   function readSelectedRepo(): { owner: string; name: string; fullName: string } | null {
     try {
@@ -68,9 +66,12 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
       connection.value = await api.githubConnection()
       error.value = null
       storageUnavailable.value = false
+      connectionCheckFailed.value = false
     } catch (caught) {
-      error.value = toIpcError(caught)
-      storageUnavailable.value = true
+      const wire = toIpcError(caught)
+      error.value = wire
+      storageUnavailable.value = wire.code === 'credential_storage'
+      connectionCheckFailed.value = !storageUnavailable.value
     }
   }
 
@@ -105,6 +106,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
         connection.value = result.connection
         error.value = null
         storageUnavailable.value = false
+        connectionCheckFailed.value = false
         flow.value = null
         polling.value = false
         clearTimer()
@@ -187,6 +189,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
       connection.value = null
       error.value = null
       storageUnavailable.value = false
+      connectionCheckFailed.value = false
       toast.success(t('githubAuth.disconnected'))
     } catch (caught) {
       const wire = toIpcError(caught)
@@ -201,7 +204,8 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     starting,
     error,
     connected,
-    connectionUnavailable,
+    storageUnavailable,
+    connectionCheckFailed,
     repositories,
     selectedRepo,
     discovering,

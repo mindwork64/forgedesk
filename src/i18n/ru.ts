@@ -1065,6 +1065,9 @@ export default {
     storageUnavailableHint:
       'ForgeDesk не удалось прочитать сохранённые учётные данные GitHub. Повторите проверку или подключитесь заново; сохранённые данные не удалены.',
     retryCheck: 'Проверить снова',
+    connectionCheckFailed: 'Не удалось проверить подключение GitHub',
+    connectionCheckFailedHint:
+      'ForgeDesk не удалось проверить сохранённое подключение GitHub. Повторите проверку или подключитесь заново; это не подтверждённое состояние «не подключено».',
     refreshed: 'Токен GitHub обновлён',
     refreshError: 'Не удалось обновить токен GitHub',
     disconnected: 'GitHub отключён',
@@ -1134,7 +1137,9 @@ export default {
       noChecks: 'Проверки не найдены.',
       noReviews: 'Ревью пока нет.',
       filesIncomplete:
-        'Загружено {loaded} из {expected} файлов. GitHub отдаёт через endpoint файлов pull request не более {limit}; оставшиеся {remaining} через него недоступны.',
+        'Загружено {loaded} из {expected} файлов. Список неполный; {remaining} файлов не получены. Загруженные patches показаны ниже.',
+      filesOverLimit:
+        'Загружено {loaded} из {expected} файлов. {excess} файлов превышают лимит GitHub endpoint в {limit} и недоступны через этот endpoint. Загруженные patches показаны ниже.',
       filesUnknown:
         'Загружено {loaded} файлов. GitHub не сообщил общее количество, а endpoint ограничен {limit} файлами; подтвердить полноту нельзя.',
       noFiles: 'Файлы не изменены.',
