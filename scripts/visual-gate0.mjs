@@ -82,6 +82,15 @@ const cases = [
     route: '/my-issues',
   },
   {
+    name: 'gate0-settings-git-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/settings/git',
+    waitFor: '[data-testid="settings-content"]',
+  },
+  {
     name: 'gate0-settings-storage-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',

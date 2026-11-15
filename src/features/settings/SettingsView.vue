@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GitBranch, Plug, RefreshCw } from '@lucide/vue'
+import { RefreshCw } from '@lucide/vue'
 import type { Component } from 'vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -10,6 +10,8 @@ import PageHeader from '@/components/layout/PageHeader.vue'
 import SettingsAdvanced from './SettingsAdvanced.vue'
 import SettingsAppearance from './SettingsAppearance.vue'
 import SettingsGeneral from './SettingsGeneral.vue'
+import SettingsGit from './SettingsGit.vue'
+import SettingsIntegrations from './SettingsIntegrations.vue'
 import SettingsPlaceholder from './SettingsPlaceholder.vue'
 import SettingsShortcuts from './SettingsShortcuts.vue'
 import SettingsStorage from './SettingsStorage.vue'
@@ -55,6 +57,8 @@ const componentMap: Partial<Record<SectionKey, Component>> = {
   appearance: SettingsAppearance,
   workspace: SettingsWorkspace,
   storage: SettingsStorage,
+  git: SettingsGit,
+  integrations: SettingsIntegrations,
   shortcuts: SettingsShortcuts,
   advanced: SettingsAdvanced,
 }
@@ -62,8 +66,6 @@ const componentMap: Partial<Record<SectionKey, Component>> = {
 const placeholders: Partial<
   Record<SectionKey, { section: 'git' | 'integrations' | 'sync'; icon: Component; stage: number }>
 > = {
-  git: { section: 'git', icon: GitBranch, stage: 4 },
-  integrations: { section: 'integrations', icon: Plug, stage: 4 },
   sync: { section: 'sync', icon: RefreshCw, stage: 4 },
 }
 </script>

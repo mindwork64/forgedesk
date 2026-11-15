@@ -132,6 +132,20 @@ describe('OnboardingFlow', () => {
     expect(current.locale).toBe('en')
     expect(current.theme).toBe('dark')
     expect(document.body.textContent).toContain('Connect GitHub')
+    expect(document.body.textContent).toContain('Optional: finish setup now')
+    expect(document.body.textContent).not.toContain('Stage 4')
+    expect(document.body.textContent).not.toContain('not enabled in this build')
+    const fakeConnect = Array.from(document.querySelectorAll('button')).filter(
+      (button) => button.textContent?.trim() === 'Connect GitHub',
+    )
+    expect(fakeConnect).toHaveLength(0)
+
+    i18n.global.locale.value = 'ru'
+    await flushPromises()
+    expect(document.body.textContent).toContain('Необязательно')
+    expect(document.body.textContent?.toLowerCase()).not.toContain('этап 4')
+    i18n.global.locale.value = 'en'
+    await flushPromises()
 
     await clickPrimaryFooterButton()
     expect(current.onboardingCompleted).toBe(true)

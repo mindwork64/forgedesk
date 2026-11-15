@@ -23,7 +23,7 @@ full release packaging remain open.
   - regression fixtures prove visible text, `aria-label`, `aria-labelledby` and icon
     button names pass, while empty/hidden-only buttons and unnamed `role="button"`
     fail;
-  - all 57 visual cases pass.
+  - all 58 visual cases pass.
 - Optional AI CI lanes (the workflow includes the commands and explicitly installs
   the Clippy component; local runs do not substitute for a CI execution result):
   - AI crate tests;
@@ -46,8 +46,8 @@ full release packaging remain open.
 |---|---|---|
 | Core tests | `cargo test -p forgedesk-core` | PASS — 91 (+3 ignored live) |
 | AI crate | `cargo test -p forgedesk-ai` | PASS — 5 |
-| Frontend | `npm run typecheck`, `npm test` | PASS — 107 |
-| Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 57 captures |
+| Frontend | `npm run typecheck`, `npm test` | PASS — 113 |
+| Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 58 captures |
 | Production chunk | `npm run build` | PASS — main JS ~231 KB |
 | Migration v5→v9 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
 | AI Clippy (local) | `cargo clippy -p forgedesk-ai ...` | PASS |

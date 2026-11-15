@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-15T19:23:55.292Z",
+  "generatedAt": "2026-11-15T23:42:57.397Z",
   "baseUrl": "http://127.0.0.1:4173",
   "harness": true,
   "cases": [
@@ -278,6 +278,14 @@
       "issueRows": 16
     },
     {
+      "name": "gate0-settings-git-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/settings/git",
+      "screenshot": "docs/ui/current/gate0-settings-git-dark-1440.png",
+      "consoleErrors": []
+    },
+    {
       "name": "gate0-settings-storage-dark-1440",
       "viewport": "1440x900",
       "theme": "dark",
@@ -300,7 +308,7 @@
       "route": "/settings/storage",
       "screenshot": "docs/ui/current/gate0-restore-dialog-dark-1440.png",
       "consoleErrors": [],
-      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 8:24 PM. Current data is saved as a safety snapshot first.CancelRestore backup"
+      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 16, 2026, 12:43 AM. Current data is saved as a safety snapshot first.CancelRestore backup"
     },
     {
       "name": "gate0-onboarding-dark-1440",
@@ -347,7 +355,7 @@
       "route": "/my-issues",
       "screenshot": "docs/ui/current/gate0-toast-dark-1440.png",
       "consoleErrors": [],
-      "toastText": "Backup createdSnapshot forgedesk-1794770643984-0b28f6cd was written to the local backups folder.",
+      "toastText": "Backup createdSnapshot forgedesk-1794786192134-5339bc6b was written to the local backups folder.",
       "issueRows": 16
     },
     {
@@ -791,6 +799,7 @@
     "docs/ui/current/gate0-shell-light-1280-collapsed.png",
     "docs/ui/current/gate0-shell-dark-1100-collapsed.png",
     "docs/ui/current/gate0-shell-dark-1440-russian.png",
+    "docs/ui/current/gate0-settings-git-dark-1440.png",
     "docs/ui/current/gate0-settings-storage-dark-1440.png",
     "docs/ui/current/gate0-settings-storage-light-1440.png",
     "docs/ui/current/gate0-restore-dialog-dark-1440.png",

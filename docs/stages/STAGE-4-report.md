@@ -28,6 +28,9 @@ remain open.
   list, add dialog and repository detail with Overview/Branches/Recent commits.
 - Dirty/clean status, ahead/behind/upstream, diff summary, branch switching and
   branch creation UI.
+- Settings → Git now exposes real availability/version, configured repository count,
+  supported operations, refresh and a link to Repositories. The old Stage 4
+  placeholder was removed; no second Git implementation was added.
 
 ### GitHub connection foundation
 
@@ -35,6 +38,8 @@ remain open.
   explicitly **no token/secret columns**.
 - Integrations screen shows GitHub as primary with read/write permission scope,
   connection state and honest "GitHub App credentials are not configured" state.
+- Settings → Integrations links to the existing Integrations screen, and onboarding
+  describes GitHub as optional and configurable after setup instead of unavailable.
 - GitLab/Gitea are visibly planned for Stage 8; Local Git is real.
 - GitHub App Device Flow auth is implemented with the public client ID
   `Iv23liclPWLrC2OpaeXz`: start/poll/slow-down/expiry handling, `/user` validation,

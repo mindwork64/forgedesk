@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 91 core (+3 ignored live), 5 AI crate, 107 frontend, 57 default visual captures (+1 optional AI capture).
+- **Tests:** 91 core (+3 ignored live), 5 AI crate, 113 frontend, 58 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -126,6 +126,15 @@ through `user_version`. See ADR-0001…0007.
 - Contract tests use local mock HTTP servers; live hosts/tokens are unavailable and
   explicitly reported as not run.
 
+### UI correction — real Git/GitHub settings exposure
+
+- Settings → Git is now a functional screen: real availability/version, repository
+  count, supported operations, refresh and a link to Repositories.
+- Settings → Integrations points to the existing Integrations screen instead of an
+  obsolete Stage 4 placeholder.
+- Onboarding describes GitHub as optional and configurable in Integrations after
+  setup; no disabled fake Connect action or Stage 4 badge.
+
 ### Stage 10 — stabilization/release (partial)
 
 - Route-level code splitting: main JS chunk reduced from ~501 KB to ~231 KB; Vite
@@ -134,7 +143,7 @@ through `user_version`. See ADR-0001…0007.
   comment, document, repository, remote link, outbox and cursor data; foreign keys are
   checked.
 - axe-core `button-name`/`aria-command-name` validation runs on every visual case,
-  with valid/invalid regression fixtures; all 57 cases pass.
+  with valid/invalid regression fixtures; all 58 cases pass.
 - AI crate Clippy (`-D warnings`) is part of the dedicated CI job; the job
   explicitly installs the Clippy component. GitHub Actions run `43772258572` passed
   all jobs.
@@ -172,9 +181,9 @@ through `user_version`. See ADR-0001…0007.
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (107) |
+| Frontend tests | `npm test` | PASS (113) |
 | Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 57 captures; axe button-name/aria-command-name |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 58 captures; axe button-name/aria-command-name |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |

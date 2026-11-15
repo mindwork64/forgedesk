@@ -4,7 +4,6 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import FdBadge from '@/components/ui/FdBadge.vue'
 import FdButton from '@/components/ui/FdButton.vue'
 import FdField from '@/components/ui/FdField.vue'
 import FdInput from '@/components/ui/FdInput.vue'
@@ -189,13 +188,9 @@ async function submit(): Promise<void> {
             <div class="fd-onboarding__provider-text">
               <span class="fd-onboarding__provider-title">GitHub</span>
               <span class="fd-onboarding__provider-note">
-                {{ t('onboarding.connectUnavailable') }}
+                {{ t('onboarding.connectOptional') }}
               </span>
             </div>
-            <FdBadge tone="neutral">{{ t('common.stage', { stage: 4 }) }}</FdBadge>
-            <FdButton variant="secondary" size="sm" disabled>
-              {{ t('onboarding.connectTitle') }}
-            </FdButton>
           </div>
           <p class="fd-onboarding__secure">
             <ShieldCheck :size="14" aria-hidden="true" />

@@ -10,10 +10,10 @@
 - [x] `cargo test -p forgedesk-core` (91 passed, 3 ignored live)
 - [x] `cargo test -p forgedesk-ai` (5 passed)
 - [x] `npm run typecheck`
-- [x] `npm test` (107 passed)
+- [x] `npm test` (113 passed)
 - [x] `npm run build` (main chunk ~231 KB)
 - [x] `VITE_AI_EXTENSION=true npm run build`
-- [x] `node scripts/visual-gate0.mjs` (57 captures + axe button-name/aria-command-name)
+- [x] `node scripts/visual-gate0.mjs` (58 captures + axe button-name/aria-command-name)
 - [x] Realistic v5→v9 migration data-preservation test + foreign_key_check
 
 ## Native smoke tests (blocked here)

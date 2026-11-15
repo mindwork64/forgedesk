@@ -91,7 +91,8 @@ Query parameters used by the harness: `theme=dark|light`,
 | 55 | `gate4-insights-dark-1440.png` | 1440×900 | Dark | 240 px | Insights metrics and charts |
 | 56 | `gate4-automations-dark-1440.png` | 1440×900 | Dark | 240 px | automation rules and actions |
 | 57 | `gate4-dashboards-dark-1440.png` | 1440×900 | Dark | 240 px | persisted dashboard widgets |
-| 58* | `gate4-ai-extension-dark-1440.png` | 1440×900 | Dark | 240 px | optional AI screen (`VITE_AI_EXTENSION=true`) |
+| 58 | `gate0-settings-git-dark-1440.png` | 1440×900 | Dark | 240 px | Settings → Git availability/repositories |
+| 59* | `gate4-ai-extension-dark-1440.png` | 1440×900 | Dark | 240 px | optional AI screen (`VITE_AI_EXTENSION=true`) |
 
 ## Measured geometry
 

@@ -129,8 +129,9 @@ export default {
     theme: 'Theme',
     connectTitle: 'Connect GitHub',
     connectDescription:
-      'GitHub is the deepest provider in ForgeDesk, but it is optional. The integration is scheduled for Stage 4 and is not enabled in this build.',
-    connectUnavailable: 'GitHub connection is not enabled in this build.',
+      'GitHub is the deepest provider in ForgeDesk, but it is optional. You can connect it from Integrations after onboarding; no account is required to use the local workspace.',
+    connectOptional:
+      'Optional: finish setup now and connect GitHub later from Settings → Integrations.',
     skip: 'Skip for now',
     next: 'Continue',
     finish: 'Open My Issues',
@@ -245,18 +246,29 @@ export default {
     },
     git: {
       title: 'Git',
-      description: 'Git executable and editor preferences.',
-      plannedTitle: 'Git integration arrives in Stage 4',
-      plannedBody:
-        'Local Git detection, status, branches and safe repository operations are scheduled for Stage 4. This build does not execute Git commands.',
+      description: 'Local Git availability and repositories.',
+      status: 'Git availability',
+      available: 'Git available',
+      checking: 'Checking Git…',
+      missing: 'Git not found',
+      failed: 'Availability check failed',
+      missingHint:
+        'Install Git to enable repository detection and local branch operations.',
+      failedHint: 'Git availability could not be checked: {error}',
+      version: 'Version',
+      repositories: 'Configured repositories',
+      repositoriesHint: 'Local repositories attached to this workspace.',
+      operations: 'Supported operations',
+      operationsHint:
+        'Repository detection, working tree status, branch listing and switching, recent commit history, diff summary, and safe branch creation/switching with a dirty-worktree guard.',
+      refresh: 'Check again',
+      manage: 'Manage repositories',
     },
     integrations: {
       title: 'Integrations',
-      description: 'Provider connections and permissions.',
-      plannedTitle: 'Provider connections arrive in later stages',
-      plannedBody:
-        'GitHub is scheduled for Stage 4, GitLab and Gitea for Stage 8. This build makes no network requests and stores no provider credentials.',
-      localOnly: 'Local-only build',
+      description: 'GitHub and provider connections.',
+      body: 'GitHub Device Flow, repository discovery and provider capabilities are managed on the Integrations screen. GitHub is optional; the local workspace works without an account.',
+      open: 'Open Integrations',
       localOnlyBody:
         'Nothing is connected. All data shown in ForgeDesk comes from the local SQLite database.',
     },
@@ -796,7 +808,7 @@ export default {
     noDescription: 'No description yet.',
     noIssues: 'No issues in this project.',
     noDocuments: 'No documents linked to this project.',
-    noRepositories: 'Repositories connect in Stage 4.',
+    noRepositories: 'No repositories are linked to this project yet.',
     noActivity: 'Project activity appears when work changes.',
     archive: 'Archive project',
     archiveTitle: 'Archive this project?',
