@@ -66,7 +66,7 @@ real GitHub App credentials/network and remain open.
 | Frontend tests | `npm test` | PASS — 78 |
 | Frontend build | `npm run build` | PASS (chunk-size warning at ~501 kB) |
 | UI visual gates | `node scripts/visual-gate0.mjs` | PASS — 43 captures (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 5 Gate 3) |
-| Jenkins | `ForgeDesk-CI` build 7 (Stage 4 snapshot) | Pending commit/mirror push |
+| Jenkins | `ForgeDesk-CI` build 7 (Stage 4 snapshot `9ab85bb`) | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Native Tauri run | — | SKIPPED (no WebKitGTK/sudo) |
 
 ## Acceptance mapping
@@ -95,7 +95,9 @@ real GitHub App credentials/network and remain open.
   enqueued or executed.
 - API Monitor production starts with no observations and shows the empty state;
   connected/budget data in screenshots is visual-harness-only.
-- API request log is not populated by a network layer yet; no header parser.
+- API request log is not populated by a network layer yet; no header parser. The
+  displayed observed-request count is the retained log count per bucket, not yet an
+  exact reset-window calculation.
 - Local Git has no process timeout, open-folder/terminal, branch delete, rebase or
   remote sync; the safe subset is intentionally small.
 - Repository detail only has Overview/Branches/Recent commits; PR/issue/release

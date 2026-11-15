@@ -6,7 +6,7 @@
 
 ## Current objective
 
-Run the Stage 4 snapshot through Jenkins, then implement GitHub App authentication +
+Implement GitHub App authentication +
 live provider infrastructure before Stage 5 issue synchronization. GitHub connection
 is intentionally not faked in production.
 
@@ -58,7 +58,7 @@ through `user_version`. See ADR-0001…0005.
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 43 captures (16/13/9/5 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
-| Jenkins build 7 | Stage 4 snapshot | Pending commit/mirror push |
+| Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
@@ -67,7 +67,8 @@ through `user_version`. See ADR-0001…0005.
   live HTTP client are NOT implemented (no app credentials; no fake connection).
 - No GitHub repository discovery/selection; only user-attached local clones.
 - No dispatcher worker/network adapters/header parser/ETag/pagination; queue and
-  request log have no producer in production yet.
+  request log have no producer in production yet. Observed-request counts are log
+  totals, not exact reset-window usage.
 - API Monitor production starts disconnected/empty; connected/budget screenshots use
   the build-gated harness.
 - Local Git has no process timeout, open folder/terminal, branch delete, rebase or
