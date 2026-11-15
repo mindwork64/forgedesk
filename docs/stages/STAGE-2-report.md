@@ -72,7 +72,7 @@ and saved-view column/density application remain open.
 | UI visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 29 captures (16 Gate 0 + 13 Gate 1) |
 | Manual smoke | create → edit title → comment in harness browser | PASS |
 | Jenkins | `ForgeDesk-CI` build 4 (previous snapshot `3f029a4`) | SUCCESS — 22 captures, 23 artifacts |
-| Jenkins | `ForgeDesk-CI` build 5 (completion snapshot) | Pending commit/mirror push |
+| Jenkins | `ForgeDesk-CI` build 5 (completion snapshot `07b5e70`) | SUCCESS — 90 s, 34 core tests, 29 captures, 30 artifacts |
 | Native Tauri run | — | SKIPPED (no WebKitGTK/sudo) |
 
 ## Acceptance mapping
@@ -110,6 +110,6 @@ and saved-view column/density application remain open.
 
 ## Next
 
-Commit/mirror and run Jenkins build 5; then Stage 3 — Projects, milestones and
-cycles, reusing the issue ownership/filter model. Native-window verification stays
-open until a WebKitGTK/WebView2 host is available.
+Stage 3 — Projects, milestones and cycles, reusing the issue ownership/filter model.
+Native-window verification stays open until a WebKitGTK/WebView2 host is available;
+saved-view column/density application and in/notIn UI are follow-ups.

@@ -89,6 +89,8 @@ machine with WebKitGTK/WebView2.
 - Build 3 (Stage 2 snapshot) failed because a stale fixed preview server on port
   4173 was reachable from Jenkins; `scripts/ci.sh` now allocates a free port and
   verifies the preview process before Playwright starts.
-- Build 4 (Stage 2 snapshot, commit `3f029a4`): **SUCCESS** in 67 s; 31 core tests,
-  22 visual captures, 23 archived artifacts. `measurements.json` reports
-  `assertions: PASS`, `failures: []`.
+- Build 4 (Stage 2 snapshot, commit `3f029a4`): **SUCCESS** in 67 s; 22 visual
+  captures, 23 archived artifacts.
+- Build 5 (Stage 2 completion snapshot, commit `07b5e70`): **SUCCESS** in 90 s;
+  34 core tests, 29 visual captures, 30 archived artifacts. `measurements.json`
+  reports `assertions: PASS`, `failures: []`.

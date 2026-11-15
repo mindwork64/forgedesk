@@ -40,8 +40,8 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 - **Stage 1 foundation:** onboarding, settings, backups/restore, themes, navigation,
   command palette, shortcut sheet, en/ru.
 - **Tests:** 34 core, 76 frontend, token contract, visual gates (29 captures).
-- **Jenkins:** local `ForgeDesk-CI` pipeline from a git daemon mirror; build 4 is
-  green for the Stage 2 tree with archived visual-gate artifacts.
+- **Jenkins:** local `ForgeDesk-CI` pipeline from a git daemon mirror; build 5 is
+  green for the completion snapshot with 29 archived captures + measurements.
 
 ## Verification
 
@@ -57,7 +57,7 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 | Visual gates | `node scripts/visual-gate0.mjs` (harness build) | PASS — 29 captures (16 Gate 0 + 13 Gate 1) |
 | Jenkins build 2 | `ForgeDesk-CI` #2 (Stage 1 snapshot) | SUCCESS — 234 s, artifacts archived |
 | Jenkins build 4 | previous Stage 2 snapshot `3f029a4` | SUCCESS — 67 s, 22 captures archived |
-| Jenkins build 5 | filter/views/palette/virtualization snapshot | Pending commit/mirror push |
+| Jenkins build 5 | completion snapshot `07b5e70` | SUCCESS — 90 s, 34 core tests, 29 captures, 30 artifacts |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
@@ -76,10 +76,11 @@ typed IPC only. SQLite WAL, serialized writes, append-only migrations through
 - Jenkins local mirror requires the git daemon; `/home/eloraam` is not readable by
   the Jenkins user, so a real remote should replace the bridge.
 - Build 3 failed on a stale fixed preview port; `scripts/ci.sh` now allocates a free
-  port and verifies the preview process. Build 4 is green.
+  port and verifies the preview process. Builds 4 and 5 are green.
 
 ## Next step
 
-Commit the completion slice, refresh the Jenkins mirror and run build 5; then start
-Stage 3 (Projects/milestones/cycles) and close the remaining native-run note when a
-WebKitGTK/WebView2 host is available.
+Stage 3 — Projects, milestones and cycles, reusing the issue workflow/filter model.
+The remaining native-run note closes when a WebKitGTK/WebView2 host is available;
+saved-view column/density application and in/notIn filter controls stay in the
+follow-up backlog.
