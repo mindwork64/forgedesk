@@ -61,6 +61,9 @@ import type {
   AutomationInput,
   Dashboard,
   ProviderCapabilities,
+  AiStatus,
+  AiContext,
+  AiSuggestion,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -344,4 +347,15 @@ export const api = {
     call<number>('github_sync_pull_events', { owner, repo }),
   providerCapabilities: (provider: string) =>
     call<ProviderCapabilities>('provider_capabilities', { provider }),
+  aiDispatch: <T>(action: string, payload: Record<string, unknown> = {}) =>
+    call<T>('ai_dispatch', { action, payload }),
+  aiStatus: () => call<AiStatus>('ai_dispatch', { action: 'status', payload: {} }),
+  aiConfigure: (payload: Record<string, unknown>) =>
+    call<AiStatus>('ai_dispatch', { action: 'configure', payload }),
+  aiClearKey: () => call<AiStatus>('ai_dispatch', { action: 'clear_key', payload: {} }),
+  aiGenerate: (context: AiContext, instruction: string) =>
+    call<AiSuggestion>('ai_dispatch', {
+      action: 'generate',
+      payload: { context, instruction },
+    }),
 }

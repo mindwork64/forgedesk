@@ -1051,3 +1051,13 @@ pub fn provider_capabilities(provider: String) -> Result<ProviderCapabilities, C
         &provider,
     )?))
 }
+
+#[tauri::command]
+pub fn ai_dispatch(
+    state: State<'_, AppState>,
+    action: String,
+    payload: serde_json::Value,
+) -> Result<serde_json::Value, CommandError> {
+    let data_dir = state.data_dir()?;
+    crate::ai::dispatch(&data_dir, &action, payload).map_err(CommandError::from)
+}

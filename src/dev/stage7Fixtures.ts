@@ -158,6 +158,7 @@ const providerCapabilities: ProviderCapabilities = {
 
 export function handleStage7FixtureCommand<T>(
   command: CommandName,
+  args?: Record<string, unknown>,
 ): { handled: boolean; value?: T } {
   switch (command) {
     case 'inbox_list':
@@ -194,6 +195,28 @@ export function handleStage7FixtureCommand<T>(
       return { handled: true, value: structuredClone(dashboard) as T }
     case 'provider_capabilities':
       return { handled: true, value: structuredClone(providerCapabilities) as T }
+    case 'ai_dispatch': {
+      const action = String(args?.action ?? 'status')
+      const payload = (args?.payload ?? {}) as Record<string, unknown>
+      const status = {
+        featureEnabled: true,
+        runtimeEnabled: Boolean(payload.enabled),
+        provider: payload.provider ?? 'openai',
+        baseUrl: payload.baseUrl ?? 'https://api.openai.com/v1',
+        model: payload.model ?? 'gpt-4o-mini',
+        hasKey: false,
+      }
+      if (action === 'generate') {
+        return {
+          handled: true,
+          value: {
+            text: 'Harness suggestion: add acceptance criteria and a test note.',
+            contextPreview: 'Harness context preview',
+          } as T,
+        }
+      }
+      return { handled: true, value: status as T }
+    }
     case 'dashboard_add_widget':
     case 'dashboard_remove_widget':
     case 'dashboard_update_width':

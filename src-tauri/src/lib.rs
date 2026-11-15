@@ -1,4 +1,5 @@
-pub mod commands;
+pub mod ai;
+mod commands;
 pub mod state;
 
 use tauri::{Manager, PhysicalPosition, PhysicalSize, RunEvent, WindowEvent};
@@ -137,6 +138,7 @@ pub fn run() {
             commands::dashboard_reorder,
             commands::github_sync_pull_events,
             commands::provider_capabilities,
+            commands::ai_dispatch,
         ]);
 
     let app = builder

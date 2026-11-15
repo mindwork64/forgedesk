@@ -1352,6 +1352,43 @@ export default {
     },
   },
 
+  aiPage: {
+    settings: 'Настройки AI',
+    enable: 'Включить AI extension во время работы',
+    provider: 'Провайдер',
+    baseUrl: 'Base URL',
+    model: 'Модель',
+    apiKey: 'API-ключ',
+    keyStored: 'Хранится в OS keyring',
+    save: 'Сохранить настройки',
+    clearKey: 'Удалить ключ',
+    saved: 'Настройки AI сохранены',
+    securityHint:
+      'AI выключен по умолчанию. Запрос не отправляется до включения и нажатия Generate. Ключи хранятся в OS keyring.',
+    mcpHint:
+      'MCP STDIO: запустите forgedesk-mcp с FORGEDESK_AI_CONTEXT, содержащим JSON выбранного контекста. MCP-инструмент только read-only.',
+    context: 'Выбор контекста',
+    issueKey: 'Ключ задачи',
+    load: 'Загрузить задачу',
+    issue: 'Задача',
+    status: 'Статус',
+    project: 'Проект',
+    descriptionIncluded: 'Описание включено',
+    instruction: 'Инструкция',
+    generate: 'Сгенерировать предложение',
+    generating: 'Генерация…',
+    suggestion: 'Предложение',
+    apply: 'Добавить в описание',
+    applyHint:
+      'Применение меняет локальные данные и требует подтверждения. AI никогда не применяет изменения автоматически.',
+    applyTitle: 'Применить предложение AI?',
+    applyBody:
+      'Предложение будет добавлено в локальное описание задачи. Это явное локальное изменение; GitHub не меняется.',
+    applied: 'Предложение применено локально',
+    notBuilt: 'AI extension не включён в эту сборку.',
+    issueNotFound: 'Задача не найдена.',
+  },
+
   about: {
     heading: 'Локальное рабочее пространство для разработки',
     body: 'ForgeDesk объединяет задачи, проекты, репозитории и pull requests в одном desktop-пространстве на локальной базе SQLite.',

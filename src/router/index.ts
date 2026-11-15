@@ -262,6 +262,16 @@ const routes: RouteRecordRaw[] = [
       descriptionKey: 'pages.about.description',
     },
   },
+  ...(import.meta.env.VITE_AI_EXTENSION === 'true'
+    ? [
+        {
+          path: '/ai',
+          name: 'ai',
+          component: () => import('@/features/ai/AiView.vue'),
+          meta: { titleKey: 'pages.ai.title', descriptionKey: 'pages.ai.description' },
+        },
+      ]
+    : []),
   { path: '/:pathMatch(.*)*', redirect: '/my-issues' },
 ]
 

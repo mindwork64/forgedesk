@@ -178,6 +178,7 @@ export type CommandName =
   | 'dashboard_reorder'
   | 'github_sync_pull_events'
   | 'provider_capabilities'
+  | 'ai_dispatch'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -1008,4 +1009,27 @@ export interface ProviderCapabilities {
   checks: boolean
   write: boolean
   readOnly: boolean
+}
+
+export interface AiStatus {
+  featureEnabled: boolean
+  runtimeEnabled: boolean
+  provider: 'openai' | 'anthropic'
+  baseUrl: string
+  model: string
+  hasKey: boolean
+}
+
+export interface AiContext {
+  issueKey: string
+  title: string
+  description: string
+  status: string
+  project: string | null
+  includeDescription: boolean
+}
+
+export interface AiSuggestion {
+  text: string
+  contextPreview: string
 }

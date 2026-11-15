@@ -5,6 +5,14 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 9 — optional AI extension
+
+- Separate `forgedesk-ai` crate/feature, off by default; default builds and UI contain
+  no AI.
+- OpenAI-compatible + Anthropic adapters, context preview, approval-gated local apply,
+  read-only MCP STDIO bridge, keyring-held API key.
+- 5 AI crate tests; mock provider/MCP contracts; no live provider run.
+
 ### Stage 8 — GitLab/Gitea adapters
 
 - Capability-driven read-only GitLab/Gitea adapters for repositories, issues and

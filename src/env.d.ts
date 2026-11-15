@@ -8,6 +8,7 @@ declare module '*.vue' {
 
 interface ImportMetaEnv {
   readonly VITE_VISUAL_HARNESS?: string
+  readonly VITE_AI_EXTENSION?: string
 }
 
 interface ImportMeta {

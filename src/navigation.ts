@@ -17,6 +17,7 @@ import {
   Plug,
   Search,
   Settings,
+  Sparkles,
   Target,
   Timer,
   Workflow,
@@ -112,6 +113,9 @@ export const NAV_GROUPS: NavGroup[] = [
       { key: 'integrations', path: '/integrations', labelKey: 'nav.integrations', icon: Plug },
       { key: 'automations', path: '/automations', labelKey: 'nav.automations', icon: Zap },
       { key: 'api-monitor', path: '/api-monitor', labelKey: 'nav.apiMonitor', icon: Gauge },
+      ...(import.meta.env.VITE_AI_EXTENSION === 'true'
+        ? [{ key: 'ai', path: '/ai', labelKey: 'nav.ai', icon: Sparkles }]
+        : []),
     ],
   },
 ]

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/forgedesk-core", "src-tauri"]
+members = ["crates/forgedesk-ai", "crates/forgedesk-core", "src-tauri"]
 # The Tauri shell requires OS webview development libraries. The core crate is
 # independently buildable/testable so CI and developers can verify domain and
 # storage logic without a desktop toolchain.

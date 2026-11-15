@@ -26,6 +26,23 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Build optional AI frontend
+        run: npm run build
+        env:
+          VITE_AI_EXTENSION: 'true'
+
+  ai-extension:
+    name: Optional AI crate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install keyring build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libdbus-1-dev pkg-config
+      - run: cargo test -p forgedesk-ai
 
   core:
     name: Core (${{ matrix.os }})
@@ -73,6 +90,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: cargo check -p forgedesk
+      - run: cargo check -p forgedesk --features ai-extension
 
   tauri-windows:
     name: Tauri shell (Windows compile)
@@ -88,6 +106,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: cargo check -p forgedesk
+      - run: cargo check -p forgedesk --features ai-extension
 
   visual-gate-0:
     name: UI visual gates

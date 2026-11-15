@@ -139,7 +139,7 @@ export function installVisualHarness(): void {
   setDevTransport(async <T,>(command: CommandName, args?: Record<string, unknown>): Promise<T> => {
     await new Promise((resolve) => setTimeout(resolve, 15))
 
-    const stage7Result = handleStage7FixtureCommand<T>(command)
+    const stage7Result = handleStage7FixtureCommand<T>(command, args)
     if (stage7Result.handled) {
       return stage7Result.value as T
     }

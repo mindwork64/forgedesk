@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15
-**Stage:** 8 — COMPLETE (provider fixtures); Stage 5 sync writes remain partial
+**Stage:** 9 — COMPLETE (optional AI fixtures); Stage 5 sync writes remain partial
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 90 core (+3 ignored live), 107 frontend, 57 visual captures.
+- **Tests:** 90 core (+3 ignored live), 5 AI crate, 107 frontend, 57 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -126,6 +126,18 @@ through `user_version`. See ADR-0001…0007.
 - Contract tests use local mock HTTP servers; live hosts/tokens are unavailable and
   explicitly reported as not run.
 
+### Stage 9 — optional AI extension (complete, fixtures)
+
+- Separate `forgedesk-ai` crate + optional `ai-extension` desktop feature; default
+  builds do not link it and default UI has no AI nav/DOM.
+- OpenAI-compatible and Anthropic adapters with mock HTTP contract tests.
+- Explicit context selection/preview, runtime off by default, API key in OS keyring,
+  non-secret config JSON.
+- AI never mutates directly: applying a suggestion requires confirmation and the
+  normal local issue update path.
+- `forgedesk-mcp` STDIO binary exposes only read-only `forgedesk_context`.
+- No live provider credential was available; live calls are explicitly not run.
+
 ### Stages 1–3 (preserved)
 
 - Local-first shell/settings/backups/themes.
@@ -137,6 +149,9 @@ through `user_version`. See ADR-0001…0007.
 | Check | Command | Result |
 |---|---|---|
 | Core tests | `cargo test -p forgedesk-core` | PASS (90 + 3 ignored live) |
+| AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
+| AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
+| AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
@@ -189,7 +204,7 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Stage 9: optional AI extension, disabled by default and build-excludable. Stage 5/6
-sync-write and native polish remain tracked; GitLab/Gitea live verification remains a
-release task until hosts/tokens are available. Remaining Stage 6 polish (inline comment
+Stage 10: stabilization, release/migration checks, native verification and remaining
+Stage 5 sync writes. Live AI provider verification remains a release task requiring
+user credentials. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.

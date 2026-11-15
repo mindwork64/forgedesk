@@ -27,6 +27,10 @@ ForgeDesk/
 │   └── jenkins/ForgeDesk-CI.xml Versioned job definition
 ├── .github/workflows/ci.yml    Frontend, core, shell and visual-gate lanes
 │
+├── crates/forgedesk-ai/src/
+│   ├── lib.rs                  Optional AI providers/context/approval service
+│   └── bin/forgedesk-mcp.rs    Read-only MCP STDIO bridge
+│
 ├── crates/forgedesk-core/src/
 │   ├── lib.rs                  Public core surface
 │   ├── app.rs                  AppService: bootstrap, settings, backups, issue operations
@@ -55,7 +59,7 @@ ForgeDesk/
 │   └── db/
 │       ├── mod.rs              Guarded SQLite connection, WAL, reopen/replace
 │       ├── migrations.rs       Append-only runner + tests
-│       ├── migrations/0001_init.sql … 0005_sync.sql
+│       ├── migrations/0001_init.sql … 0009_dashboards.sql
 │       └── repositories/
 │           ├── issues.rs       Issue CRUD/detail/list/batch/duplicate
 │           ├── issue_query.rs  Whitelisted filter/sort/search SQL builder
@@ -146,6 +150,7 @@ ForgeDesk/
 │   │   ├── inbox/              Inbox event list/triage
 │   │   ├── automations/        Local rules, preview, history
 │   │   ├── dashboards/         Persisted widget canvas/edit mode
+│   │   ├── ai/                 Optional AI settings/context/suggestion UI
 │   │   ├── api-monitor/        Budgets, queue, request history
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections
@@ -159,9 +164,9 @@ ForgeDesk/
 ├── docs/
 │   ├── PROJECT_STATE.md        Compact current state
 │   ├── architecture/           overview, repository_map, assumptions
-│   ├── decisions/              ADR-0001…0009 (…/PR-actions/provider-adapters)
+│   ├── decisions/              ADR-0001…0010 (…/provider-adapters/optional-AI)
 │   ├── development/            setup.md, jenkins.md
-│   ├── stages/                 Stage 0/1/2/3/4/5/6 reports
+│   ├── stages/                 Stage 0/1/2/3/4/5/6/7/8/9 reports
 │   ├── ui/
 │   │   ├── component_map.md
 │   │   ├── visual_baseline.md

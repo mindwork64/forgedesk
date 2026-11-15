@@ -37,6 +37,7 @@ export default {
     integrations: 'Integrations',
     automations: 'Automations',
     apiMonitor: 'API Monitor',
+    ai: 'AI Assistant',
     settings: 'Settings',
     about: 'Help / About',
     pinnedViews: 'Pinned Views',
@@ -448,6 +449,10 @@ export default {
     settings: {
       title: 'Settings',
       description: 'Configure the local workspace.',
+    },
+    ai: {
+      title: 'AI Assistant',
+      description: 'Optional AI extension; disabled by default.',
     },
     about: {
       title: 'Help / About',
@@ -1351,6 +1356,43 @@ export default {
       issues_recent: 'Recent issues',
       api_budget: 'API budget',
     },
+  },
+
+  aiPage: {
+    settings: 'AI settings',
+    enable: 'Enable AI extension at runtime',
+    provider: 'Provider',
+    baseUrl: 'Base URL',
+    model: 'Model',
+    apiKey: 'API key',
+    keyStored: 'Stored in OS keyring',
+    save: 'Save AI settings',
+    clearKey: 'Clear key',
+    saved: 'AI settings saved',
+    securityHint:
+      'AI is off by default. No request is made until enabled and Generate is pressed. Keys are stored in the OS keyring.',
+    mcpHint:
+      'MCP STDIO: run forgedesk-mcp with FORGEDESK_AI_CONTEXT set to the selected context JSON. The MCP tool is read-only.',
+    context: 'Context selection',
+    issueKey: 'Issue key',
+    load: 'Load issue',
+    issue: 'Issue',
+    status: 'Status',
+    project: 'Project',
+    descriptionIncluded: 'Description included',
+    instruction: 'Instruction',
+    generate: 'Generate suggestion',
+    generating: 'Generating…',
+    suggestion: 'Suggestion',
+    apply: 'Append to description',
+    applyHint:
+      'Applying changes local data and requires confirmation. AI never applies changes automatically.',
+    applyTitle: 'Apply AI suggestion?',
+    applyBody:
+      'The suggestion will be appended to the local issue description. This is an explicit local change; GitHub is not modified.',
+    applied: 'Suggestion applied locally',
+    notBuilt: 'AI extension is not included in this build.',
+    issueNotFound: 'Issue not found.',
   },
 
   about: {

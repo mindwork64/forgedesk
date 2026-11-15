@@ -14,6 +14,7 @@ pub struct AppState {
 }
 
 struct Inner {
+    data_dir: PathBuf,
     service: Option<AppService>,
     github: Option<GitHubAuth>,
     startup_error: Option<WireError>,
@@ -35,11 +36,17 @@ impl AppState {
 
         Self {
             inner: Mutex::new(Inner {
+                data_dir,
                 service,
                 github: None,
                 startup_error,
             }),
         }
+    }
+
+    pub fn data_dir(&self) -> Result<PathBuf, WireError> {
+        let inner = self.lock()?;
+        Ok(inner.data_dir.clone())
     }
 
     pub fn bootstrap(&self) -> Result<Bootstrap, WireError> {

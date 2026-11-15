@@ -760,6 +760,11 @@ async function main() {
         { timeout: 10_000 },
       )
 
+      if (!testCase.error) {
+        const aiNav = await page.getByText('AI Assistant', { exact: true }).count()
+        assert(aiNav === 0, `${testCase.name}: AI navigation must be absent by default`, report.failures)
+      }
+
       if (!testCase.error && testCase.theme) {
         await page.waitForFunction(
           (theme) => document.documentElement.dataset.theme === theme,
