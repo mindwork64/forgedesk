@@ -12,14 +12,20 @@ full release packaging remain open.
 - Route-level code splitting for all screens.
   - Main production JS chunk reduced from ~501 KB to ~231 KB.
   - Vite 500 KB chunk warning is gone.
-- Migration upgrade test from v5 to v9:
-  - applies historical migrations, inserts a workspace, upgrades to current schema;
-  - verifies workspace data and new tables (`pull_request_link`, `inbox_state`,
-    `automation_rule`, `dashboard_widget`).
-- Accessibility gate assertion:
-  - every visible button must have an accessible name (`aria-label`, `title` or text);
+- Realistic v5→v9 migration data-preservation test:
+  - creates workspace/settings before v2 so the workflow backfill path is exercised;
+  - seeds default workflow/statuses/key counter, then inserts project, issue, comment,
+    document, repository, remote link, outbox and cursor using real v5 schemas;
+  - upgrades via the normal runner and verifies field values, relationships and
+    `PRAGMA foreign_key_check`; new Stage 6–9 tables are asserted.
+- Accessibility validation with axe-core:
+  - `button-name` plus `aria-command-name` rules run for every visual case;
+  - regression fixtures prove visible text, `aria-label`, `aria-labelledby` and icon
+    button names pass, while empty/hidden-only buttons and unnamed `role="button"`
+    fail;
   - all 57 visual cases pass.
-- Optional AI CI lanes:
+- Optional AI CI lanes (GitHub Actions run itself was not executed in this local
+  corrective pass; the workflow includes the commands):
   - AI crate tests;
   - default + `VITE_AI_EXTENSION=true` frontend builds;
   - Tauri default and `--features ai-extension` compile checks.
@@ -43,7 +49,8 @@ full release packaging remain open.
 | Frontend | `npm run typecheck`, `npm test` | PASS — 107 |
 | Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 57 captures |
 | Production chunk | `npm run build` | PASS — main JS ~231 KB |
-| Migration v5→v9 | `cargo test ... upgrades_v5` | PASS |
+| Migration v5→v9 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
+| AI Clippy | `cargo clippy -p forgedesk-ai ...` | PASS (CI step configured) |
 | Native runtime | — | BLOCKED — no desktop WebKitGTK |
 | Signed installers | — | BLOCKED — no signing credentials |
 

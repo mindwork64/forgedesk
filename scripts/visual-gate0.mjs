@@ -14,6 +14,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import AxeBuilder from '@axe-core/playwright'
 import { chromium } from 'playwright'
 
 const BASE_URL = process.env.PREVIEW_URL ?? 'http://127.0.0.1:4173'
@@ -717,6 +718,49 @@ function checkGeometry(name, metrics, expected, failures) {
   )
 }
 
+async function validateButtonNameRegression(browser, report) {
+  const context = await browser.newContext()
+  const page = await context.newPage()
+  try {
+    await page.setContent(`
+      <button>Visible text</button>
+      <button aria-label="Aria label">Aria</button>
+      <span id="name-ref">Referenced name</span>
+      <button aria-labelledby="name-ref">Icon</button>
+      <button aria-label="Icon action"><svg aria-hidden="true"></svg></button>
+    `)
+    const valid = await new AxeBuilder({ page })
+      .withRules(['button-name', 'aria-command-name'])
+      .analyze()
+    assert(
+      valid.violations.length === 0,
+      `button-name regression: valid controls failed (${valid.violations.length})`,
+      report.failures,
+    )
+
+    const invalidCases = {
+      'empty button': '<button></button>',
+      'only hidden text': '<button><span style="display:none">Hidden</span></button>',
+      'role button without name': '<div role="button"></div>',
+    }
+    for (const [name, markup] of Object.entries(invalidCases)) {
+      await page.setContent(markup)
+      const invalid = await new AxeBuilder({ page })
+        .withRules(['button-name', 'aria-command-name'])
+        .analyze()
+      assert(
+        invalid.violations.some((violation) =>
+          ['button-name', 'aria-command-name'].includes(violation.id),
+        ),
+        `button-name regression: ${name} was not rejected`,
+        report.failures,
+      )
+    }
+  } finally {
+    await context.close()
+  }
+}
+
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true })
 
@@ -761,21 +805,16 @@ async function main() {
       )
 
       if (!testCase.error) {
-        const unnamedButtons = await page.locator('button:visible').evaluateAll((buttons) =>
-          buttons.filter((button) => {
-            const label =
-              button.getAttribute('aria-label') ||
-              button.getAttribute('title') ||
-              button.textContent ||
-              ''
-            return label.trim().length === 0
-          }).length,
-        )
-        assert(
-          unnamedButtons === 0,
-          `${testCase.name}: visible buttons without an accessible name`,
-          report.failures,
-        )
+        const buttonName = await new AxeBuilder({ page })
+          .withRules(['button-name', 'aria-command-name'])
+          .analyze()
+        for (const violation of buttonName.violations) {
+          for (const node of violation.nodes) {
+            report.failures.push(
+              `${testCase.name}: button-name ${node.target.join(' ')} — ${node.failureSummary ?? violation.help}`,
+            )
+          }
+        }
         const aiNav = await page.getByText('AI Assistant', { exact: true }).count()
         assert(aiNav === 0, `${testCase.name}: AI navigation must be absent by default`, report.failures)
       }
@@ -1426,6 +1465,7 @@ async function main() {
       report.screenshots.push(caseReport.screenshot)
       await context.close()
     }
+    await validateButtonNameRegression(browser, report)
   } finally {
     await browser.close()
   }

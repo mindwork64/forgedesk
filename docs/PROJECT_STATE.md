@@ -130,10 +130,12 @@ through `user_version`. See ADR-0001…0007.
 
 - Route-level code splitting: main JS chunk reduced from ~501 KB to ~231 KB; Vite
   chunk warning removed.
-- Migration test covers v5→v9 upgrade preserving workspace data and adding Stage 7–9
-  tables.
-- Accessibility gate asserts every visible button has an accessible name; all 57
-  visual cases pass.
+- Realistic v5→v9 migration test preserves workflow/statuses, project, issue,
+  comment, document, repository, remote link, outbox and cursor data; foreign keys are
+  checked.
+- axe-core `button-name`/`aria-command-name` validation runs on every visual case,
+  with valid/invalid regression fixtures; all 57 cases pass.
+- AI crate Clippy (`-D warnings`) is part of the dedicated CI job.
 - CI covers default and optional AI builds; release checklist added.
 - Native desktop smoke tests, signed installers, export/import and larger soak tests
   remain release blockers.
@@ -170,7 +172,7 @@ through `user_version`. See ADR-0001…0007.
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (107) |
 | Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 57 captures; accessibility button-name checks |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 57 captures; axe button-name/aria-command-name |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |

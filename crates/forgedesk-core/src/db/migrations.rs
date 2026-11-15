@@ -105,10 +105,12 @@ mod tests {
         conn
     }
 
-    #[test]
-    fn upgrades_v5_database_to_current_without_data_loss() {
-        let mut conn = connection();
-        for migration in MIGRATIONS.iter().take(5) {
+    fn apply_through(conn: &mut Connection, version: i64) {
+        let current = current_schema_version(conn).expect("current version");
+        for migration in MIGRATIONS
+            .iter()
+            .filter(|m| m.version > current && m.version <= version)
+        {
             let tx = conn.transaction().expect("tx");
             tx.execute_batch(migration.sql).expect("apply");
             tx.execute(
@@ -120,24 +122,230 @@ mod tests {
                 .expect("version");
             tx.commit().expect("commit");
         }
-        assert_eq!(current_schema_version(&conn).expect("v5"), 5);
+    }
+
+    #[test]
+    fn upgrades_v5_database_to_current_without_data_loss() {
+        let mut conn = connection();
+        let now = "2026-01-01T00:00:00Z";
+
+        // A real v5 installation was created after migrations had already run:
+        // workspace/app settings exist before v2 seeds the workflow.
+        apply_through(&mut conn, 1);
         conn.execute(
-            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at)              VALUES ('ws-1', 'Upgrade', 'FD', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
-            [],
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \
+             VALUES ('ws-1', 'Upgrade', 'FD', ?1, ?1)",
+            [now],
         )
         .expect("workspace");
+        conn.execute(
+            "INSERT INTO app_setting (key, value, updated_at) VALUES ('theme', '\"dark\"', ?1)",
+            [now],
+        )
+        .expect("setting");
+
+        apply_through(&mut conn, 2);
+        crate::db::repositories::workflow::seed_defaults(&conn, "ws-1").expect("default workflow");
+        conn.execute(
+            "UPDATE workspace_key_counter SET next_number = 2 WHERE workspace_id = 'ws-1'",
+            [],
+        )
+        .expect("key counter");
+        apply_through(&mut conn, 5);
+
+        let workflow_id: String = conn
+            .query_row(
+                "SELECT id FROM workflow WHERE workspace_id = 'ws-1' AND is_default = 1",
+                [],
+                |row| row.get(0),
+            )
+            .expect("default workflow");
+        let status_count: i64 = conn
+            .query_row(
+                "SELECT count(*) FROM workflow_status WHERE workflow_id = ?1",
+                [&workflow_id],
+                |row| row.get(0),
+            )
+            .expect("statuses");
+        assert_eq!(status_count, 5);
+        let todo_status: String = conn
+            .query_row(
+                "SELECT id FROM workflow_status WHERE workflow_id = ?1 AND system_key = 'todo'",
+                [&workflow_id],
+                |row| row.get(0),
+            )
+            .expect("todo status");
+        let next_number: i64 = conn
+            .query_row(
+                "SELECT next_number FROM workspace_key_counter WHERE workspace_id = 'ws-1'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("counter");
+        assert_eq!(next_number, 2);
+
+        let project_id = "project-1";
+        let issue_id = "issue-1";
+        conn.execute(
+            "INSERT INTO project (id, workspace_id, name, description, status, priority, \
+             created_at, updated_at) VALUES (?1, 'ws-1', 'Release', 'release project', \
+             'active', 'high', ?2, ?2)",
+            rusqlite::params![project_id, now],
+        )
+        .expect("project");
+        conn.execute(
+            "INSERT INTO issue (id, workspace_id, key_number, key, title, description, \
+             status_id, priority, issue_type, project_id, created_at, updated_at) \
+             VALUES (?1, 'ws-1', 1, 'FD-1', 'Preserved issue', 'body', ?2, 'high', \
+             'task', ?3, ?4, ?4)",
+            rusqlite::params![issue_id, todo_status, project_id, now],
+        )
+        .expect("issue");
+        conn.execute(
+            "INSERT INTO comment (id, issue_id, body, author, created_at, updated_at) \
+             VALUES ('comment-1', ?1, 'preserved comment', 'local', ?2, ?2)",
+            rusqlite::params![issue_id, now],
+        )
+        .expect("comment");
+        conn.execute(
+            "INSERT INTO document (id, workspace_id, title, body, project_id, created_at, \
+             updated_at) VALUES ('doc-1', 'ws-1', 'Runbook', 'preserved document', ?1, ?2, ?2)",
+            rusqlite::params![project_id, now],
+        )
+        .expect("document");
+        conn.execute(
+            "INSERT INTO repository (id, workspace_id, name, path, provider, project_id, \
+             created_at, updated_at) VALUES ('repo-1', 'ws-1', 'ForgeDesk', \
+             '/tmp/forgedesk-v5-repo', 'local', ?1, ?2, ?2)",
+            rusqlite::params![project_id, now],
+        )
+        .expect("repository");
+        conn.execute(
+            "INSERT INTO remote_issue_link (id, local_issue_id, provider, account_id, \
+             repository_id, remote_id, remote_number, remote_url, created_at, updated_at) \
+             VALUES ('link-1', ?1, 'github', 'account-1', 'owner/repo', 'R-42', 42, \
+             'https://github.com/owner/repo/issues/42', ?2, ?2)",
+            rusqlite::params![issue_id, now],
+        )
+        .expect("remote link");
+        conn.execute(
+            "INSERT INTO sync_outbox (id, local_issue_id, operation, payload_json, state, \
+             attempts, idempotency_key, fingerprint, created_at, updated_at) \
+             VALUES ('outbox-1', ?1, 'create_issue', '{\"title\":\"FD-1\"}', 'pending', 0, \
+             'idem-1', 'fingerprint-1', ?2, ?2)",
+            rusqlite::params![issue_id, now],
+        )
+        .expect("outbox");
+        conn.execute(
+            "INSERT INTO sync_cursor (id, provider, account_id, resource, scope, \
+             page_cursor, watermark, last_success_at, updated_at) \
+             VALUES ('cursor-1', 'github', 'account-1', 'issues', 'owner/repo', '2', ?1, ?1, ?1)",
+            [now],
+        )
+        .expect("cursor");
 
         assert_eq!(run(&mut conn).expect("upgrade"), CURRENT_SCHEMA_VERSION);
         assert_eq!(
-            conn.query_row("SELECT count(*) FROM workspace", [], |row| row
-                .get::<_, i64>(0))
-                .expect("count"),
-            1
+            current_schema_version(&conn).expect("version"),
+            CURRENT_SCHEMA_VERSION
         );
+
+        assert_eq!(
+            conn.query_row(
+                "SELECT name FROM project WHERE id = 'project-1'",
+                [],
+                |row| { row.get::<_, String>(0) }
+            )
+            .expect("project"),
+            "Release"
+        );
+        let issue: (String, String, String) = conn
+            .query_row(
+                "SELECT title, status_id, project_id FROM issue WHERE id = 'issue-1'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .expect("issue");
+        assert_eq!(issue.0, "Preserved issue");
+        assert_eq!(issue.1, todo_status);
+        assert_eq!(issue.2, project_id);
+        assert_eq!(
+            conn.query_row(
+                "SELECT body FROM comment WHERE id = 'comment-1'",
+                [],
+                |row| { row.get::<_, String>(0) }
+            )
+            .expect("comment"),
+            "preserved comment"
+        );
+        assert_eq!(
+            conn.query_row("SELECT body FROM document WHERE id = 'doc-1'", [], |row| {
+                row.get::<_, String>(0)
+            })
+            .expect("document"),
+            "preserved document"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT path FROM repository WHERE id = 'repo-1'",
+                [],
+                |row| { row.get::<_, String>(0) }
+            )
+            .expect("repository"),
+            "/tmp/forgedesk-v5-repo"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT remote_number FROM remote_issue_link WHERE id = 'link-1'",
+                [],
+                |row| row.get::<_, i64>(0)
+            )
+            .expect("link"),
+            42
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT fingerprint FROM sync_outbox WHERE id = 'outbox-1'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("outbox"),
+            "fingerprint-1"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT watermark FROM sync_cursor WHERE id = 'cursor-1'",
+                [],
+                |row| { row.get::<_, String>(0) }
+            )
+            .expect("cursor"),
+            now
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT value FROM app_setting WHERE key = 'theme'",
+                [],
+                |row| { row.get::<_, String>(0) }
+            )
+            .expect("setting"),
+            "\"dark\""
+        );
+
+        let linked: i64 = conn
+            .query_row(
+                "SELECT count(*) FROM issue i                  JOIN project p ON p.id = i.project_id                  JOIN workflow_status s ON s.id = i.status_id                  JOIN comment c ON c.issue_id = i.id                  JOIN remote_issue_link l ON l.local_issue_id = i.id                  JOIN sync_outbox o ON o.local_issue_id = i.id                  WHERE i.id = 'issue-1' AND p.id = 'project-1'                    AND s.system_key = 'todo' AND c.id = 'comment-1'                    AND l.id = 'link-1' AND o.id = 'outbox-1'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("relationships");
+        assert_eq!(linked, 1);
+
         for table in [
             "pull_request_link",
             "inbox_state",
             "automation_rule",
+            "automation_run",
+            "dashboard",
             "dashboard_widget",
         ] {
             let exists: i64 = conn
@@ -149,6 +357,10 @@ mod tests {
                 .expect("table check");
             assert_eq!(exists, 1, "missing {table}");
         }
+
+        let mut check = conn.prepare("PRAGMA foreign_key_check").expect("fk check");
+        let violations = check.query_map([], |_| Ok(())).expect("rows").count();
+        assert_eq!(violations, 0, "foreign key violations after migration");
     }
 
     #[test]

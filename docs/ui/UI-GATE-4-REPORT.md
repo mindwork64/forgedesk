@@ -33,8 +33,9 @@ Full run: **57 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 4 Gate
 
 ## Accessibility
 
-- Every visible button has an accessible name (`aria-label`, `title` or text).
-- Assertion runs for all 57 visual cases.
+- axe-core `button-name`/`aria-command-name` runs for all 57 visual cases.
+- Regression fixtures prove valid names pass and empty/hidden-only/role-button failures
+  are rejected.
 
 ## Notes
 

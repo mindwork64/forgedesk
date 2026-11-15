@@ -8,7 +8,8 @@ APIs and schema may still evolve with migrations.
 ### Stage 10 — stabilization (partial)
 
 - Route-level code splitting (main JS ~231 KB, warning gone).
-- v5→v9 migration test, accessible-name visual assertions, optional AI CI lanes.
+- Realistic v5→v9 migration data-preservation/FK test, axe accessible-name gate,
+  optional AI tests + Clippy in CI.
 - 91 core tests, 5 AI crate tests, 107 frontend, 57 visual captures.
 - Native/signing/export-import release blockers documented.
 
