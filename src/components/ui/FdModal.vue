@@ -71,9 +71,10 @@ watch(open, async (value) => {
     previousFocus = document.activeElement as HTMLElement | null
     document.body.style.overflow = 'hidden'
     await nextTick()
-    // Focus the dialog container itself. Focusing the first control (often the
-    // close button) would immediately show its tooltip over the dialog body.
-    panel.value?.focus()
+    // Prefer an explicit autofocus target; otherwise focus the dialog
+    // container (focusing the close button would show its tooltip over content).
+    const target = panel.value?.querySelector<HTMLElement>('[data-autofocus]')
+    ;(target ?? panel.value)?.focus()
   } else {
     document.body.style.overflow = ''
     previousFocus?.focus()

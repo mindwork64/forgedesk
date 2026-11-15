@@ -108,7 +108,9 @@ useGlobalShortcuts()
 <style scoped>
 .fd-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) var(--fd-status-height);
+  width: 100%;
   height: 100vh;
   overflow: hidden;
   background: var(--fd-bg);
@@ -116,21 +118,28 @@ useGlobalShortcuts()
 
 .fd-shell__body {
   display: flex;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .fd-shell__main {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
+  width: 0;
   min-width: 0;
   min-height: 0;
 }
 
 .fd-shell__content {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   outline: none;
 }
 

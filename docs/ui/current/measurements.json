@@ -1,0 +1,474 @@
+{
+  "generatedAt": "2026-11-15T04:58:00.435Z",
+  "baseUrl": "http://127.0.0.1:4173",
+  "harness": true,
+  "cases": [
+    {
+      "name": "gate0-shell-dark-1440-expanded",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-shell-dark-1440-expanded.png",
+      "consoleErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 876
+        },
+        "header": {
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 48
+        },
+        "status": {
+          "x": 0,
+          "y": 876,
+          "width": 1440,
+          "height": 24
+        },
+        "pageHeader": {
+          "x": 240,
+          "y": 48,
+          "width": 1200,
+          "height": 79
+        },
+        "contentPaddingLeft": "24px",
+        "bodyBackground": "rgb(14, 17, 23)",
+        "sidebarBackground": "rgb(17, 21, 28)",
+        "fontFamily": "Inter, \"Segoe UI\", system-ui, -apple-system, \"Noto Sans\", sans-serif",
+        "fontSize": "13px",
+        "overflowX": false,
+        "activeNavItems": 1,
+        "tokenValues": {
+          "sidebarWidth": "240px",
+          "collapsedWidth": "64px",
+          "headerHeight": "48px",
+          "statusHeight": "24px",
+          "contentPadding": "24px"
+        }
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-shell-light-1440-expanded",
+      "viewport": "1440x900",
+      "theme": "light",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-shell-light-1440-expanded.png",
+      "consoleErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 876
+        },
+        "header": {
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 48
+        },
+        "status": {
+          "x": 0,
+          "y": 876,
+          "width": 1440,
+          "height": 24
+        },
+        "pageHeader": {
+          "x": 240,
+          "y": 48,
+          "width": 1200,
+          "height": 79
+        },
+        "contentPaddingLeft": "24px",
+        "bodyBackground": "rgb(245, 246, 248)",
+        "sidebarBackground": "rgb(236, 239, 243)",
+        "fontFamily": "Inter, \"Segoe UI\", system-ui, -apple-system, \"Noto Sans\", sans-serif",
+        "fontSize": "13px",
+        "overflowX": false,
+        "activeNavItems": 1,
+        "tokenValues": {
+          "sidebarWidth": "240px",
+          "collapsedWidth": "64px",
+          "headerHeight": "48px",
+          "statusHeight": "24px",
+          "contentPadding": "24px"
+        }
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-shell-dark-1280-collapsed",
+      "viewport": "1280x800",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-shell-dark-1280-collapsed.png",
+      "consoleErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 776
+        },
+        "header": {
+          "x": 64,
+          "y": 0,
+          "width": 1216,
+          "height": 48
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 1280,
+          "height": 24
+        },
+        "pageHeader": {
+          "x": 64,
+          "y": 48,
+          "width": 1216,
+          "height": 79
+        },
+        "contentPaddingLeft": "24px",
+        "bodyBackground": "rgb(14, 17, 23)",
+        "sidebarBackground": "rgb(17, 21, 28)",
+        "fontFamily": "Inter, \"Segoe UI\", system-ui, -apple-system, \"Noto Sans\", sans-serif",
+        "fontSize": "13px",
+        "overflowX": false,
+        "activeNavItems": 1,
+        "tokenValues": {
+          "sidebarWidth": "240px",
+          "collapsedWidth": "64px",
+          "headerHeight": "48px",
+          "statusHeight": "24px",
+          "contentPadding": "24px"
+        }
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-shell-light-1280-collapsed",
+      "viewport": "1280x800",
+      "theme": "light",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-shell-light-1280-collapsed.png",
+      "consoleErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 776
+        },
+        "header": {
+          "x": 64,
+          "y": 0,
+          "width": 1216,
+          "height": 48
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 1280,
+          "height": 24
+        },
+        "pageHeader": {
+          "x": 64,
+          "y": 48,
+          "width": 1216,
+          "height": 79
+        },
+        "contentPaddingLeft": "24px",
+        "bodyBackground": "rgb(245, 246, 248)",
+        "sidebarBackground": "rgb(236, 239, 243)",
+        "fontFamily": "Inter, \"Segoe UI\", system-ui, -apple-system, \"Noto Sans\", sans-serif",
+        "fontSize": "13px",
+        "overflowX": false,
+        "activeNavItems": 1,
+        "tokenValues": {
+          "sidebarWidth": "240px",
+          "collapsedWidth": "64px",
+          "headerHeight": "48px",
+          "statusHeight": "24px",
+          "contentPadding": "24px"
+        }
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-shell-dark-1100-collapsed",
+      "viewport": "1100x700",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-shell-dark-1100-collapsed.png",
+      "consoleErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1100,
+          "height": 700
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 676
+        },
+        "header": {
+          "x": 64,
+          "y": 0,
+          "width": 1036,
+          "height": 48
+        },
+        "status": {
+          "x": 0,
+          "y": 676,
+          "width": 1100,
+          "height": 24
+        },
+        "pageHeader": {
+          "x": 64,
+          "y": 48,
+          "width": 1036,
+          "height": 79
+        },
+        "contentPaddingLeft": "24px",
+        "bodyBackground": "rgb(14, 17, 23)",
+        "sidebarBackground": "rgb(17, 21, 28)",
+        "fontFamily": "Inter, \"Segoe UI\", system-ui, -apple-system, \"Noto Sans\", sans-serif",
+        "fontSize": "13px",
+        "overflowX": false,
+        "activeNavItems": 1,
+        "tokenValues": {
+          "sidebarWidth": "240px",
+          "collapsedWidth": "64px",
+          "headerHeight": "48px",
+          "statusHeight": "24px",
+          "contentPadding": "24px"
+        }
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-shell-dark-1440-russian",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-shell-dark-1440-russian.png",
+      "consoleErrors": [],
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-settings-storage-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/settings/storage",
+      "screenshot": "docs/ui/current/gate0-settings-storage-dark-1440.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "gate0-settings-storage-light-1440",
+      "viewport": "1440x900",
+      "theme": "light",
+      "route": "/settings/storage",
+      "screenshot": "docs/ui/current/gate0-settings-storage-light-1440.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "gate0-restore-dialog-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/settings/storage",
+      "screenshot": "docs/ui/current/gate0-restore-dialog-dark-1440.png",
+      "consoleErrors": [],
+      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 5:58 AM. Current data is saved as a safety snapshot first.CancelRestore backup"
+    },
+    {
+      "name": "gate0-onboarding-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-onboarding-dark-1440.png",
+      "consoleErrors": [],
+      "modalWidth": 560
+    },
+    {
+      "name": "gate0-command-palette-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-command-palette-dark-1440.png",
+      "consoleErrors": [],
+      "paletteWidth": 640,
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-status-popover-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-status-popover-dark-1440.png",
+      "consoleErrors": [],
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-tooltip-dark-1280",
+      "viewport": "1280x800",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-tooltip-dark-1280.png",
+      "consoleErrors": [],
+      "tooltipText": "Projects",
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-toast-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-toast-dark-1440.png",
+      "consoleErrors": [],
+      "toastText": "Backup createdSnapshot forgedesk-1794718688655-85974685 was written to the local backups folder.",
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-inbox-shortcut-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-inbox-shortcut-dark-1440.png",
+      "consoleErrors": [],
+      "hash": "#/inbox"
+    },
+    {
+      "name": "gate1-my-issues-list-detail-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-my-issues-list-detail-dark-1440.png",
+      "consoleErrors": [],
+      "detailPane": {
+        "width": 440,
+        "left": 1000
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-detail-overlay-1100",
+      "viewport": "1100x700",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-detail-overlay-1100.png",
+      "consoleErrors": [],
+      "detailPane": {
+        "width": 440,
+        "left": 660
+      },
+      "detailPanePosition": "absolute",
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-my-issues-list-light-1440",
+      "viewport": "1440x900",
+      "theme": "light",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-my-issues-list-light-1440.png",
+      "consoleErrors": [],
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-my-issues-board-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-my-issues-board-dark-1440.png",
+      "consoleErrors": [],
+      "board": {
+        "columns": 5,
+        "cards": [
+          4,
+          4,
+          4,
+          3
+        ]
+      },
+      "issueRows": 0
+    },
+    {
+      "name": "gate1-create-dialog-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-create-dialog-dark-1440.png",
+      "consoleErrors": [],
+      "createDialogWidth": 720,
+      "issueRows": 16
+    },
+    {
+      "name": "gate1-detail-activity-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate1-detail-activity-dark-1440.png",
+      "consoleErrors": [],
+      "detailPane": {
+        "width": 440,
+        "left": 1000
+      },
+      "issueRows": 16
+    },
+    {
+      "name": "gate0-startup-error-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/my-issues",
+      "screenshot": "docs/ui/current/gate0-startup-error-dark-1440.png",
+      "consoleErrors": []
+    }
+  ],
+  "assertions": "PASS",
+  "failures": [],
+  "screenshots": [
+    "docs/ui/current/gate0-shell-dark-1440-expanded.png",
+    "docs/ui/current/gate0-shell-light-1440-expanded.png",
+    "docs/ui/current/gate0-shell-dark-1280-collapsed.png",
+    "docs/ui/current/gate0-shell-light-1280-collapsed.png",
+    "docs/ui/current/gate0-shell-dark-1100-collapsed.png",
+    "docs/ui/current/gate0-shell-dark-1440-russian.png",
+    "docs/ui/current/gate0-settings-storage-dark-1440.png",
+    "docs/ui/current/gate0-settings-storage-light-1440.png",
+    "docs/ui/current/gate0-restore-dialog-dark-1440.png",
+    "docs/ui/current/gate0-onboarding-dark-1440.png",
+    "docs/ui/current/gate0-command-palette-dark-1440.png",
+    "docs/ui/current/gate0-status-popover-dark-1440.png",
+    "docs/ui/current/gate0-tooltip-dark-1280.png",
+    "docs/ui/current/gate0-toast-dark-1440.png",
+    "docs/ui/current/gate0-inbox-shortcut-dark-1440.png",
+    "docs/ui/current/gate1-my-issues-list-detail-dark-1440.png",
+    "docs/ui/current/gate1-detail-overlay-1100.png",
+    "docs/ui/current/gate1-my-issues-list-light-1440.png",
+    "docs/ui/current/gate1-my-issues-board-dark-1440.png",
+    "docs/ui/current/gate1-create-dialog-dark-1440.png",
+    "docs/ui/current/gate1-detail-activity-dark-1440.png",
+    "docs/ui/current/gate0-startup-error-dark-1440.png"
+  ]
+}

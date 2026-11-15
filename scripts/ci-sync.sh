@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MIRROR="${FORGEDESK_CI_MIRROR:-/tmp/forgedesk-ci.git}"
+MIRROR="${FORGEDESK_CI_MIRROR:-$ROOT/.tmp/ci-mirror/forgedesk-ci.git}"
 MESSAGE="${1:-CI snapshot}"
 
 if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
@@ -13,6 +13,7 @@ if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 if [ ! -d "$MIRROR" ]; then
+  mkdir -p "$(dirname "$MIRROR")"
   git init --bare "$MIRROR" >/dev/null
 fi
 
@@ -23,4 +24,5 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 git push "$MIRROR" HEAD:refs/heads/main
+git --git-dir="$MIRROR" update-server-info
 echo "Mirror updated: $MIRROR"

@@ -3,11 +3,22 @@ import { invoke, isTauri } from '@tauri-apps/api/core'
 import type {
   AppSettings,
   BackupInfo,
+  BatchIssueInput,
   Bootstrap,
   CommandName,
+  CreateIssueInput,
+  IssueDetail,
+  IssueQuery,
+  IssueSummary,
   IpcError,
+  Label,
+  ProjectRef,
+  RelationInputKind,
   RestoreResult,
   SettingsPatch,
+  StatusSummary,
+  UpdateIssueInput,
+  Workflow,
   Workspace,
 } from '@/types/ipc'
 
@@ -94,4 +105,33 @@ export const api = {
   listBackups: () => call<BackupInfo[]>('list_backups'),
   createBackup: () => call<BackupInfo>('create_backup'),
   restoreBackup: (id: string) => call<RestoreResult>('restore_backup', { id }),
+  listWorkflow: () => call<Workflow>('list_workflow'),
+  listIssueStatuses: () => call<StatusSummary[]>('list_issue_statuses'),
+  listLabels: () => call<Label[]>('list_labels'),
+  listProjects: () => call<ProjectRef[]>('list_projects'),
+  listIssues: (query: IssueQuery) => call<IssueSummary[]>('list_issues', { query }),
+  getIssue: (id: string) => call<IssueDetail>('get_issue', { id }),
+  createIssue: (input: CreateIssueInput) =>
+    call<IssueDetail>('create_issue', { input }),
+  updateIssue: (id: string, input: UpdateIssueInput) =>
+    call<IssueDetail>('update_issue', { id, input }),
+  archiveIssue: (id: string, archived: boolean) =>
+    call<IssueDetail>('archive_issue', { id, archived }),
+  batchUpdateIssues: (ids: string[], input: BatchIssueInput) =>
+    call<IssueDetail[]>('batch_update_issues', { ids, input }),
+  duplicateIssue: (id: string) => call<IssueDetail>('duplicate_issue', { id }),
+  addIssueComment: (issueId: string, body: string) =>
+    call<IssueDetail>('add_issue_comment', { issueId, body }),
+  addIssueRelation: (
+    issueId: string,
+    relatedIssueId: string,
+    kind: RelationInputKind,
+  ) =>
+    call<IssueDetail>('add_issue_relation', {
+      issueId,
+      relatedIssueId,
+      kind,
+    }),
+  removeIssueRelation: (issueId: string, relationId: string) =>
+    call<IssueDetail>('remove_issue_relation', { issueId, relationId }),
 }

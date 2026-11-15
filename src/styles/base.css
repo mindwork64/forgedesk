@@ -170,3 +170,22 @@ a:hover {
   opacity: 0;
   transition: opacity var(--fd-motion-hover) var(--fd-ease-standard);
 }
+
+/* Shared issue list grid (keeps header and rows aligned). */
+.fd-issue-grid {
+  display: grid;
+  grid-template-columns:
+    24px 72px minmax(200px, 1fr) 108px 78px 112px minmax(100px, 140px) 76px;
+  gap: 12px;
+  align-items: center;
+}
+
+.fd-issue-grid--compact {
+  grid-template-columns:
+    24px 72px minmax(180px, 1fr) 108px 78px 76px;
+}
+
+.fd-issue-grid--compact .fd-issue-cell--project,
+.fd-issue-grid--compact .fd-issue-cell--labels {
+  display: none;
+}

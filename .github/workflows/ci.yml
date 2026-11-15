@@ -84,7 +84,7 @@ jobs:
       - run: cargo check -p forgedesk
 
   visual-gate-0:
-    name: UI Gate 0 screenshots
+    name: UI visual gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,7 +112,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ui-gate-0
+          name: ui-visual-gates
           path: |
             docs/ui/current/
           if-no-files-found: error

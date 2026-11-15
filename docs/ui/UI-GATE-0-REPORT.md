@@ -29,7 +29,7 @@
 
 | Check | Result | Evidence |
 |---|---|---|
-| Shell geometry at 1440×900 and 1280×800 | PASS | Measured 240/64, 48, 24, 24; `gate0-measurements.json` |
+| Shell geometry at 1440×900 and 1280×800 | PASS | Measured 240/64, 48, 24, 24; `measurements.json` |
 | No horizontal overflow at 1100×700 | PASS | Measured, `gate0-shell-dark-1100-collapsed.png` |
 | Sidebar expanded / collapsed | PASS | Dark + light captures at both widths |
 | Header and status strip presence/height | PASS | Measured 48 px and 24 px |
@@ -51,7 +51,7 @@
 | Pending/stale sync states | N/A | No provider integration exists in this stage |
 | No AI navigation in disabled state | PASS | No AI item in nav model or DOM |
 | No fake data presented as live | PASS | Harness is visual-gate only; placeholders are labelled and disabled |
-| Screenshot set dark/light × expanded/collapsed | PASS | 16 captures in `docs/ui/current/` |
+| Screenshot set dark/light × expanded/collapsed | PASS | 16 Gate 0 captures in `docs/ui/current/` (latest full run: 22) |
 | Native Tauri window screenshot | SKIPPED | WebKitGTK 4.1 absent; native runtime not launched |
 | Tauri shell compile | PARTIAL | `cargo check`/`clippy` pass with local pkg-config shims for typechecking; real link/CI build not run here |
 | Frontend typecheck/tests/build | PASS | `npm run typecheck`, `npm test` (66), `npm run build` |

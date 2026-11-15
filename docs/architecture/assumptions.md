@@ -64,3 +64,18 @@ Each entry is small and reversible unless noted.
 - Signing certificates/installer identity are release-time inputs (Stage 10).
 - Exact FTS5 tokenizer configuration will be decided in Stage 2 with realistic
   content fixtures.
+
+## Issues and workflow (Stage 2)
+
+18. **Default workflow:** one `Default` workflow per workspace with Backlog, Todo,
+    In Progress, Done and Canceled; Backlog is the default create status. Default
+    names are localized via `system_key`; user-created names are data.
+19. **Human keys:** `FD-<n>` allocated transactionally from the workspace counter;
+    the numeric part is stable and never reused.
+20. **Filters:** one nested group level in v1, maximum 50 conditions, whitelisted
+    fields/operators, limit 500 rows per query (1–1000 API bound). API-level limit
+    is a temporary guard until virtualization/pagination lands.
+21. **Project references:** Stage 2 includes a minimal project table so issues can
+    be assigned/filtered; project creation UI is Stage 3 and is not simulated.
+22. **Issue activity:** structured events, not localized strings; the UI localizes
+    known kinds and falls back to the raw kind for future events.

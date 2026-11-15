@@ -3,9 +3,14 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 
 use crate::backup::{self, BackupInfo};
+use crate::db::repositories::{issues, labels as label_repo, projects, workflow};
 use crate::db::Database;
-use crate::domain::{AppSettings, SettingsPatch, WindowState, Workspace};
-use crate::error::CoreResult;
+use crate::domain::{
+    AppSettings, BatchIssueInput, CreateIssueInput, IssueDetail, IssueQuery, IssueRelation,
+    IssueSummary, Label, ProjectRef, RelationInputKind, SettingsPatch, StatusSummary,
+    UpdateIssueInput, WindowState, Workflow, Workspace,
+};
+use crate::error::{CoreError, CoreResult};
 
 pub const DB_FILE_NAME: &str = "forgedesk.db";
 pub const BACKUPS_DIR_NAME: &str = "backups";
@@ -149,6 +154,120 @@ impl AppService {
         let _ = self.db.close();
     }
 
+    pub fn list_workflow(&self) -> CoreResult<Workflow> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            workflow::load(conn, &workspace.id)?.ok_or_else(|| CoreError::not_found("Workflow"))
+        })
+    }
+
+    pub fn list_statuses(&self) -> CoreResult<Vec<StatusSummary>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| workflow::statuses(conn, &workspace.id))
+    }
+
+    pub fn list_labels(&self) -> CoreResult<Vec<Label>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| label_repo::list(conn, &workspace.id))
+    }
+
+    pub fn list_projects(&self) -> CoreResult<Vec<ProjectRef>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| projects::list(conn, &workspace.id))
+    }
+
+    pub fn list_issues(&self, query: IssueQuery) -> CoreResult<Vec<IssueSummary>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| issues::list(conn, &workspace.id, &query))
+    }
+
+    pub fn get_issue(&self, issue_id: &str) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| issues::get_detail(conn, &workspace.id, issue_id))
+    }
+
+    pub fn create_issue(&self, input: CreateIssueInput) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            let id = issues::create(tx, &workspace.id, &input)?;
+            issues::get_detail(tx, &workspace.id, &id)
+        })
+    }
+
+    pub fn update_issue(&self, issue_id: &str, input: UpdateIssueInput) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| issues::update(tx, &workspace.id, issue_id, &input))
+    }
+
+    pub fn archive_issue(&self, issue_id: &str, archived: bool) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| issues::archive(tx, &workspace.id, issue_id, archived))
+    }
+
+    pub fn batch_update_issues(
+        &self,
+        issue_ids: &[String],
+        input: BatchIssueInput,
+    ) -> CoreResult<Vec<IssueDetail>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| issues::batch_update(tx, &workspace.id, issue_ids, &input))
+    }
+
+    pub fn duplicate_issue(&self, issue_id: &str) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| issues::duplicate(tx, &workspace.id, issue_id))
+    }
+
+    pub fn add_issue_comment(&self, issue_id: &str, body: &str) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| issues::add_comment(tx, &workspace.id, issue_id, body))
+    }
+
+    pub fn add_issue_relation(
+        &self,
+        issue_id: &str,
+        related_issue_id: &str,
+        kind: RelationInputKind,
+    ) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            issues::add_relation(tx, &workspace.id, issue_id, related_issue_id, kind)
+        })
+    }
+
+    pub fn remove_issue_relation(
+        &self,
+        issue_id: &str,
+        relation_id: &str,
+    ) -> CoreResult<IssueDetail> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            issues::remove_relation(tx, &workspace.id, issue_id, relation_id)
+        })
+    }
+
+    pub fn list_issue_relations(&self, issue_id: &str) -> CoreResult<Vec<IssueRelation>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| issues::list_relations(conn, &workspace.id, issue_id))
+    }
+
+    fn require_workspace(&self) -> CoreResult<Workspace> {
+        self.db
+            .workspace()?
+            .ok_or_else(|| CoreError::not_found("Workspace"))
+    }
+
     fn run_startup_maintenance(&mut self) {
         let settings = match self.db.settings() {
             Ok(settings) => settings,
@@ -205,7 +324,10 @@ mod tests {
     fn bootstraps_empty_installation() {
         let (_dir, service) = service();
         let bootstrap = service.bootstrap().expect("bootstrap");
-        assert_eq!(bootstrap.schema_version, 1);
+        assert_eq!(
+            bootstrap.schema_version,
+            crate::db::migrations::CURRENT_SCHEMA_VERSION
+        );
         assert!(bootstrap.workspace.is_none());
         assert!(!bootstrap.settings.onboarding_completed);
         assert!(Path::new(&bootstrap.db_path).is_file());

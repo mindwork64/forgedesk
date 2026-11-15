@@ -46,6 +46,20 @@ pub fn run() {
             commands::list_backups,
             commands::create_backup,
             commands::restore_backup,
+            commands::list_workflow,
+            commands::list_issue_statuses,
+            commands::list_labels,
+            commands::list_projects,
+            commands::list_issues,
+            commands::get_issue,
+            commands::create_issue,
+            commands::update_issue,
+            commands::archive_issue,
+            commands::batch_update_issues,
+            commands::duplicate_issue,
+            commands::add_issue_comment,
+            commands::add_issue_relation,
+            commands::remove_issue_relation,
         ]);
 
     let app = builder

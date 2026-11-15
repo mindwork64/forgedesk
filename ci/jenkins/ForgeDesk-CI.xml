@@ -21,7 +21,7 @@
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>file:///tmp/forgedesk-ci.git</url>
+          <url>git://127.0.0.1:9418/forgedesk-ci.git</url>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>

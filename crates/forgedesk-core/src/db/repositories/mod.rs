@@ -1,2 +1,10 @@
+pub mod activity;
+pub mod comments;
+pub mod issue_query;
+pub mod issues;
+pub mod labels;
+pub mod projects;
+pub mod relations;
 pub mod settings;
+pub mod workflow;
 pub mod workspace;

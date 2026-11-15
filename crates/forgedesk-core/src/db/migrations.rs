@@ -11,13 +11,20 @@ pub struct Migration {
 
 /// Ordered, append-only migration list. Never edit a published migration; add
 /// a new one and bump `CURRENT_SCHEMA_VERSION`.
-pub const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    name: "init",
-    sql: include_str!("migrations/0001_init.sql"),
-}];
+pub const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        name: "init",
+        sql: include_str!("migrations/0001_init.sql"),
+    },
+    Migration {
+        version: 2,
+        name: "issues",
+        sql: include_str!("migrations/0002_issues.sql"),
+    },
+];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 1;
+pub const CURRENT_SCHEMA_VERSION: i64 = 2;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -84,6 +91,41 @@ mod tests {
             )
             .expect("workspace table");
         assert_eq!(workspace_table, 1);
+    }
+
+    #[test]
+    fn upgrades_a_v1_workspace_with_defaults() {
+        let mut conn = connection();
+        let tx = conn.transaction().expect("tx");
+        tx.execute_batch(MIGRATIONS[0].sql).expect("v1 schema");
+        tx.pragma_update(None, "user_version", 1)
+            .expect("v1 version");
+        tx.execute(
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \
+             VALUES ('ws-1', 'Workspace', 'FD', '2026-11-15T00:00:00.000Z', '2026-11-15T00:00:00.000Z')",
+            [],
+        )
+        .expect("workspace");
+        tx.commit().expect("commit");
+
+        assert_eq!(run(&mut conn).expect("migrate v2"), 2);
+
+        let workflows: i64 = conn
+            .query_row("SELECT count(*) FROM workflow", [], |row| row.get(0))
+            .expect("workflows");
+        let statuses: i64 = conn
+            .query_row("SELECT count(*) FROM workflow_status", [], |row| row.get(0))
+            .expect("statuses");
+        let counter: i64 = conn
+            .query_row(
+                "SELECT next_number FROM workspace_key_counter WHERE workspace_id = 'ws-1'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("counter");
+        assert_eq!(workflows, 1);
+        assert_eq!(statuses, 5);
+        assert_eq!(counter, 1);
     }
 
     #[test]

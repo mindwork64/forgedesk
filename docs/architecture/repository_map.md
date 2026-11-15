@@ -14,7 +14,17 @@ ForgeDesk/
 ├── rust-toolchain.toml         Stable toolchain + rustfmt/clippy
 ├── vite.config.ts              :1420 dev server, build target, Vitest config
 ├── tsconfig*.json              Strict TypeScript
-├── scripts/visual-gate0.mjs    UI Gate 0 screenshot + geometry assertions
+├── scripts/
+│   ├── visual-gate0.mjs        Gate 0/1 screenshots + geometry assertions
+│   ├── ci.sh                   Shared local/Jenkins verification pipeline
+│   ├── ci-sync.sh              Publish tree to the Jenkins mirror
+│   ├── ci-serve.sh             Read-only git daemon for Jenkins
+│   ├── jenkins-create-job.sh   Create/update ForgeDesk-CI
+│   └── jenkins-trigger.sh      Queue a Jenkins build
+├── Jenkinsfile                 ForgeDesk-CI declarative pipeline
+├── ci/
+│   ├── pkgconfig/              Typecheck-only WebKitGTK shims
+│   └── jenkins/ForgeDesk-CI.xml Versioned job definition
 ├── .github/workflows/ci.yml    Frontend, core, shell and visual-gate lanes
 │
 ├── crates/forgedesk-core/src/
@@ -23,14 +33,25 @@ ForgeDesk/
 │   ├── error.rs                CoreError + stable WireError categories
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── domain/
+│   │   ├── issue.rs            Issue/status/label/filter/query DTOs + validation
 │   │   ├── settings.rs         Typed AppSettings, patch validation, window state
 │   │   ├── workspace.rs        Single workspace validation
 │   │   └── time.rs             UTC RFC 3339 helpers
 │   └── db/
 │       ├── mod.rs              Guarded SQLite connection, WAL, reopen/replace
 │       ├── migrations.rs       Append-only runner + tests
-│       ├── migrations/0001_init.sql
-│       └── repositories/       settings + workspace SQL
+│       ├── migrations/0001_init.sql, 0002_issues.sql
+│       └── repositories/
+│           ├── issues.rs       Issue CRUD/detail/list/batch/duplicate
+│           ├── issue_query.rs  Whitelisted filter/sort/search SQL builder
+│           ├── workflow.rs     Default workflow/status seed/load
+│           ├── labels.rs       Labels + issue-label links
+│           ├── relations.rs    Blocks/related/duplicate relations
+│           ├── comments.rs     Local comments
+│           ├── activity.rs     Structured activity log
+│           ├── projects.rs     Minimal project FK target for Stage 3
+│           ├── settings.rs     Settings JSON document
+│           └── workspace.rs    Workspace + human-key counter
 │
 ├── src-tauri/
 │   ├── Cargo.toml              Tauri 2 shell crate
@@ -58,6 +79,7 @@ ForgeDesk/
 │   │   └── clipboard.ts        Secure-context + fallback copy
 │   ├── stores/
 │   │   ├── app.ts              Bootstrap, serialized settings writes, backups
+│   │   ├── issues.ts           Issue list/detail/mutations, request guards
 │   │   ├── ui.ts               Overlays, groups, viewport, chord hint
 │   │   └── toasts.ts           Bounded toast queue
 │   ├── i18n/                   en/ru catalogues + locale/theme resolution
@@ -70,6 +92,7 @@ ForgeDesk/
 │   ├── components/
 │   │   ├── shell/              AppShell, sidebar, header, breadcrumbs, status
 │   │   ├── layout/             PageHeader, PageToolbar
+│   │   ├── issues/             List/row/board/detail/create issue components
 │   │   ├── ui/                 Fd* shared primitives
 │   │   ├── CommandPalette.vue
 │   │   ├── ShortcutsDialog.vue
@@ -80,19 +103,22 @@ ForgeDesk/
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections
 │   │   └── about/AboutView.vue
-│   └── dev/visualHarness.ts    Build-gated visual fixture (not production)
+│   └── dev/
+│       ├── visualHarness.ts    Build-gated visual fixture (not production)
+│       └── issueFixtures.ts    Deterministic issue/workflow fixtures for gates
 │
 ├── docs/
 │   ├── PROJECT_STATE.md        Compact current state
 │   ├── architecture/           overview, repository_map, assumptions
-│   ├── decisions/              ADR-0001 stack/core, ADR-0002 UI foundation
-│   ├── development/setup.md    Toolchain, commands, sandbox notes
-│   ├── stages/                 Stage 0/1 reports
+│   ├── decisions/              ADR-0001 stack/core, 0002 UI, 0003 issues
+│   ├── development/            setup.md, jenkins.md
+│   ├── stages/                 Stage 0/1/2 reports
 │   ├── ui/
 │   │   ├── component_map.md
 │   │   ├── visual_baseline.md
 │   │   ├── UI-GATE-0-REPORT.md
-│   │   └── current/            Gate 0 screenshots + measurements
+│   │   ├── UI-GATE-1-REPORT.md
+│   │   └── current/            Gate 0/1 screenshots + measurements
 │   └── notes/                  (reserved)
 └── tests/                      (later: integration, fixtures, provider contracts)
 ```

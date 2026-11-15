@@ -2,6 +2,7 @@ import { onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
+import { useIssueStore } from '@/stores/issues'
 import { useUiStore } from '@/stores/ui'
 
 const CHORD_TIMEOUT_MS = 1200
@@ -34,6 +35,7 @@ export function useGlobalShortcuts(): void {
   const router = useRouter()
   const ui = useUiStore()
   const app = useAppStore()
+  const issues = useIssueStore()
 
   let chordPending = false
   let chordTimer: ReturnType<typeof setTimeout> | null = null
@@ -72,6 +74,12 @@ export function useGlobalShortcuts(): void {
     }
 
     if (app.needsOnboarding || dialogIsOpen() || isTextEntry(event.target)) {
+      return
+    }
+
+    if (event.key === 'Escape' && issues.selectedId) {
+      event.preventDefault()
+      issues.closeDetail()
       return
     }
 

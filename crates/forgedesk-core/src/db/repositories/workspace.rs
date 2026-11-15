@@ -58,7 +58,42 @@ pub fn create_initial(conn: &Connection, name: &str) -> CoreResult<Workspace> {
         ],
     )?;
 
+    super::workflow::seed_defaults(conn, &workspace.id)?;
+    conn.execute(
+        "INSERT INTO workspace_key_counter (workspace_id, next_number) VALUES (?1, 1)",
+        [&workspace.id],
+    )?;
+
     Ok(workspace)
+}
+
+/// Allocate the next human key inside the create-issue transaction.
+pub fn next_issue_key(conn: &Connection, workspace_id: &str) -> CoreResult<(i64, String)> {
+    conn.execute(
+        "INSERT OR IGNORE INTO workspace_key_counter (workspace_id, next_number) \
+         SELECT id, 1 FROM workspace WHERE id = ?1",
+        [workspace_id],
+    )?;
+
+    let (prefix, number) = conn
+        .query_row(
+            "SELECT w.key_prefix, c.next_number FROM workspace w \
+             JOIN workspace_key_counter c ON c.workspace_id = w.id WHERE w.id = ?1",
+            [workspace_id],
+            |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)),
+        )
+        .map_err(|error| match error {
+            rusqlite::Error::QueryReturnedNoRows => CoreError::not_found("Workspace"),
+            other => CoreError::from(other),
+        })?;
+
+    conn.execute(
+        "UPDATE workspace_key_counter SET next_number = next_number + 1 \
+         WHERE workspace_id = ?1",
+        [workspace_id],
+    )?;
+
+    Ok((number, format!("{prefix}-{number}")))
 }
 
 #[cfg(test)]
@@ -96,5 +131,28 @@ mod tests {
                 .expect_err("invalid name");
             assert_eq!(error.category(), crate::error::ErrorCategory::Validation);
         }
+    }
+
+    #[test]
+    fn creates_default_workflow_counter_and_keys() {
+        let (_dir, db) = db();
+        let workspace = db
+            .with_conn(|conn| create_initial(conn, "My Workspace"))
+            .expect("workspace");
+        let statuses = db
+            .with_conn(|conn| crate::db::repositories::workflow::statuses(conn, &workspace.id))
+            .expect("statuses");
+        assert_eq!(statuses.len(), 5);
+
+        let (number, key) = db
+            .with_conn(|conn| next_issue_key(conn, &workspace.id))
+            .expect("first key");
+        assert_eq!(number, 1);
+        assert_eq!(key, "FD-1");
+        let (number, key) = db
+            .with_conn(|conn| next_issue_key(conn, &workspace.id))
+            .expect("second key");
+        assert_eq!(number, 2);
+        assert_eq!(key, "FD-2");
     }
 }

@@ -218,7 +218,10 @@ mod tests {
     #[test]
     fn creates_schema_and_survives_reopen() {
         let (dir, db) = temp_db();
-        assert_eq!(db.schema_version().expect("version"), 1);
+        assert_eq!(
+            db.schema_version().expect("version"),
+            migrations::CURRENT_SCHEMA_VERSION
+        );
 
         let settings = AppSettings::default();
         db.save_settings(&settings).expect("save settings");

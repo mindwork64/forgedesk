@@ -44,7 +44,10 @@ explicit separate command and UI confirmation.
 | Storage | `crates/forgedesk-core/src/db/` | Connections, PRAGMAs, migrations, repositories, transactions. |
 | Backup | `crates/forgedesk-core/src/backup.rs` | Consistent snapshots, manifests, checksums, validation, pruning. |
 
-Later stages add `providers/`, `sync/`, `api_budget/`, `git/`, `search/` and
+Stage 2 adds the issue domain and repositories: workflow/status, labels, key
+counter, issues, relations, comments, activity and FTS5 search. The filter engine
+builds whitelisted parameterized SQL from a typed `IssueQuery`; UI never constructs
+SQL. Later stages add `providers/`, `sync/`, `api_budget/`, `git/`, `search/` and
 `automation/` inside the core, with the same dependency direction. Provider
 adapters return provider-neutral DTOs; domain does not import them.
 

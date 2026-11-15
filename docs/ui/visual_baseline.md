@@ -1,9 +1,9 @@
-# Visual baseline — UI Gate 0
+# Visual baseline — UI Gates 0–1
 
-**Gate:** UI Gate 0 — Design System + App Shell (Stage 1)  
+**Gates:** UI Gate 0 — Design System + App Shell; UI Gate 1 — Issues and views (Stage 2)  
 **Date:** 2026-11-15  
-**Result:** PASS for the browser-rendered shell; native-window capture SKIPPED  
-**Artifacts:** `docs/ui/current/` (screenshots + `gate0-measurements.json`)
+**Result:** PASS for the browser-rendered shell; UI Gate 1 core flow PASS/PARTIAL; native-window capture SKIPPED  
+**Artifacts:** `docs/ui/current/` (screenshots + `measurements.json`)
 
 ## Environment
 
@@ -50,10 +50,16 @@ Query parameters used by the harness: `theme=dark|light`,
 | 14 | `gate0-inbox-shortcut-dark-1440.png` | 1440×900 | Dark | 240 px | `G` then `I` navigation |
 | 15 | `gate0-startup-error-dark-1440.png` | 1440×900 | Dark | 240 px | startup error surface |
 | 16 | `gate0-settings-storage-light-1440.png` | 1440×900 | Light | 240 px | Storage settings, light theme |
+| 17 | `gate1-my-issues-list-detail-dark-1440.png` | 1440×900 | Dark | 240 px | 16-row list + FD-101 detail |
+| 18 | `gate1-detail-overlay-1100.png` | 1100×700 | Dark | 64 px | detail pane overlay |
+| 19 | `gate1-my-issues-list-light-1440.png` | 1440×900 | Light | 240 px | issue list, light |
+| 20 | `gate1-my-issues-board-dark-1440.png` | 1440×900 | Dark | 240 px | board, first four columns 4/4/4/3 |
+| 21 | `gate1-create-dialog-dark-1440.png` | 1440×900 | Dark | 240 px | create dialog 720 px |
+| 22 | `gate1-detail-activity-dark-1440.png` | 1440×900 | Dark | 240 px | relations/activity/comments |
 
 ## Measured geometry
 
-From `docs/ui/current/gate0-measurements.json` (tolerance ±2 px):
+From `docs/ui/current/measurements.json` (tolerance ±2 px):
 
 | Case | Sidebar | Header | Status strip | Content padding | Body background | Horizontal overflow |
 |---|---:|---:|---:|---:|---|---|
@@ -62,6 +68,10 @@ From `docs/ui/current/gate0-measurements.json` (tolerance ±2 px):
 | dark 1280 collapsed | 64 | 48 | 24 | 24 px | `rgb(14,17,23)` | none |
 | light 1280 collapsed | 64 | 48 | 24 | 24 px | `rgb(245,246,248)` | none |
 | dark 1100 collapsed | 64 | 48 | 24 | 24 px | `rgb(14,17,23)` | none |
+
+Gate 1 measurements: 16 list rows; detail pane 440 px at 1440 and 1100 (absolute
+overlay at 1100); board 5 columns with first four card counts 4/4/4/3; create dialog
+720 px; no console errors.
 
 Additional automated assertions:
 

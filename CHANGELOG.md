@@ -5,6 +5,19 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 2 — Issues, workflow, search and views (partial)
+
+- Schema v2: workflow/status, projects FK target, labels, issue key counter,
+  issues, relations, comments, activity, saved-view table, FTS5 triggers.
+- Issue create/update/archive/duplicate/batch, `FD-<n>` keys, parent cycle checks,
+  labels, relations, comments and activity.
+- Server-side whitelisted filter engine, FTS search, sorting and pagination.
+- My Issues list, Board with drag status changes, 440 px detail pane, create
+  dialog, inline property editing, bulk actions and detail relations/comments.
+- 31 core tests, 70 frontend tests, 22 visual-gate captures.
+- Remaining for Stage 2: filter builder, saved views UI/API, palette entity search,
+  virtualization, full UI Gate 1 acceptance.
+
 ### Stage 1 — Desktop foundation, UI Gate 0
 
 - Tauri 2 + Vue 3 shell with the fixed sidebar/header/status-strip geometry.

@@ -22,6 +22,7 @@ const OUT_DIR = resolve('docs/ui/current')
 const cases = [
   {
     name: 'gate0-shell-dark-1440-expanded',
+    waitFor: '[data-testid="issue-row"]',
     theme: 'dark',
     sidebar: 'expanded',
     width: 1440,
@@ -31,6 +32,7 @@ const cases = [
   },
   {
     name: 'gate0-shell-light-1440-expanded',
+    waitFor: '[data-testid="issue-row"]',
     theme: 'light',
     sidebar: 'expanded',
     width: 1440,
@@ -40,6 +42,7 @@ const cases = [
   },
   {
     name: 'gate0-shell-dark-1280-collapsed',
+    waitFor: '[data-testid="issue-row"]',
     theme: 'dark',
     sidebar: 'collapsed',
     width: 1280,
@@ -49,6 +52,7 @@ const cases = [
   },
   {
     name: 'gate0-shell-light-1280-collapsed',
+    waitFor: '[data-testid="issue-row"]',
     theme: 'light',
     sidebar: 'collapsed',
     width: 1280,
@@ -58,6 +62,7 @@ const cases = [
   },
   {
     name: 'gate0-shell-dark-1100-collapsed',
+    waitFor: '[data-testid="issue-row"]',
     theme: 'dark',
     sidebar: 'expanded',
     width: 1100,
@@ -67,6 +72,7 @@ const cases = [
   },
   {
     name: 'gate0-shell-dark-1440-russian',
+    waitFor: '[data-testid="issue-row"]',
     theme: 'dark',
     locale: 'ru',
     sidebar: 'expanded',
@@ -159,6 +165,66 @@ const cases = [
     height: 900,
     route: '/my-issues',
     interaction: 'chord',
+  },
+  {
+    name: 'gate1-my-issues-list-detail-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    selectIssue: 'FD-101',
+    waitFor: '[data-testid="issue-detail-title"]',
+  },
+  {
+    name: 'gate1-detail-overlay-1100',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1100,
+    height: 700,
+    route: '/my-issues',
+    selectIssue: 'FD-101',
+    waitFor: '[data-testid="issue-detail-title"]',
+  },
+  {
+    name: 'gate1-my-issues-list-light-1440',
+    theme: 'light',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    waitFor: '[data-testid="issue-row"]',
+  },
+  {
+    name: 'gate1-my-issues-board-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    view: 'board',
+    waitFor: '.fd-board',
+  },
+  {
+    name: 'gate1-create-dialog-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    openCreate: true,
+    waitFor: '.fd-issue-create',
+  },
+  {
+    name: 'gate1-detail-activity-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/my-issues',
+    selectIssue: 'FD-101',
+    scrollDetail: true,
+    waitFor: '[data-testid="issue-detail-title"]',
   },
   {
     name: 'gate0-startup-error-dark-1440',
@@ -389,6 +455,32 @@ async function main() {
         await page.waitForFunction(() => window.location.hash === '#/inbox')
       }
 
+      if (testCase.view === 'board') {
+        await page.getByRole('radio', { name: 'Board' }).click()
+        await page.waitForSelector('.fd-board')
+      }
+
+      if (testCase.selectIssue) {
+        await page
+          .locator('[data-testid="issue-row"]')
+          .filter({ hasText: testCase.selectIssue })
+          .first()
+          .click()
+        await page.waitForSelector('[data-testid="issue-detail-title"]')
+      }
+
+      if (testCase.openCreate) {
+        await page.getByRole('button', { name: 'New issue' }).click()
+        await page.waitForSelector('.fd-issue-create')
+      }
+
+      if (testCase.scrollDetail) {
+        await page.evaluate(() => {
+          const body = document.querySelector('.fd-detail-body')
+          if (body) body.scrollTop = body.scrollHeight
+        })
+      }
+
       if (testCase.interaction === 'restore-dialog') {
         await page
           .getByRole('button', { name: 'Restore', exact: true })
@@ -532,6 +624,79 @@ async function main() {
         )
       }
 
+      if (testCase.selectIssue) {
+        const pane = await page.evaluate(() => {
+          const element = document.querySelector('[data-testid="detail-pane"]')
+          if (!element) return null
+          const rect = element.getBoundingClientRect()
+          return { width: Math.round(rect.width), left: Math.round(rect.left) }
+        })
+        caseReport.detailPane = pane
+        if (testCase.width >= 1280) {
+          assert(
+            pane !== null && Math.abs(pane.width - 440) <= 2,
+            `${testCase.name}: detail pane width ${pane?.width}, expected 440`,
+            report.failures,
+          )
+        }
+        if (testCase.width < 1200) {
+          const position = await page.evaluate(() => {
+            const element = document.querySelector('[data-testid="detail-pane"]')
+            return element ? getComputedStyle(element).position : null
+          })
+          caseReport.detailPanePosition = position
+          assert(
+            position === 'absolute',
+            `${testCase.name}: detail pane should overlay below 1200 px, got ${position}`,
+            report.failures,
+          )
+        }
+      }
+
+      if (testCase.view === 'board') {
+        const board = await page.evaluate(() => {
+          const columns = Array.from(document.querySelectorAll('.fd-board__column'))
+          return {
+            columns: columns.length,
+            cards: columns.slice(0, 4).map((column) => column.querySelectorAll('.fd-board__card').length),
+          }
+        })
+        caseReport.board = board
+        assert(board.columns >= 4, `${testCase.name}: expected ≥4 board columns`, report.failures)
+        assert(
+          board.cards.every((count) => count >= 3),
+          `${testCase.name}: expected ≥3 cards in each of the first four columns, got ${board.cards}`,
+          report.failures,
+        )
+      }
+
+      if (testCase.openCreate) {
+        const width = await page.evaluate(() => {
+          const modal = document.querySelector('.fd-modal-panel')
+          return modal ? Math.round(modal.getBoundingClientRect().width) : null
+        })
+        caseReport.createDialogWidth = width
+        assert(
+          width !== null && width <= 720 && width >= 600,
+          `${testCase.name}: create dialog width ${width}, expected 600–720`,
+          report.failures,
+        )
+      }
+
+      if (
+        testCase.route === '/my-issues' &&
+        !testCase.onboarding &&
+        !testCase.error &&
+        testCase.interaction !== 'chord'
+      ) {
+        const rows = await page.locator('[data-testid="issue-row"]').count()
+        caseReport.issueRows = rows
+        const boardVisible = await page.locator('.fd-board').count()
+        if (boardVisible === 0 && !testCase.openCreate) {
+          assert(rows >= 12, `${testCase.name}: expected ≥12 issue rows, got ${rows}`, report.failures)
+        }
+      }
+
       if (testCase.onboarding) {
         const modalWidth = await page.evaluate(() => {
           const modal = document.querySelector('.fd-modal-panel')
@@ -563,7 +728,7 @@ async function main() {
 
   report.assertions = report.failures.length === 0 ? 'PASS' : 'FAIL'
   writeFileSync(
-    resolve(OUT_DIR, 'gate0-measurements.json'),
+    resolve(OUT_DIR, 'measurements.json'),
     `${JSON.stringify(report, null, 2)}\n`,
   )
 

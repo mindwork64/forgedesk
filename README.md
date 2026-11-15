@@ -7,8 +7,8 @@
 
 > **Implementation status (2026-11-15):** the Stage 1 desktop foundation is
 > implemented in this repository. See `docs/PROJECT_STATE.md` for current state,
-> `docs/development/setup.md` for commands and `docs/ui/UI-GATE-0-REPORT.md` for
-> visual acceptance evidence. The requirement documents below remain authoritative.
+> `docs/development/setup.md` for commands and `docs/ui/UI-GATE-0-REPORT.md` and
+> `docs/ui/UI-GATE-1-REPORT.md` for visual acceptance evidence. The requirement documents below remain authoritative.
 
 ## Назначение пакета
 
