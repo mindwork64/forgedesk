@@ -1147,6 +1147,37 @@ export default {
     },
   },
 
+  reviewsPage: {
+    chooseRepo: 'Выбрать репозиторий',
+    connectTitle: 'Подключить GitHub',
+    connectBody: 'Подключите GitHub, чтобы загрузить запросы на ревью.',
+    noRepoTitle: 'Выберите репозиторий GitHub',
+    noRepoBody: 'Выберите найденный репозиторий, чтобы загрузить запросы на ревью.',
+    loadError: 'Не удалось загрузить запросы на ревью',
+    empty: 'Запросов на ревью нет',
+    emptyBody: 'В этом репозитории нет открытых pull requests с запросом вашего ревью.',
+    columns: {
+      pr: 'Pull request',
+      repository: 'Репозиторий',
+      author: 'Автор',
+      state: 'Статус',
+      updated: 'Обновлено',
+    },
+  },
+  ciPage: {
+    chooseRepo: 'Выбрать репозиторий',
+    connectTitle: 'Подключить GitHub',
+    connectBody: 'Подключите GitHub, чтобы загрузить проверки CI.',
+    noRepoTitle: 'Выберите репозиторий GitHub',
+    noRepoBody: 'Выберите найденный репозиторий, чтобы загрузить коммиты и проверки.',
+    refresh: 'Обновить',
+    loadError: 'Не удалось загрузить CI',
+    commits: 'Последние коммиты',
+    checks: 'Проверки',
+    noChecks: 'Проверки не найдены',
+    noChecksBody: 'GitHub не вернул check runs для этого коммита.',
+  },
+
   about: {
     heading: 'Локальное рабочее пространство для разработки',
     body: 'ForgeDesk объединяет задачи, проекты, репозитории и pull requests в одном desktop-пространстве на локальной базе SQLite.',

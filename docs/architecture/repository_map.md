@@ -36,6 +36,7 @@ ForgeDesk/
 │   ├── github_auth.rs          GitHub App Device Flow + keyring token vault
 │   ├── github_client.rs        Budget-free GitHub REST reads (repos/issues/PRs)
 │   ├── github_pr.rs            PR detail/commits/reviews/check-runs
+│   ├── github_activity.rs      Review queue + CI/check-runs reads
 │   ├── domain/
 │   │   ├── api_budget.rs       Budget observation/request/queue DTOs + formula
 │   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
@@ -128,6 +129,8 @@ ForgeDesk/
 │   │   ├── repositories/       Local repository list/detail/dialog
 │   │   ├── integrations/       Provider cards + GitHub Device Flow dialog
 │   │   ├── pull-requests/      PR table + read-only detail pane
+│   │   ├── reviews/            Requested-review queue
+│   │   ├── ci/                 Commits + check-runs
 │   │   ├── api-monitor/        Budgets, queue, request history
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections

@@ -31,7 +31,11 @@ screen remain open.
 - No merge, close, approve, comment or review submission is exposed.
 - No fake PR data in production; connected screenshots use the build-gated harness.
 - Live read-only verification against `cli/cli`: list pulls + load detail/commits/
-  reviews/check-runs succeeded.
+  reviews/check-runs, review search and CI overview succeeded.
+- **Reviews screen:** GitHub search for open PRs with `review-requested:<login>`;
+  read-only table opens the corresponding PR detail via `/pull-requests?pr=N`.
+- **CI / Activity screen:** default branch, recent commits, check-runs for the latest
+  commit, and lazy per-commit check loading; read-only.
 - Reliability fixes: idempotent, error-safe GitHub disconnect (memory/keyring
   consistent); PR files pagination follows `Page.next_page` with cycle/non-advance
   rejection and fails the whole request on later-page errors.
@@ -48,7 +52,6 @@ screen remain open.
 - Split diff, line comments and resolved-thread state.
 - Review submission, approve/request-changes, merge/close, merge readiness and
   permission-aware actions.
-- Requested-review queue (`/reviews`) and CI/checks (`/ci`) dedicated screens.
 - PR-to-local-issue linking, PR labels/assignees/milestones, merge queue.
 - GraphQL batching of review/check summaries for list rows; rows without an open
   detail show `—` for review/checks.
@@ -60,9 +63,9 @@ screen remain open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 70 (+2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 70 (+3 ignored live) |
 | Frontend | `npm run typecheck`, `npm test` | PASS — 103 |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 49 captures (PR list/detail/files + cap warning) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 51 captures (PR, reviews, CI) |
 | Live PR read | `GITHUB_TOKEN=$(gh auth token) cargo test ... --ignored` | PASS — `cli/cli` list + detail |
 | Jenkins build 11 | Stage 6 read-only snapshot `ec5e9dc` | SUCCESS — 144 s, 52 core tests (+2 ignored), 47 captures, 48 artifacts |
 | Jenkins build 12 | PR files/diff `3dc3ee1` | SUCCESS — 128 s, 52 core tests (+2 ignored), 48 captures, 49 artifacts |
@@ -73,7 +76,6 @@ screen remain open.
 
 1. Split diff, line comments and lazy per-file diff loading.
 2. Review submission, merge/close and permission checks with explicit intent.
-3. `/reviews` requested queue and `/ci` checks screen.
-4. PR↔issue links and GraphQL list summaries.
-5. Budget-aware request logging for PR reads.
-6. Native Tauri verification.
+3. PR↔issue links and GraphQL list summaries.
+4. Budget-aware request logging for PR reads.
+5. Native Tauri verification.

@@ -117,6 +117,8 @@ props change; do not re-read every component for unrelated work.
 | `githubAuth` store | `src/stores/githubAuth.ts` | Device Flow polling, connection, refresh, disconnect, selected repo |
 | `PullRequestsView` | `src/features/pull-requests/` | Read-only PR table + commits/checks/reviews detail |
 | `pullRequests` store | `src/stores/pullRequests.ts` | PR list/detail requests and selection |
+| `ReviewsView` | `src/features/reviews/` | Requested-review queue, opens PR detail |
+| `CiView` | `src/features/ci/` | Recent commits and lazy check-runs |
 | `apiMonitor` store | `src/stores/apiMonitor.ts` | Budget state, pause/resume, diagnostics |
 | `ui` store | `src/stores/ui.ts` | Palette/shortcut overlays, sidebar groups, viewport width, chord hint |
 | `toasts` store | `src/stores/toasts.ts` | Bounded toast stack with timed dismissal |

@@ -138,6 +138,23 @@ pub struct GitHubCheckRun {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubSearchIssue {
+    pub id: i64,
+    pub number: i64,
+    pub title: String,
+    pub state: String,
+    pub html_url: String,
+    pub updated_at: String,
+    pub user: Option<GitHubOwner>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct GitHubSearchResult {
+    #[serde(default)]
+    items: Vec<GitHubSearchIssue>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitHubFile {
     pub filename: String,
     pub status: String,
@@ -217,6 +234,37 @@ impl GitHubClient {
     pub fn get_pull(&self, owner: &str, repo: &str, number: i64) -> CoreResult<GitHubPull> {
         let path = format!("/repos/{}/{}/pulls/{}", encode(owner), encode(repo), number);
         self.get_json(&path)
+    }
+
+    pub fn get_repository(&self, owner: &str, repo: &str) -> CoreResult<GitHubRepo> {
+        self.get_json(&format!("/repos/{}/{}", encode(owner), encode(repo)))
+    }
+
+    pub fn list_commits(
+        &self,
+        owner: &str,
+        repo: &str,
+        per_page: u32,
+    ) -> CoreResult<Vec<GitHubCommit>> {
+        let page: Page<GitHubCommit> = self.get_page(&format!(
+            "/repos/{}/{}/commits?per_page={}",
+            encode(owner),
+            encode(repo),
+            per_page.clamp(1, 100)
+        ))?;
+        Ok(page.items)
+    }
+
+    pub fn review_requested(
+        &self,
+        owner: &str,
+        repo: &str,
+        login: &str,
+    ) -> CoreResult<Vec<GitHubSearchIssue>> {
+        let query = format!("repo:{owner}/{repo} is:pr is:open review-requested:{login}");
+        let path = format!("/search/issues?q={}&per_page=50", encode(&query));
+        let result: GitHubSearchResult = self.get_json(&path)?;
+        Ok(result.items)
     }
 
     pub fn list_pull_commits(

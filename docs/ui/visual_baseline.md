@@ -83,6 +83,8 @@ Query parameters used by the harness: `theme=dark|light`,
 | 47 | `gate3-pr-detail-dark-1440.png` | 1440×900 | Dark | 240 px | PR detail pane |
 | 48 | `gate3-pr-files-dark-1440.png` | 1440×900 | Dark | 240 px | PR unified file patches |
 | 49 | `gate3-pr-files-overlimit-dark-1440.png` | 1440×900 | Dark | 240 px | PR 3000-file cap warning |
+| 50 | `gate3-reviews-dark-1440.png` | 1440×900 | Dark | 240 px | requested reviews queue |
+| 51 | `gate3-ci-dark-1440.png` | 1440×900 | Dark | 240 px | commits and check-runs |
 
 ## Measured geometry
 

@@ -10,6 +10,7 @@ pub mod db;
 pub mod domain;
 pub mod error;
 pub mod git;
+pub mod github_activity;
 pub mod github_auth;
 pub mod github_client;
 pub mod github_pr;

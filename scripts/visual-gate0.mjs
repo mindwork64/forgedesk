@@ -482,6 +482,24 @@ const cases = [
     waitFor: '[data-testid="detail-pane"]',
   },
   {
+    name: 'gate3-reviews-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/reviews',
+    waitFor: '.fd-reviews-table',
+  },
+  {
+    name: 'gate3-ci-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/ci',
+    waitFor: '.fd-ci-check-list',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1148,6 +1166,20 @@ async function main() {
           const dirty = await page.locator('.fd-repository-status--dirty').count()
           assert(dirty === 1, `${testCase.name}: expected dirty worktree state`, report.failures)
         }
+      }
+
+      if (testCase.route === '/reviews') {
+        const rows = await page.locator('.fd-reviews-row').count()
+        caseReport.reviewRows = rows
+        assert(rows >= 2, `${testCase.name}: expected review rows`, report.failures)
+      }
+
+      if (testCase.route === '/ci') {
+        const commits = await page.locator('.fd-ci-commit').count()
+        const checks = await page.locator('.fd-ci-check-row').count()
+        caseReport.ciCommits = commits
+        caseReport.ciChecks = checks
+        assert(commits >= 3 && checks >= 3, `${testCase.name}: expected CI activity`, report.failures)
       }
 
       if (testCase.route === '/integrations') {

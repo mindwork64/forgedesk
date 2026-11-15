@@ -149,6 +149,9 @@ export type CommandName =
   | 'github_import_issues'
   | 'github_list_pulls'
   | 'github_pull_detail'
+  | 'github_review_requested'
+  | 'github_ci_overview'
+  | 'github_commit_checks'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -818,4 +821,20 @@ export interface PullRequestDetail {
   reviews: GitHubReview[]
   checks: GitHubCheckRun[]
   files: GitHubFile[]
+}
+
+export interface GitHubSearchIssue {
+  id: number
+  number: number
+  title: string
+  state: string
+  htmlUrl: string
+  updatedAt: string
+  user: { login: string } | null
+}
+
+export interface CiOverview {
+  defaultBranch: string
+  commits: GitHubCommit[]
+  checks: GitHubCheckRun[]
 }

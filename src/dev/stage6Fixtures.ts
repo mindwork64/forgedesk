@@ -5,6 +5,8 @@ import type {
   GitHubPull,
   GitHubReview,
   GitHubFile,
+  GitHubSearchIssue,
+  CiOverview,
   PullRequestDetail,
 } from '@/types/ipc'
 
@@ -139,6 +141,22 @@ const overLimitFiles: GitHubFile[] = Array.from({ length: 3000 }, (_, index) => 
   previousFilename: null,
 }))
 
+const reviewRequests: GitHubSearchIssue[] = [pullOne, pullTwo].map((pull) => ({
+  id: pull.id,
+  number: pull.number,
+  title: pull.title,
+  state: pull.state,
+  htmlUrl: pull.htmlUrl,
+  updatedAt: pull.updatedAt,
+  user: pull.user,
+}))
+
+const ciOverview: CiOverview = {
+  defaultBranch: 'main',
+  commits,
+  checks,
+}
+
 const overLimitDetail: PullRequestDetail = {
   pull: { ...pullTwo, changedFiles: 3500 },
   commits: [],
@@ -161,6 +179,12 @@ export function handleStage6FixtureCommand<T>(
           Number(args?.number) === pullTwo.number ? overLimitDetail : detail,
         ) as T,
       }
+    case 'github_review_requested':
+      return { handled: true, value: structuredClone(reviewRequests) as T }
+    case 'github_ci_overview':
+      return { handled: true, value: structuredClone(ciOverview) as T }
+    case 'github_commit_checks':
+      return { handled: true, value: structuredClone(checks) as T }
     default:
       return { handled: false }
   }

@@ -108,6 +108,9 @@ pub fn run() {
             commands::github_import_issues,
             commands::github_list_pulls,
             commands::github_pull_detail,
+            commands::github_review_requested,
+            commands::github_ci_overview,
+            commands::github_commit_checks,
         ]);
 
     let app = builder

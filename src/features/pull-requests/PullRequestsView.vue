@@ -2,7 +2,7 @@
 import { GitPullRequest, X } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import EntityDetailPane from '@/components/issues/EntityDetailPane.vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -27,6 +27,7 @@ const auth = useGithubAuthStore()
 const prs = usePullRequestStore()
 const app = useAppStore()
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 
 const state = ref<'open' | 'closed' | 'all'>('open')
@@ -57,15 +58,25 @@ async function load(): Promise<void> {
   }
 }
 
+function openRequested(): void {
+  const number = Number(route.query.pr)
+  if (selectedRepo.value && Number.isInteger(number) && number > 0) {
+    detailTab.value = 'overview'
+    void prs.open(selectedRepo.value.owner, selectedRepo.value.name, number)
+  }
+}
+
 onMounted(async () => {
   await auth.loadConnection()
   await load()
+  openRequested()
 })
 
 watch(state, load)
 watch(selectedRepo, async () => {
   prs.close()
   await load()
+  openRequested()
 })
 
 function openPull(item: GitHubPull): void {

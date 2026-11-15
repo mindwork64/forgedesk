@@ -12,6 +12,8 @@ import RoadmapView from '@/features/roadmap/RoadmapView.vue'
 import ApiMonitorView from '@/features/api-monitor/ApiMonitorView.vue'
 import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
 import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
+import ReviewsView from '@/features/reviews/ReviewsView.vue'
+import CiView from '@/features/ci/CiView.vue'
 import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
 import RepositoryDetailView from '@/features/repositories/RepositoryDetailView.vue'
 import PlaceholderView from '@/features/placeholder/PlaceholderView.vue'
@@ -170,7 +172,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/reviews',
     name: 'reviews',
-    component: PlaceholderView,
+    component: ReviewsView,
     meta: {
       titleKey: 'pages.reviews.title',
       descriptionKey: 'pages.reviews.description',
@@ -180,7 +182,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/ci',
     name: 'ci',
-    component: PlaceholderView,
+    component: CiView,
     meta: {
       titleKey: 'pages.ci.title',
       descriptionKey: 'pages.ci.description',

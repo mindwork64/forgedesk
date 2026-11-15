@@ -46,6 +46,9 @@ import type {
   GitHubImportResult,
   GitHubPull,
   PullRequestDetail,
+  GitHubSearchIssue,
+  CiOverview,
+  GitHubCheckRun,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -242,4 +245,10 @@ export const api = {
     call<GitHubPull[]>('github_list_pulls', { owner, repo, pullState }),
   githubPullDetail: (owner: string, repo: string, number: number) =>
     call<PullRequestDetail>('github_pull_detail', { owner, repo, number }),
+  githubReviewRequested: (owner: string, repo: string) =>
+    call<GitHubSearchIssue[]>('github_review_requested', { owner, repo }),
+  githubCiOverview: (owner: string, repo: string) =>
+    call<CiOverview>('github_ci_overview', { owner, repo }),
+  githubCommitChecks: (owner: string, repo: string, reference: string) =>
+    call<GitHubCheckRun[]>('github_commit_checks', { owner, repo, reference }),
 }

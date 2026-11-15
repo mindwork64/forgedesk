@@ -1148,6 +1148,37 @@ export default {
     },
   },
 
+  reviewsPage: {
+    chooseRepo: 'Choose repository',
+    connectTitle: 'Connect GitHub',
+    connectBody: 'Connect GitHub to load review requests.',
+    noRepoTitle: 'Choose a GitHub repository',
+    noRepoBody: 'Select a discovered repository to load requested reviews.',
+    loadError: 'Could not load requested reviews',
+    empty: 'No requested reviews',
+    emptyBody: 'No open pull requests currently request your review in this repository.',
+    columns: {
+      pr: 'Pull request',
+      repository: 'Repository',
+      author: 'Author',
+      state: 'State',
+      updated: 'Updated',
+    },
+  },
+  ciPage: {
+    chooseRepo: 'Choose repository',
+    connectTitle: 'Connect GitHub',
+    connectBody: 'Connect GitHub to load CI checks.',
+    noRepoTitle: 'Choose a GitHub repository',
+    noRepoBody: 'Select a discovered repository to load commits and checks.',
+    refresh: 'Refresh',
+    loadError: 'Could not load CI activity',
+    commits: 'Recent commits',
+    checks: 'Checks',
+    noChecks: 'No checks reported',
+    noChecksBody: 'GitHub returned no check runs for this commit.',
+  },
+
   about: {
     heading: 'A local-first development workspace',
     body: 'ForgeDesk brings issues, projects, repositories and pull requests into one desktop workspace backed by SQLite on this computer.',

@@ -11,9 +11,11 @@ use forgedesk_core::domain::{
     SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow,
     Workspace,
 };
+use forgedesk_core::github_activity::CiOverview;
 use forgedesk_core::github_auth::{DeviceFlowPoll, DeviceFlowStart, GitHubConnection};
 use forgedesk_core::github_client::GitHubPull;
 use forgedesk_core::github_client::GitHubRepo;
+use forgedesk_core::github_client::{GitHubCheckRun, GitHubSearchIssue};
 use forgedesk_core::github_pr::PullRequestDetail;
 use forgedesk_core::github_sync::ImportResult;
 use tauri::{AppHandle, Manager, State};
@@ -678,5 +680,48 @@ pub fn github_pull_detail(
     let token = state.with_github(|github| github.access_token())?;
     state
         .with_service(|service| service.github_pull_detail(&token, &owner, &repo, number))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_review_requested(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+) -> Result<Vec<GitHubSearchIssue>, CommandError> {
+    let (token, login) = state.with_github(|github| {
+        let token = github.access_token()?;
+        let connection = github
+            .connection()?
+            .ok_or_else(|| forgedesk_core::CoreError::auth("GitHub is not connected."))?;
+        Ok((token, connection.login))
+    })?;
+    state
+        .with_service(|service| service.github_review_requested(&token, &owner, &repo, &login))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_ci_overview(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+) -> Result<CiOverview, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.github_ci_overview(&token, &owner, &repo))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_commit_checks(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+    reference: String,
+) -> Result<Vec<GitHubCheckRun>, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.github_commit_checks(&token, &owner, &repo, &reference))
         .map_err(CommandError::from)
 }

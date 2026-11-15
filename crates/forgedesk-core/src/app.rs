@@ -18,8 +18,10 @@ use crate::domain::{
     Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
+use crate::github_activity::CiOverview;
 use crate::github_client::GitHubPull;
 use crate::github_client::GitHubRepo;
+use crate::github_client::GitHubSearchIssue;
 use crate::github_pr::PullRequestDetail;
 use crate::github_sync::ImportResult;
 
@@ -318,6 +320,35 @@ impl AppService {
         number: i64,
     ) -> CoreResult<PullRequestDetail> {
         crate::github_pr::pull_detail(token, owner, repo, number)
+    }
+
+    pub fn github_review_requested(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        login: &str,
+    ) -> CoreResult<Vec<GitHubSearchIssue>> {
+        crate::github_activity::review_requested(token, owner, repo, login)
+    }
+
+    pub fn github_ci_overview(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+    ) -> CoreResult<CiOverview> {
+        crate::github_activity::ci_overview(token, owner, repo)
+    }
+
+    pub fn github_commit_checks(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        reference: &str,
+    ) -> CoreResult<Vec<crate::github_client::GitHubCheckRun>> {
+        crate::github_activity::commit_checks(token, owner, repo, reference)
     }
 
     pub fn git_available(&self) -> GitAvailability {
