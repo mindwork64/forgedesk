@@ -3,7 +3,10 @@
 ## Automated gates
 
 - [x] `cargo fmt --all --check`
-- [x] `cargo clippy -p forgedesk-core -p forgedesk-ai --all-targets -- -D warnings`
+- [x] `cargo clippy -p forgedesk-core --all-targets -- -D warnings` (local)
+- [x] `cargo clippy -p forgedesk-ai --all-targets -- -D warnings` (local)
+- [x] AI Clippy command configured in the CI job with explicit `components: clippy`
+- [ ] AI Clippy CI execution verified successfully
 - [x] `cargo test -p forgedesk-core` (91 passed, 3 ignored live)
 - [x] `cargo test -p forgedesk-ai` (5 passed)
 - [x] `npm run typecheck`
@@ -12,7 +15,6 @@
 - [x] `VITE_AI_EXTENSION=true npm run build`
 - [x] `node scripts/visual-gate0.mjs` (57 captures + axe button-name/aria-command-name)
 - [x] Realistic v5→v9 migration data-preservation test + foreign_key_check
-- [x] `cargo clippy -p forgedesk-ai --all-targets -- -D warnings` (CI job step)
 
 ## Native smoke tests (blocked here)
 

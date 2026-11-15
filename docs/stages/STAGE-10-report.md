@@ -24,8 +24,8 @@ full release packaging remain open.
     button names pass, while empty/hidden-only buttons and unnamed `role="button"`
     fail;
   - all 57 visual cases pass.
-- Optional AI CI lanes (GitHub Actions run itself was not executed in this local
-  corrective pass; the workflow includes the commands):
+- Optional AI CI lanes (the workflow includes the commands and explicitly installs
+  the Clippy component; local runs do not substitute for a CI execution result):
   - AI crate tests;
   - default + `VITE_AI_EXTENSION=true` frontend builds;
   - Tauri default and `--features ai-extension` compile checks.
@@ -50,7 +50,7 @@ full release packaging remain open.
 | Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 57 captures |
 | Production chunk | `npm run build` | PASS — main JS ~231 KB |
 | Migration v5→v9 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
-| AI Clippy | `cargo clippy -p forgedesk-ai ...` | PASS (CI step configured) |
+| AI Clippy (local) | `cargo clippy -p forgedesk-ai ...` | PASS; CI execution tracked separately |
 | Native runtime | — | BLOCKED — no desktop WebKitGTK |
 | Signed installers | — | BLOCKED — no signing credentials |
 

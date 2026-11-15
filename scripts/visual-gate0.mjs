@@ -722,12 +722,14 @@ async function validateButtonNameRegression(browser, report) {
   const context = await browser.newContext()
   const page = await context.newPage()
   try {
+    // Every valid control has exactly one name source. Icon-only controls contain
+    // only an aria-hidden icon, so broken ARIA cannot fall back to visible text.
     await page.setContent(`
       <button>Visible text</button>
-      <button aria-label="Aria label">Aria</button>
-      <span id="name-ref">Referenced name</span>
-      <button aria-labelledby="name-ref">Icon</button>
       <button aria-label="Icon action"><svg aria-hidden="true"></svg></button>
+      <span id="name-ref">Referenced name</span>
+      <button aria-labelledby="name-ref"><svg aria-hidden="true"></svg></button>
+      <button title="Independent title"><svg aria-hidden="true"></svg></button>
     `)
     const valid = await new AxeBuilder({ page })
       .withRules(['button-name', 'aria-command-name'])
@@ -738,21 +740,50 @@ async function validateButtonNameRegression(browser, report) {
       report.failures,
     )
 
-    const invalidCases = {
-      'empty button': '<button></button>',
-      'only hidden text': '<button><span style="display:none">Hidden</span></button>',
-      'role button without name': '<div role="button"></div>',
-    }
-    for (const [name, markup] of Object.entries(invalidCases)) {
-      await page.setContent(markup)
+    const invalidCases = [
+      {
+        name: 'empty button',
+        markup: '<button></button>',
+        rule: 'button-name',
+      },
+      {
+        name: 'only hidden text',
+        markup: '<button><span style="display:none">Hidden</span></button>',
+        rule: 'button-name',
+      },
+      {
+        name: 'role button without name',
+        markup: '<div role="button"></div>',
+        rule: 'aria-command-name',
+      },
+      {
+        name: 'aria-label removed',
+        markup: '<button><svg aria-hidden="true"></svg></button>',
+        rule: 'button-name',
+      },
+      {
+        name: 'aria-labelledby removed',
+        markup:
+          '<span id="name-ref">Referenced name</span><button><svg aria-hidden="true"></svg></button>',
+        rule: 'button-name',
+      },
+      {
+        name: 'title removed',
+        markup: '<button><svg aria-hidden="true"></svg></button>',
+        rule: 'button-name',
+      },
+    ]
+    for (const invalidCase of invalidCases) {
+      await page.setContent(invalidCase.markup)
       const invalid = await new AxeBuilder({ page })
         .withRules(['button-name', 'aria-command-name'])
         .analyze()
+      const expected = invalid.violations.find(
+        (violation) => violation.id === invalidCase.rule,
+      )
       assert(
-        invalid.violations.some((violation) =>
-          ['button-name', 'aria-command-name'].includes(violation.id),
-        ),
-        `button-name regression: ${name} was not rejected`,
+        Boolean(expected && expected.nodes.length > 0),
+        `button-name regression: ${invalidCase.name} was not rejected by ${invalidCase.rule}`,
         report.failures,
       )
     }
@@ -804,17 +835,18 @@ async function main() {
         { timeout: 10_000 },
       )
 
-      if (!testCase.error) {
-        const buttonName = await new AxeBuilder({ page })
-          .withRules(['button-name', 'aria-command-name'])
-          .analyze()
-        for (const violation of buttonName.violations) {
-          for (const node of violation.nodes) {
-            report.failures.push(
-              `${testCase.name}: button-name ${node.target.join(' ')} — ${node.failureSummary ?? violation.help}`,
-            )
-          }
+      const buttonName = await new AxeBuilder({ page })
+        .withRules(['button-name', 'aria-command-name'])
+        .analyze()
+      for (const violation of buttonName.violations) {
+        for (const node of violation.nodes) {
+          report.failures.push(
+            `${testCase.name}: ${violation.id} ${node.target.join(' ')} — ${node.failureSummary ?? violation.help}`,
+          )
         }
+      }
+
+      if (!testCase.error) {
         const aiNav = await page.getByText('AI Assistant', { exact: true }).count()
         assert(aiNav === 0, `${testCase.name}: AI navigation must be absent by default`, report.failures)
       }
