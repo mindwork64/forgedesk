@@ -3,7 +3,7 @@
 ## Requirements
 
 - Rust stable (see `rust-toolchain.toml`), Node.js 22+, npm.
-- Linux desktop build needs WebKitGTK 4.1 / libsoup 3; Windows needs WebView2.
+- Linux desktop build needs WebKitGTK 4.1 / libsoup 3 and libdbus-1-dev (OS keyring); Windows needs WebView2.
 - Git CLI is required for local repository features.
 
 ## Commands

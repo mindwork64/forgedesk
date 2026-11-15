@@ -109,3 +109,10 @@ and a final production build that verifies the harness is excluded.
 
 Local Jenkins setup and the git-mirror bridge are documented in
 `docs/development/jenkins.md`. Credentials must stay in environment variables.
+
+## Linux keyring dependency
+
+GitHub token storage uses the OS keyring. Linux builds need `libdbus-1-dev` and
+`pkg-config` (`sudo apt-get install -y libdbus-1-dev pkg-config`). If no Secret
+Service is available at runtime, ForgeDesk keeps the token in memory for the
+session and shows a warning instead of writing a plaintext token.
