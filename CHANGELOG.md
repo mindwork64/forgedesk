@@ -5,6 +5,18 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 4 — Local Git, GitHub foundation and API budgets (partial)
+
+- Schema v4: repositories, provider accounts (no token columns), API budget
+  observations, sanitized request log, queue jobs and scheduler control.
+- Safe Local Git: status/branches/log/diff/create/switch with dirty guard and
+  injection tests; local repository registry/list/detail.
+- API budget formula/tests, persistence, manual pause/resume, sanitized diagnostics.
+- Repositories, Integrations and API Monitor screens.
+- 44 core tests, 78 frontend tests, 43 visual-gate captures.
+- Remaining: GitHub App auth/token vault, live HTTP adapters, dispatcher worker,
+  repository discovery, provider-backed API Monitor data.
+
 ### Stage 3 — Projects, planning and documents (partial)
 
 - Schema v3: initiatives, project metadata, milestones, cycles, documents and

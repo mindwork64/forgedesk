@@ -1,6 +1,6 @@
 # Repository map
 
-Updated after Stage 3 (planning vertical slice). Update only when the structure changes.
+Updated after Stage 4 (local Git/API-budget foundation). Update only when the structure changes.
 
 ```text
 ForgeDesk/
@@ -32,7 +32,10 @@ ForgeDesk/
 │   ├── app.rs                  AppService: bootstrap, settings, backups, issue operations
 │   ├── error.rs                CoreError + stable WireError categories
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
+│   ├── git.rs                  Safe direct-argv Git process wrapper
 │   ├── domain/
+│   │   ├── api_budget.rs       Budget observation/request/queue DTOs + formula
+│   │   ├── git.rs              Repository/Git status/branch/log/diff DTOs
 │   │   ├── issue.rs            Issue/status/label/filter/query DTOs + validation
 │   │   ├── planning.rs         Project/initiative/milestone/cycle/document DTOs
 │   │   ├── saved_view.rs       Saved view DTO/validation
@@ -42,7 +45,7 @@ ForgeDesk/
 │   └── db/
 │       ├── mod.rs              Guarded SQLite connection, WAL, reopen/replace
 │       ├── migrations.rs       Append-only runner + tests
-│       ├── migrations/0001_init.sql, 0002_issues.sql, 0003_planning.sql
+│       ├── migrations/0001_init.sql, 0002_issues.sql, 0003_planning.sql, 0004_git_budget.sql
 │       └── repositories/
 │           ├── issues.rs       Issue CRUD/detail/list/batch/duplicate
 │           ├── issue_query.rs  Whitelisted filter/sort/search SQL builder
@@ -53,6 +56,8 @@ ForgeDesk/
 │           ├── activity.rs     Structured activity log
 │           ├── projects.rs     Minimal issue project refs
 │           ├── planning.rs     Projects/initiatives/milestones/cycles/documents
+│           ├── repo_registry.rs Local repository registry
+│           ├── api_budget.rs   Observations, request log, queue, control
 │           ├── saved_views.rs  Persisted filter/sort/group views
 │           ├── settings.rs     Settings JSON document
 │           └── workspace.rs    Workspace + human-key counter
@@ -85,6 +90,8 @@ ForgeDesk/
 │   │   ├── app.ts              Bootstrap, serialized settings writes, backups
 │   │   ├── issues.ts           Issue list/detail/mutations, request guards
 │   │   ├── planning.ts         Projects/initiatives/cycles/documents state
+│   │   ├── git.ts              Repositories/Git overview actions
+│   │   ├── apiMonitor.ts       API Monitor state/pause/diagnostics
 │   │   ├── ui.ts               Overlays, groups, viewport, chord hint
 │   │   └── toasts.ts           Bounded toast queue
 │   ├── i18n/                   en/ru catalogues + locale/theme resolution
@@ -111,26 +118,31 @@ ForgeDesk/
 │   │   ├── cycles/             Cycles view/dialog
 │   │   ├── documents/          Documents list + Markdown editor
 │   │   ├── roadmap/            Projects/initiatives timeline
+│   │   ├── repositories/       Local repository list/detail/dialog
+│   │   ├── integrations/       Provider connection cards
+│   │   ├── api-monitor/        Budgets, queue, request history
 │   │   ├── placeholder/PlaceholderView.vue
 │   │   ├── settings/           Nine settings sections + rows/sections
 │   │   └── about/AboutView.vue
 │   └── dev/
 │       ├── visualHarness.ts    Build-gated visual fixture (not production)
 │       ├── issueFixtures.ts    Deterministic issue/workflow fixtures for gates
-│       └── planningFixtures.ts Stage 3 planning/document fixtures for gates
+│       ├── planningFixtures.ts Stage 3 planning/document fixtures for gates
+│       └── stage4Fixtures.ts   Git/API budget fixtures for gates
 │
 ├── docs/
 │   ├── PROJECT_STATE.md        Compact current state
 │   ├── architecture/           overview, repository_map, assumptions
-│   ├── decisions/              ADR-0001 stack, 0002 UI, 0003 issues, 0004 planning
+│   ├── decisions/              ADR-0001…0005 (stack/UI/issues/planning/git-budget)
 │   ├── development/            setup.md, jenkins.md
-│   ├── stages/                 Stage 0/1/2/3 reports
+│   ├── stages/                 Stage 0/1/2/3/4 reports
 │   ├── ui/
 │   │   ├── component_map.md
 │   │   ├── visual_baseline.md
 │   │   ├── UI-GATE-0-REPORT.md
 │   │   ├── UI-GATE-1-REPORT.md
 │   │   ├── UI-GATE-2-REPORT.md
+│   │   ├── UI-GATE-3-REPORT.md
 │   │   └── current/            Gate 0/1 screenshots + measurements
 │   └── notes/                  (reserved)
 └── tests/                      (later: integration, fixtures, provider contracts)

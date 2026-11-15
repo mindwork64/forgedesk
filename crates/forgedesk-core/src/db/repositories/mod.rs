@@ -1,4 +1,5 @@
 pub mod activity;
+pub mod api_budget;
 pub mod comments;
 pub mod issue_query;
 pub mod issues;
@@ -6,6 +7,7 @@ pub mod labels;
 pub mod planning;
 pub mod projects;
 pub mod relations;
+pub mod repo_registry;
 pub mod saved_views;
 pub mod settings;
 pub mod workflow;

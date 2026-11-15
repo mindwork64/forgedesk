@@ -384,6 +384,51 @@ const cases = [
     waitFor: '.fd-roadmap__bar',
   },
   {
+    name: 'gate3-repositories-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/repositories',
+    waitFor: '.fd-repository-row',
+  },
+  {
+    name: 'gate3-repository-detail-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/repositories/repo-forge',
+    waitFor: '.fd-repository-tabs',
+  },
+  {
+    name: 'gate3-repository-dirty-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/repositories/repo-exhi',
+    waitFor: '.fd-repository-status--dirty',
+  },
+  {
+    name: 'gate3-integrations-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/integrations',
+    waitFor: '.fd-provider-card',
+  },
+  {
+    name: 'gate3-api-monitor-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/api-monitor',
+    waitFor: '.fd-budget-panel',
+  },
+  {
     name: 'gate0-startup-error-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1001,6 +1046,37 @@ async function main() {
         const items = await page.locator('.fd-documents-item').count()
         caseReport.documentItems = items
         assert(items >= 3, `${testCase.name}: expected documents`, report.failures)
+      }
+
+      if (testCase.route === '/repositories') {
+        const rows = await page.locator('.fd-repository-row').count()
+        caseReport.repositoryRows = rows
+        assert(rows >= 2, `${testCase.name}: expected local repositories`, report.failures)
+      }
+
+      if (testCase.route.startsWith('/repositories/')) {
+        const branches = await page.locator('.fd-branch-row').count()
+        caseReport.repositoryBranches = branches
+        assert(branches >= 2, `${testCase.name}: expected branches`, report.failures)
+        if (testCase.route.endsWith('repo-exhi')) {
+          const dirty = await page.locator('.fd-repository-status--dirty').count()
+          assert(dirty === 1, `${testCase.name}: expected dirty worktree state`, report.failures)
+        }
+      }
+
+      if (testCase.route === '/integrations') {
+        const cards = await page.locator('.fd-provider-card').count()
+        caseReport.providerCards = cards
+        assert(cards >= 4, `${testCase.name}: expected provider cards`, report.failures)
+      }
+
+      if (testCase.route === '/api-monitor') {
+        const budgets = await page.locator('.fd-budget-panel').count()
+        const queue = await page.locator('.fd-monitor-section').first().locator('.fd-monitor-row').count()
+        caseReport.monitorBudgets = budgets
+        caseReport.monitorQueue = queue
+        assert(budgets >= 2, `${testCase.name}: expected budget panels`, report.failures)
+        assert(queue >= 2, `${testCase.name}: expected queue rows`, report.failures)
       }
 
       if (testCase.route === '/roadmap') {

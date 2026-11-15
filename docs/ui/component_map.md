@@ -74,6 +74,16 @@ props change; do not re-read every component for unrelated work.
 | `DocumentsView` | `src/features/documents/` | List + Markdown editor/autosave |
 | `RoadmapView` | `src/features/roadmap/` | Projects/initiatives time axis |
 
+## Git and provider components
+
+| Component | Path | Purpose |
+|---|---|---|
+| `RepositoriesView` / `AddRepositoryDialog` | `src/features/repositories/` | Local repository table + attach dialog |
+| `RepositoryDetailView` | `src/features/repositories/` | Overview/branches/commits, dirty guard |
+| `IntegrationsView` | `src/features/integrations/` | Provider cards, honest connection state |
+| `ApiMonitorView` | `src/features/api-monitor/` | Budgets, queue, sanitized request history |
+| `ProgressBar`/`PlanningStatusBadge` | `src/components/planning/` | Stage 3 shared indicators |
+
 ## Feature screens
 
 | Component | Path | Purpose |
@@ -103,6 +113,8 @@ props change; do not re-read every component for unrelated work.
 | `app` store | `src/stores/app.ts` | Bootstrap, optimistic serialized settings writes, backups/restore, appearance |
 | `issues` store | `src/stores/issues.ts` | List/detail, serialized mutations, request guards, search, board grouping |
 | `planning` store | `src/stores/planning.ts` | Projects/initiatives/cycles/documents queries and mutations |
+| `git` store | `src/stores/git.ts` | Local repository registry and Git operations |
+| `apiMonitor` store | `src/stores/apiMonitor.ts` | Budget state, pause/resume, diagnostics |
 | `ui` store | `src/stores/ui.ts` | Palette/shortcut overlays, sidebar groups, viewport width, chord hint |
 | `toasts` store | `src/stores/toasts.ts` | Bounded toast stack with timed dismissal |
 | IPC facade | `src/lib/ipc.ts` | Typed commands, error normalization, dev-only transport |

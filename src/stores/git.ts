@@ -1,0 +1,136 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+
+import { i18n } from '@/i18n'
+import { api, toIpcError } from '@/lib/ipc'
+import { useToastStore } from '@/stores/toasts'
+import type {
+  GitAvailability,
+  GitOverview,
+  Repository,
+  RepositoryInput,
+} from '@/types/ipc'
+
+export const useGitStore = defineStore('git', () => {
+  const t = i18n.global.t
+  const toast = useToastStore()
+
+  const repositories = ref<Repository[]>([])
+  const overview = ref<GitOverview | null>(null)
+  const availability = ref<GitAvailability | null>(null)
+  const loading = ref(false)
+  const error = ref<ReturnType<typeof toIpcError> | null>(null)
+  let overviewRequest = 0
+
+  async function loadAvailability(): Promise<void> {
+    try {
+      availability.value = await api.gitAvailable()
+    } catch {
+      availability.value = {
+        available: false,
+        version: null,
+        error: 'Git availability could not be checked.',
+      }
+    }
+  }
+
+  async function loadRepositories(): Promise<void> {
+    loading.value = true
+    error.value = null
+    try {
+      repositories.value = await api.listRepositories()
+    } catch (caught) {
+      error.value = toIpcError(caught)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function addRepository(input: RepositoryInput): Promise<Repository | null> {
+    try {
+      const repository = await api.addLocalRepository(input)
+      repositories.value = [repository, ...repositories.value]
+      toast.success(t('repositories.added'), repository.name)
+      return repository
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('repositories.addError'), wire.message, wire.detail)
+      return null
+    }
+  }
+
+  async function removeRepository(id: string): Promise<boolean> {
+    try {
+      await api.removeRepository(id)
+      repositories.value = repositories.value.filter((item) => item.id !== id)
+      if (overview.value?.repository.id === id) {
+        overview.value = null
+      }
+      toast.success(t('repositories.removed'))
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('repositories.removeError'), wire.message, wire.detail)
+      return false
+    }
+  }
+
+  async function loadOverview(id: string): Promise<void> {
+    const request = ++overviewRequest
+    loading.value = true
+    error.value = null
+    try {
+      const result = await api.getGitOverview(id)
+      if (request === overviewRequest) {
+        overview.value = result
+      }
+    } catch (caught) {
+      if (request === overviewRequest) {
+        error.value = toIpcError(caught)
+      }
+    } finally {
+      if (request === overviewRequest) {
+        loading.value = false
+      }
+    }
+  }
+
+  async function createBranch(id: string, branch: string): Promise<boolean> {
+    try {
+      overview.value = await api.createGitBranch(id, branch)
+      toast.success(t('repositories.branchCreated'), branch)
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('repositories.branchError'), wire.message, wire.detail)
+      return false
+    }
+  }
+
+  async function switchBranch(id: string, branch: string): Promise<boolean> {
+    try {
+      overview.value = await api.switchGitBranch(id, branch)
+      toast.success(t('repositories.branchSwitched'), branch)
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('repositories.branchError'), wire.message, wire.detail)
+      return false
+    }
+  }
+
+  return {
+    repositories,
+    overview,
+    availability,
+    loading,
+    error,
+    loadAvailability,
+    loadRepositories,
+    addRepository,
+    removeRepository,
+    loadOverview,
+    createBranch,
+    switchBranch,
+  }
+})

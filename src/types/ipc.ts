@@ -128,6 +128,18 @@ export type CommandName =
   | 'update_document'
   | 'delete_document'
   | 'export_document'
+  | 'git_available'
+  | 'list_repositories'
+  | 'add_local_repository'
+  | 'remove_repository'
+  | 'get_git_overview'
+  | 'create_git_branch'
+  | 'switch_git_branch'
+  | 'get_git_log'
+  | 'get_git_diff'
+  | 'get_api_monitor'
+  | 'set_api_paused'
+  | 'export_api_diagnostics'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -545,4 +557,137 @@ export interface DocumentInput {
   body?: string
   projectId?: string | null
   initiativeId?: string | null
+}
+
+export interface Repository {
+  id: string
+  name: string
+  path: string
+  provider: 'local' | 'github' | 'gitlab' | 'gitea'
+  remoteUrl: string | null
+  defaultBranch: string | null
+  projectId: string | null
+  projectName: string | null
+  lastCheckedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface RepositoryInput {
+  path: string
+  name?: string | null
+  projectId?: string | null
+}
+
+export interface GitStatus {
+  branch: string
+  upstream: string | null
+  ahead: number
+  behind: number
+  dirty: boolean
+  changes: string[]
+}
+
+export interface GitBranch {
+  name: string
+  current: boolean
+}
+
+export interface GitLogEntry {
+  hash: string
+  shortHash: string
+  subject: string
+  author: string
+  committedAt: string
+}
+
+export interface GitDiffStat {
+  filesChanged: number
+  insertions: number
+  deletions: number
+  summary: string
+}
+
+export interface GitOverview {
+  repository: Repository
+  status: GitStatus
+  branches: GitBranch[]
+  log: GitLogEntry[]
+  diff: GitDiffStat
+}
+
+export interface GitAvailability {
+  available: boolean
+  version: string | null
+  error: string | null
+}
+
+export interface BudgetSummary {
+  apiFamily: string
+  resourceName: string
+  limitValue: number | null
+  remainingValue: number | null
+  usedValue: number | null
+  resetAtUtc: string | null
+  observedAtUtc: string
+  httpStatus: number | null
+  source: string
+  isEstimate: boolean
+  secondaryPauseUntil: string | null
+  backgroundAllowance: number
+  backgroundReserve: number
+  observedRequests: number
+}
+
+export interface RequestLog {
+  id: string
+  providerAccountId: string | null
+  operationName: string
+  operationCode: string
+  apiFamily: string
+  resourceName: string
+  requestClass: string
+  fingerprint: string
+  estimatedCost: number
+  actualCost: number
+  httpStatus: number | null
+  errorCategory: string | null
+  latencyMs: number | null
+  receivedAtUtc: string
+  retryAttempt: number
+  resultState: string
+  rateHeadersJson: string
+  payloadBytes: number | null
+}
+
+export interface QueueJob {
+  id: string
+  operationName: string
+  operationCode: string
+  apiFamily: string
+  priority: number
+  requestClass: string
+  state: string
+  attempts: number
+  estimatedCost: number
+  fingerprint: string
+  createdAt: string
+  updatedAt: string
+  lastError: string | null
+}
+
+export interface ApiControl {
+  paused: boolean
+  reason: string
+  updatedAt: string
+}
+
+export interface ApiMonitorState {
+  connected: boolean
+  accountLogin: string | null
+  budgets: BudgetSummary[]
+  requests: RequestLog[]
+  queue: QueueJob[]
+  control: ApiControl
+  lastObservation: string | null
 }

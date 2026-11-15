@@ -31,6 +31,14 @@ import type {
   ProjectDetail,
   ProjectInput,
   ProjectQuery,
+  ApiControl,
+  ApiMonitorState,
+  GitAvailability,
+  GitDiffStat,
+  GitLogEntry,
+  GitOverview,
+  Repository,
+  RepositoryInput,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -196,4 +204,21 @@ export const api = {
     call<Document>('update_document', { id, input }),
   deleteDocument: (id: string) => call<void>('delete_document', { id }),
   exportDocument: (id: string) => call<string>('export_document', { id }),
+  gitAvailable: () => call<GitAvailability>('git_available'),
+  listRepositories: () => call<Repository[]>('list_repositories'),
+  addLocalRepository: (input: RepositoryInput) =>
+    call<Repository>('add_local_repository', { input }),
+  removeRepository: (id: string) => call<void>('remove_repository', { id }),
+  getGitOverview: (id: string) => call<GitOverview>('get_git_overview', { id }),
+  createGitBranch: (id: string, branch: string) =>
+    call<GitOverview>('create_git_branch', { id, branch }),
+  switchGitBranch: (id: string, branch: string) =>
+    call<GitOverview>('switch_git_branch', { id, branch }),
+  getGitLog: (id: string, limit = 12) =>
+    call<GitLogEntry[]>('get_git_log', { id, limit }),
+  getGitDiff: (id: string) => call<GitDiffStat>('get_git_diff', { id }),
+  getApiMonitor: () => call<ApiMonitorState>('get_api_monitor'),
+  setApiPaused: (paused: boolean, reason = '') =>
+    call<ApiControl>('set_api_paused', { paused, reason }),
+  exportApiDiagnostics: () => call<string>('export_api_diagnostics'),
 }

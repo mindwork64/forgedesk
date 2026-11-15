@@ -87,6 +87,18 @@ pub fn run() {
             commands::update_document,
             commands::delete_document,
             commands::export_document,
+            commands::git_available,
+            commands::list_repositories,
+            commands::add_local_repository,
+            commands::remove_repository,
+            commands::get_git_overview,
+            commands::create_git_branch,
+            commands::switch_git_branch,
+            commands::get_git_log,
+            commands::get_git_diff,
+            commands::get_api_monitor,
+            commands::set_api_paused,
+            commands::export_api_diagnostics,
         ]);
 
     let app = builder

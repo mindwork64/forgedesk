@@ -9,6 +9,10 @@ import InitiativeOverviewView from '@/features/initiatives/InitiativeOverviewVie
 import ProjectOverviewView from '@/features/projects/ProjectOverviewView.vue'
 import ProjectsView from '@/features/projects/ProjectsView.vue'
 import RoadmapView from '@/features/roadmap/RoadmapView.vue'
+import ApiMonitorView from '@/features/api-monitor/ApiMonitorView.vue'
+import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
+import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
+import RepositoryDetailView from '@/features/repositories/RepositoryDetailView.vue'
 import PlaceholderView from '@/features/placeholder/PlaceholderView.vue'
 import SettingsView from '@/features/settings/SettingsView.vue'
 
@@ -135,7 +139,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/repositories',
     name: 'repositories',
-    component: PlaceholderView,
+    component: RepositoriesView,
+    meta: {
+      titleKey: 'pages.repositories.title',
+      descriptionKey: 'pages.repositories.description',
+      stage: 4,
+    },
+  },
+  {
+    path: '/repositories/:id',
+    name: 'repository-detail',
+    component: RepositoryDetailView,
     meta: {
       titleKey: 'pages.repositories.title',
       descriptionKey: 'pages.repositories.description',
@@ -195,7 +209,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/integrations',
     name: 'integrations',
-    component: PlaceholderView,
+    component: IntegrationsView,
     meta: {
       titleKey: 'pages.integrations.title',
       descriptionKey: 'pages.integrations.description',
@@ -215,7 +229,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/api-monitor',
     name: 'api-monitor',
-    component: PlaceholderView,
+    component: ApiMonitorView,
     meta: {
       titleKey: 'pages.apiMonitor.title',
       descriptionKey: 'pages.apiMonitor.description',

@@ -1,8 +1,8 @@
-# Visual baseline — UI Gates 0–2
+# Visual baseline — UI Gates 0–3
 
-**Gates:** UI Gate 0 — Design System + App Shell; UI Gate 1 — Issues and views (Stage 2); UI Gate 2 — Projects/planning/documents (Stage 3)  
+**Gates:** UI Gate 0 — Design System + App Shell; UI Gate 1 — Issues and views (Stage 2); UI Gate 2 — Projects/planning/documents (Stage 3); UI Gate 3 — Repositories/Integrations/API Monitor (Stage 4)  
 **Date:** 2026-11-15  
-**Result:** PASS for the browser-rendered shell; UI Gate 1 PASS; Gate 2 PARTIAL (delivered planning screens); native-window capture SKIPPED  
+**Result:** PASS for the browser-rendered shell; UI Gate 1 PASS; Gate 2 PARTIAL; Gate 3 PARTIAL (local/foundation scope); native-window capture SKIPPED  
 **Artifacts:** `docs/ui/current/` (screenshots + `measurements.json`)
 
 ## Environment
@@ -72,6 +72,11 @@ Query parameters used by the harness: `theme=dark|light`,
 | 36 | `gate2-cycles-dark-1440.png` | 1440×900 | Dark | 240 px | active cycle summary |
 | 37 | `gate2-documents-dark-1440.png` | 1440×900 | Dark | 240 px | Markdown editor |
 | 38 | `gate2-roadmap-dark-1440.png` | 1440×900 | Dark | 240 px | projects timeline |
+| 39 | `gate3-repositories-dark-1440.png` | 1440×900 | Dark | 240 px | local repositories |
+| 40 | `gate3-repository-detail-dark-1440.png` | 1440×900 | Dark | 240 px | clean repository detail |
+| 41 | `gate3-repository-dirty-dark-1440.png` | 1440×900 | Dark | 240 px | dirty worktree guard |
+| 42 | `gate3-integrations-dark-1440.png` | 1440×900 | Dark | 240 px | provider integrations |
+| 43 | `gate3-api-monitor-dark-1440.png` | 1440×900 | Dark | 240 px | API Monitor budgets/history |
 
 ## Measured geometry
 
@@ -90,8 +95,10 @@ Gate 1 measurements: 16 baseline list rows; detail pane 440 px at 1440 and 1100
 create dialog 720 px; filter state 1 chip / 4 rows; grouped list 5 sections; saved
 views menu 2 rows; palette issue search 6 results; project dialog 560 px; project
 overview 6 tabs; 6 project issues; 2 initiatives; 2 linked projects; 5 cycle
-metrics; 3 documents; 3 roadmap bars; no console errors. The component test covers
-250 virtual rows (fewer than 30 in DOM).
+metrics; 3 documents; 3 roadmap bars; 2 local repositories; 3 repository branches;
+4 provider cards; 3 budget panels; queue rows; no console errors. Gate 3
+API/budget data is harness-only; production starts disconnected/empty. The
+component test covers 250 virtual rows (fewer than 30 in DOM).
 
 Additional automated assertions:
 

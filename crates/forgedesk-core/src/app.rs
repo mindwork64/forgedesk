@@ -4,15 +4,18 @@ use serde::Serialize;
 
 use crate::backup::{self, BackupInfo};
 use crate::db::repositories::{
-    issues, labels as label_repo, planning, projects, saved_views, workflow,
+    api_budget, issues, labels as label_repo, planning, projects, repo_registry, saved_views,
+    workflow,
 };
 use crate::db::Database;
 use crate::domain::{
-    AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail, CycleInput, Document,
-    DocumentInput, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
+    ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
+    CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
+    GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
     IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
-    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, SavedView, SavedViewInput,
-    SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
+    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository, RepositoryInput,
+    SavedView, SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState,
+    Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
 
@@ -264,6 +267,116 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db
             .with_conn(|conn| issues::list_relations(conn, &workspace.id, issue_id))
+    }
+
+    pub fn git_available(&self) -> GitAvailability {
+        crate::git::git_available()
+    }
+
+    pub fn list_repositories(&self) -> CoreResult<Vec<Repository>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| repo_registry::list(conn, &workspace.id))
+    }
+
+    pub fn add_local_repository(&self, input: RepositoryInput) -> CoreResult<Repository> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| repo_registry::add_local(tx, &workspace.id, &input))
+    }
+
+    pub fn remove_repository(&self, id: &str) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| repo_registry::remove(tx, &workspace.id, id))
+    }
+
+    pub fn git_overview(&self, repository_id: &str) -> CoreResult<GitOverview> {
+        let workspace = self.require_workspace()?;
+        let repository = self
+            .db
+            .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
+        let path = std::path::Path::new(&repository.path);
+        let status = crate::git::status(path)?;
+        let branches = crate::git::branches(path)?;
+        let log = crate::git::log(path, 12)?;
+        let diff = crate::git::diff_stat(path)?;
+        self.db
+            .with_conn(|conn| repo_registry::touch(conn, &workspace.id, repository_id))?;
+        Ok(GitOverview {
+            repository,
+            status,
+            branches,
+            log,
+            diff,
+        })
+    }
+
+    pub fn create_git_branch(&self, repository_id: &str, branch: &str) -> CoreResult<GitOverview> {
+        let workspace = self.require_workspace()?;
+        let repository = self
+            .db
+            .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
+        crate::git::checkout_branch(std::path::Path::new(&repository.path), branch, true)?;
+        self.git_overview(repository_id)
+    }
+
+    pub fn switch_git_branch(&self, repository_id: &str, branch: &str) -> CoreResult<GitOverview> {
+        let workspace = self.require_workspace()?;
+        let repository = self
+            .db
+            .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
+        crate::git::checkout_branch(std::path::Path::new(&repository.path), branch, false)?;
+        self.git_overview(repository_id)
+    }
+
+    pub fn git_log(&self, repository_id: &str, limit: usize) -> CoreResult<Vec<GitLogEntry>> {
+        let workspace = self.require_workspace()?;
+        let repository = self
+            .db
+            .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
+        crate::git::log(std::path::Path::new(&repository.path), limit)
+    }
+
+    pub fn git_diff(&self, repository_id: &str) -> CoreResult<GitDiffStat> {
+        let workspace = self.require_workspace()?;
+        let repository = self
+            .db
+            .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
+        crate::git::diff_stat(std::path::Path::new(&repository.path))
+    }
+
+    pub fn api_monitor(&self) -> CoreResult<ApiMonitorState> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            let budgets = api_budget::list_budgets(conn, &workspace.id)?;
+            let requests = api_budget::list_requests(conn, &workspace.id)?;
+            let queue = api_budget::list_queue(conn, &workspace.id)?;
+            let control = api_budget::control(conn, &workspace.id)?;
+            let account = api_budget::account_login(conn, &workspace.id)?;
+            let last = api_budget::last_observation(conn, &workspace.id)?;
+            Ok(ApiMonitorState {
+                connected: account.is_some(),
+                account_login: account,
+                budgets,
+                requests,
+                queue,
+                control,
+                last_observation: last,
+            })
+        })
+    }
+
+    pub fn set_api_paused(&self, paused: bool, reason: &str) -> CoreResult<ApiControl> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| api_budget::set_paused(tx, &workspace.id, paused, reason))
+    }
+
+    pub fn export_api_diagnostics(&self) -> CoreResult<String> {
+        let state = self.api_monitor()?;
+        serde_json::to_string_pretty(&state)
+            .map_err(|error| CoreError::internal(format!("Diagnostics encoding failed: {error}")))
     }
 
     pub fn list_project_cards(&self, query: ProjectQuery) -> CoreResult<Vec<Project>> {

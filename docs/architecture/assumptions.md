@@ -102,3 +102,19 @@ Each entry is small and reversible unless noted.
     export is Markdown text, import/outline are follow-ups.
 30. **Roadmap v1** is read-only and plots projects/initiatives; milestones level,
     drag editing and dependencies are deferred.
+
+## Local Git and API budgets (Stage 4)
+
+31. **Git invocation:** direct argv through `Command`, no shell. Repository paths
+    are canonicalized and must be attached by the user; branch create/switch require
+    a clean worktree and Git's own ref validation.
+32. **Credentials:** provider account rows contain identity/scopes/status, never
+    tokens. GitHub Connect stays unavailable until an OS credential vault + App
+    device flow are implemented.
+33. **API budgets:** background allowance is
+    `min(10% × limit, max(0, remaining − 20% × limit))`; unknown observations yield
+    zero allowance. GitHub-reported remaining is never presented as ForgeDesk usage.
+34. **Queue/dispatcher:** queue and request log tables are durable foundation; no
+    provider request is simulated or sent until live auth/client exists.
+35. **Local repositories:** removing a repository row does not delete files or Git
+    data. GitHub discovery is deferred until authentication exists.

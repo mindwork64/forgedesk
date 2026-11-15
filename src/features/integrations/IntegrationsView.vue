@@ -1,0 +1,272 @@
+<script setup lang="ts">
+import { GitBranch, GitFork, Lock, Plug } from '@lucide/vue'
+import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
+import PageHeader from '@/components/layout/PageHeader.vue'
+import FdButton from '@/components/ui/FdButton.vue'
+import { useApiMonitorStore } from '@/stores/apiMonitor'
+import { useGitStore } from '@/stores/git'
+
+const git = useGitStore()
+const api = useApiMonitorStore()
+const router = useRouter()
+const { t } = useI18n()
+
+onMounted(async () => {
+  await Promise.all([
+    git.loadAvailability(),
+    git.loadRepositories(),
+    api.load(),
+  ])
+})
+</script>
+
+<template>
+  <div class="fd-integrations-page">
+    <PageHeader
+      :title="t('pages.integrations.title')"
+      :description="t('pages.integrations.description')"
+    />
+
+    <div class="fd-integrations-content">
+      <section class="fd-provider-card fd-provider-card--primary">
+        <div class="fd-provider-card__head">
+          <div class="fd-provider-card__identity">
+            <span class="fd-provider-icon"><GitFork :size="20" aria-hidden="true" /></span>
+            <div>
+              <h2>{{ t('integrations.github') }}</h2>
+              <p>{{ t('integrations.githubHint') }}</p>
+            </div>
+          </div>
+          <span
+            class="fd-provider-state"
+            :class="{ 'fd-provider-state--ok': api.state?.connected }"
+          >
+            {{
+              api.state?.connected
+                ? t('apiMonitor.connectedAs', { login: api.state.accountLogin })
+                : t('integrations.notConnected')
+            }}
+          </span>
+        </div>
+        <p v-if="!api.state?.connected" class="fd-provider-card__notice">
+          {{ t('integrations.connectUnavailable') }}
+        </p>
+        <p v-else class="fd-provider-card__notice">
+          {{ t('integrations.lastSync') }}: {{ t('integrations.never') }}
+        </p>
+        <div class="fd-provider-permissions">
+          <div>
+            <span>{{ t('integrations.permissions') }}</span>
+            <p>{{ t('integrations.readScope') }}</p>
+            <p>{{ t('integrations.writeScope') }}</p>
+          </div>
+        </div>
+        <div class="fd-provider-card__footer">
+          <template v-if="api.state?.connected">
+            <FdButton variant="ghost" size="sm" @click="router.push('/repositories')">
+              {{ t('integrations.manageRepositories') }}
+            </FdButton>
+          </template>
+          <template v-else>
+            <FdButton variant="secondary" size="sm" disabled>
+              {{ t('integrations.connect') }}
+            </FdButton>
+            <span class="fd-provider-muted">{{ t('integrations.noAccount') }}</span>
+          </template>
+        </div>
+      </section>
+
+      <section class="fd-provider-card">
+        <div class="fd-provider-card__head">
+          <div class="fd-provider-card__identity">
+            <span class="fd-provider-icon"><GitBranch :size="20" aria-hidden="true" /></span>
+            <div>
+              <h2>{{ t('integrations.localGit') }}</h2>
+              <p>{{ t('integrations.localHint') }}</p>
+            </div>
+          </div>
+          <span
+            class="fd-provider-state"
+            :class="{ 'fd-provider-state--ok': git.availability?.available }"
+          >
+            {{
+              git.availability?.available
+                ? t('integrations.gitAvailable')
+                : t('integrations.gitMissing')
+            }}
+          </span>
+        </div>
+        <div class="fd-provider-card__footer">
+          <span class="fd-provider-muted">
+            {{
+              git.availability?.version ??
+              git.availability?.error ??
+              t('common.loading')
+            }}
+          </span>
+          <span class="fd-provider-muted">
+            {{ t('integrations.configuredRepositories', { count: git.repositories.length }) }}
+          </span>
+          <FdButton variant="ghost" size="sm" @click="router.push('/repositories')">
+            {{ t('integrations.manageRepositories') }}
+          </FdButton>
+        </div>
+      </section>
+
+      <section class="fd-provider-card fd-provider-card--planned">
+        <div class="fd-provider-card__head">
+          <div class="fd-provider-card__identity">
+            <span class="fd-provider-icon"><Plug :size="20" aria-hidden="true" /></span>
+            <div>
+              <h2>{{ t('integrations.gitlab') }}</h2>
+              <p>{{ t('integrations.planned') }}</p>
+            </div>
+          </div>
+          <span class="fd-provider-state">{{ t('integrations.notConnected') }}</span>
+        </div>
+      </section>
+
+      <section class="fd-provider-card fd-provider-card--planned">
+        <div class="fd-provider-card__head">
+          <div class="fd-provider-card__identity">
+            <span class="fd-provider-icon"><Lock :size="20" aria-hidden="true" /></span>
+            <div>
+              <h2>{{ t('integrations.gitea') }}</h2>
+              <p>{{ t('integrations.planned') }}</p>
+            </div>
+          </div>
+          <span class="fd-provider-state">{{ t('integrations.notConnected') }}</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.fd-integrations-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.fd-integrations-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--fd-space-4);
+  padding: var(--fd-space-2) var(--fd-content-pad) var(--fd-space-6);
+}
+
+.fd-provider-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-3);
+  padding: var(--fd-space-4);
+  border: 1px solid var(--fd-border);
+  border-radius: var(--fd-radius-card);
+  background: var(--fd-surface);
+}
+
+.fd-provider-card--primary {
+  grid-row: span 2;
+}
+
+.fd-provider-card--planned {
+  opacity: 0.7;
+}
+
+.fd-provider-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fd-space-3);
+}
+
+.fd-provider-card__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fd-space-2);
+}
+
+.fd-provider-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--fd-border);
+  border-radius: var(--fd-radius-control);
+  color: var(--fd-text-secondary);
+}
+
+.fd-provider-card h2 {
+  margin: 0;
+  font-size: var(--fd-text-14);
+  font-weight: var(--fd-weight-semibold);
+}
+
+.fd-provider-card p {
+  margin: 2px 0 0;
+  color: var(--fd-text-muted);
+  font-size: var(--fd-text-11);
+  line-height: var(--fd-line-body);
+}
+
+.fd-provider-state {
+  flex: none;
+  color: var(--fd-text-muted);
+  font-size: var(--fd-text-11);
+}
+
+.fd-provider-state--ok {
+  color: var(--fd-success);
+}
+
+.fd-provider-card__notice {
+  padding: 8px 10px;
+  border: 1px solid var(--fd-border-subtle);
+  border-radius: var(--fd-radius-control);
+  background: var(--fd-bg);
+}
+
+.fd-provider-permissions {
+  border-top: 1px solid var(--fd-border-subtle);
+  padding-top: var(--fd-space-2);
+}
+
+.fd-provider-permissions span {
+  color: var(--fd-text-secondary);
+  font-size: var(--fd-text-11);
+  font-weight: var(--fd-weight-semibold);
+}
+
+.fd-provider-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--fd-space-2);
+  margin-top: auto;
+  padding-top: var(--fd-space-2);
+  border-top: 1px solid var(--fd-border-subtle);
+}
+
+.fd-provider-muted {
+  color: var(--fd-text-muted);
+  font-size: var(--fd-text-11);
+}
+
+@media (max-width: 1199px) {
+  .fd-integrations-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fd-provider-card--primary {
+    grid-row: auto;
+  }
+}
+</style>

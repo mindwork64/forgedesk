@@ -9,6 +9,7 @@ pub mod backup;
 pub mod db;
 pub mod domain;
 pub mod error;
+pub mod git;
 
 pub use app::AppService;
 pub use error::{CoreError, WireError};

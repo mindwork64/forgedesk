@@ -3,11 +3,13 @@ pub mod error;
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
 use forgedesk_core::domain::{
-    AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail, CycleInput, Document,
-    DocumentInput, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
+    ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
+    CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
+    GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
     IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput,
-    ProjectQuery, ProjectRef, RelationInputKind, SavedView, SavedViewInput, SettingsPatch,
-    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
+    ProjectQuery, ProjectRef, RelationInputKind, Repository, RepositoryInput, SavedView,
+    SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow,
+    Workspace,
 };
 use tauri::{AppHandle, Manager, State};
 
@@ -468,5 +470,109 @@ pub fn delete_document(state: State<'_, AppState>, id: String) -> Result<(), Com
 pub fn export_document(state: State<'_, AppState>, id: String) -> Result<String, CommandError> {
     state
         .with_service(|service| service.export_document(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn git_available() -> Result<GitAvailability, CommandError> {
+    Ok(forgedesk_core::git::git_available())
+}
+
+#[tauri::command]
+pub fn list_repositories(state: State<'_, AppState>) -> Result<Vec<Repository>, CommandError> {
+    state
+        .with_service(|service| service.list_repositories())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn add_local_repository(
+    state: State<'_, AppState>,
+    input: RepositoryInput,
+) -> Result<Repository, CommandError> {
+    state
+        .with_service(|service| service.add_local_repository(input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn remove_repository(state: State<'_, AppState>, id: String) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.remove_repository(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_git_overview(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<GitOverview, CommandError> {
+    state
+        .with_service(|service| service.git_overview(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_git_branch(
+    state: State<'_, AppState>,
+    id: String,
+    branch: String,
+) -> Result<GitOverview, CommandError> {
+    state
+        .with_service(|service| service.create_git_branch(&id, &branch))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn switch_git_branch(
+    state: State<'_, AppState>,
+    id: String,
+    branch: String,
+) -> Result<GitOverview, CommandError> {
+    state
+        .with_service(|service| service.switch_git_branch(&id, &branch))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_git_log(
+    state: State<'_, AppState>,
+    id: String,
+    limit: usize,
+) -> Result<Vec<GitLogEntry>, CommandError> {
+    state
+        .with_service(|service| service.git_log(&id, limit))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_git_diff(state: State<'_, AppState>, id: String) -> Result<GitDiffStat, CommandError> {
+    state
+        .with_service(|service| service.git_diff(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_api_monitor(state: State<'_, AppState>) -> Result<ApiMonitorState, CommandError> {
+    state
+        .with_service(|service| service.api_monitor())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn set_api_paused(
+    state: State<'_, AppState>,
+    paused: bool,
+    reason: String,
+) -> Result<ApiControl, CommandError> {
+    state
+        .with_service(|service| service.set_api_paused(paused, &reason))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn export_api_diagnostics(state: State<'_, AppState>) -> Result<String, CommandError> {
+    state
+        .with_service(|service| service.export_api_diagnostics())
         .map_err(CommandError::from)
 }
