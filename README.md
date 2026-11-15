@@ -5,10 +5,10 @@
 **Статус:** утверждённая продуктовая концепция; техническое задание подготовлено для передачи DeepSeek API  
 **Рабочее имя:** ForgeDesk (может быть изменено без изменения архитектуры)
 
-> **Implementation status (2026-11-15):** the Stage 1 foundation and core Stage 2 issue workflow
-> are implemented in this repository. See `docs/PROJECT_STATE.md` for current state,
-> `docs/development/setup.md` for commands and `docs/ui/UI-GATE-0-REPORT.md` and
-> `docs/ui/UI-GATE-1-REPORT.md` for visual acceptance evidence. The requirement documents below remain authoritative.
+> **Implementation status (2026-11-15):** the Stage 1 foundation, Stage 2 issue workflow and Stage 3 planning
+> vertical slice are implemented in this repository. See `docs/PROJECT_STATE.md` for current state,
+> `docs/development/setup.md` for commands and `docs/ui/UI-GATE-0-REPORT.md`,
+> `docs/ui/UI-GATE-1-REPORT.md` and `docs/ui/UI-GATE-2-REPORT.md` for visual acceptance evidence. The requirement documents below remain authoritative.
 
 ## Назначение пакета
 

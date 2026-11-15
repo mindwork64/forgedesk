@@ -9,6 +9,7 @@
  */
 import { setDevTransport } from '@/lib/ipc'
 import { handleIssueFixtureCommand } from './issueFixtures'
+import { handlePlanningFixtureCommand } from './planningFixtures'
 import type {
   AppSettings,
   BackupInfo,
@@ -125,6 +126,11 @@ export function installVisualHarness(): void {
 
   setDevTransport(async <T,>(command: CommandName, args?: Record<string, unknown>): Promise<T> => {
     await new Promise((resolve) => setTimeout(resolve, 15))
+
+    const planningResult = handlePlanningFixtureCommand<T>(command, args)
+    if (planningResult.handled) {
+      return planningResult.value as T
+    }
 
     const issueResult = handleIssueFixtureCommand<T>(command, args)
     if (issueResult.handled) {

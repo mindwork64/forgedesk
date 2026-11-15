@@ -3,6 +3,7 @@ pub mod comments;
 pub mod issue_query;
 pub mod issues;
 pub mod labels;
+pub mod planning;
 pub mod projects;
 pub mod relations;
 pub mod saved_views;

@@ -301,6 +301,89 @@ const cases = [
     waitFor: '.fd-palette',
   },
   {
+    name: 'gate2-projects-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/projects',
+    waitFor: '.fd-project-row',
+  },
+  {
+    name: 'gate2-project-dialog-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/projects',
+    openProjectDialog: true,
+    waitFor: '.fd-project-form',
+  },
+  {
+    name: 'gate2-project-overview-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/projects/project-exhi',
+    waitFor: '.fd-project-tabs',
+  },
+  {
+    name: 'gate2-project-issues-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/projects/project-exhi',
+    projectTab: 'Issues',
+    waitFor: '.fd-issue-list',
+  },
+  {
+    name: 'gate2-initiatives-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/initiatives',
+    waitFor: '.fd-initiative-row',
+  },
+  {
+    name: 'gate2-initiative-overview-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/initiatives/init-capture',
+    waitFor: '.fd-initiative-section',
+  },
+  {
+    name: 'gate2-cycles-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/cycles',
+    waitFor: '.fd-cycle-summary',
+  },
+  {
+    name: 'gate2-documents-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/documents',
+    waitFor: '.fd-document-editor',
+  },
+  {
+    name: 'gate2-roadmap-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/roadmap',
+    waitFor: '.fd-roadmap__bar',
+  },
+  {
     name: 'gate0-startup-error-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -590,6 +673,19 @@ async function main() {
         await page.waitForSelector('.fd-save-view')
       }
 
+      if (testCase.openProjectDialog) {
+        await page.getByRole('button', { name: 'New project', exact: true }).click()
+        await page.waitForSelector('.fd-project-form')
+      }
+
+      if (testCase.projectTab) {
+        await page
+          .locator('.fd-project-tab')
+          .filter({ hasText: testCase.projectTab })
+          .click()
+        await page.waitForSelector('.fd-issue-list')
+      }
+
       if (testCase.paletteQuery) {
         await page.keyboard.press('Control+k')
         await page.waitForSelector('.fd-palette')
@@ -851,6 +947,66 @@ async function main() {
           .count()
         caseReport.paletteIssueResults = issues
         assert(issues >= 1, `${testCase.name}: palette returned no issue results`, report.failures)
+      }
+
+      if (testCase.openProjectDialog) {
+        const width = await page.evaluate(() => {
+          const modal = document.querySelector('.fd-modal-panel')
+          return modal ? Math.round(modal.getBoundingClientRect().width) : null
+        })
+        caseReport.projectDialogWidth = width
+        assert(
+          width !== null && width >= 540 && width <= 570,
+          `${testCase.name}: project dialog width ${width}, expected 560`,
+          report.failures,
+        )
+      }
+
+      if (testCase.route === '/projects') {
+        const rows = await page.locator('.fd-project-row').count()
+        caseReport.projectRows = rows
+        assert(rows >= 3, `${testCase.name}: expected project rows`, report.failures)
+      }
+
+      if (testCase.route === '/projects/project-exhi') {
+        const tabs = await page.locator('.fd-project-tab').count()
+        caseReport.projectTabs = tabs
+        assert(tabs === 6, `${testCase.name}: expected six project tabs`, report.failures)
+        if (testCase.projectTab === 'Issues') {
+          const rows = await page.locator('[data-testid="issue-row"]').count()
+          caseReport.projectIssueRows = rows
+          assert(rows >= 3, `${testCase.name}: expected project issues`, report.failures)
+        }
+      }
+
+      if (testCase.route === '/initiatives') {
+        const rows = await page.locator('.fd-initiative-row').count()
+        caseReport.initiativeRows = rows
+        assert(rows >= 2, `${testCase.name}: expected initiative rows`, report.failures)
+      }
+
+      if (testCase.route === '/initiatives/init-capture') {
+        const projects = await page.locator('.fd-initiative-project-row').count()
+        caseReport.initiativeProjects = projects
+        assert(projects >= 2, `${testCase.name}: expected linked initiatives projects`, report.failures)
+      }
+
+      if (testCase.route === '/cycles') {
+        const metrics = await page.locator('.fd-cycle-metric').count()
+        caseReport.cycleMetrics = metrics
+        assert(metrics === 5, `${testCase.name}: expected five cycle metrics`, report.failures)
+      }
+
+      if (testCase.route === '/documents') {
+        const items = await page.locator('.fd-documents-item').count()
+        caseReport.documentItems = items
+        assert(items >= 3, `${testCase.name}: expected documents`, report.failures)
+      }
+
+      if (testCase.route === '/roadmap') {
+        const bars = await page.locator('.fd-roadmap__bar').count()
+        caseReport.roadmapBars = bars
+        assert(bars >= 2, `${testCase.name}: expected roadmap bars`, report.failures)
       }
 
       if (

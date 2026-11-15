@@ -146,6 +146,27 @@ fn query_summaries(
     Ok(summaries)
 }
 
+pub fn list_by_cycle(
+    conn: &Connection,
+    workspace_id: &str,
+    cycle_id: &str,
+) -> CoreResult<Vec<IssueSummary>> {
+    let sql = format!(
+        "{SUMMARY_SELECT} JOIN issue_cycle ic ON ic.issue_id = i.id \
+         WHERE i.workspace_id = ? AND ic.cycle_id = ? \
+           AND i.deleted_at IS NULL AND i.archived_at IS NULL \
+         ORDER BY s.position ASC, i.updated_at DESC"
+    );
+    query_summaries(
+        conn,
+        &sql,
+        &[
+            SqlValue::Text(workspace_id.to_owned()),
+            SqlValue::Text(cycle_id.to_owned()),
+        ],
+    )
+}
+
 pub fn get_summary(
     conn: &Connection,
     workspace_id: &str,

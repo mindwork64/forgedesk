@@ -3,9 +3,11 @@ pub mod error;
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
 use forgedesk_core::domain::{
-    AppSettings, BatchIssueInput, CreateIssueInput, IssueDetail, IssueQuery, IssueSummary, Label,
-    ProjectRef, RelationInputKind, SavedView, SavedViewInput, SettingsPatch, StatusSummary,
-    UpdateIssueInput, WindowState, Workflow, Workspace,
+    AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail, CycleInput, Document,
+    DocumentInput, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
+    IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput,
+    ProjectQuery, ProjectRef, RelationInputKind, SavedView, SavedViewInput, SettingsPatch,
+    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
 };
 use tauri::{AppHandle, Manager, State};
 
@@ -252,5 +254,219 @@ pub fn update_saved_view(
 pub fn delete_saved_view(state: State<'_, AppState>, id: String) -> Result<(), CommandError> {
     state
         .with_service(|service| service.delete_saved_view(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn list_project_cards(
+    state: State<'_, AppState>,
+    query: ProjectQuery,
+) -> Result<Vec<Project>, CommandError> {
+    state
+        .with_service(|service| service.list_project_cards(query))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_project(state: State<'_, AppState>, id: String) -> Result<ProjectDetail, CommandError> {
+    state
+        .with_service(|service| service.get_project(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_project(
+    state: State<'_, AppState>,
+    input: ProjectInput,
+) -> Result<Project, CommandError> {
+    state
+        .with_service(|service| service.create_project(input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn update_project(
+    state: State<'_, AppState>,
+    id: String,
+    input: ProjectInput,
+) -> Result<Project, CommandError> {
+    state
+        .with_service(|service| service.update_project(&id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn archive_project(
+    state: State<'_, AppState>,
+    id: String,
+    archived: bool,
+) -> Result<Project, CommandError> {
+    state
+        .with_service(|service| service.archive_project(&id, archived))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_milestone(
+    state: State<'_, AppState>,
+    project_id: String,
+    input: MilestoneInput,
+) -> Result<Milestone, CommandError> {
+    state
+        .with_service(|service| service.create_milestone(&project_id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn update_milestone(
+    state: State<'_, AppState>,
+    id: String,
+    input: MilestoneInput,
+) -> Result<Milestone, CommandError> {
+    state
+        .with_service(|service| service.update_milestone(&id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn assign_milestone_issue(
+    state: State<'_, AppState>,
+    milestone_id: String,
+    issue_id: String,
+    assigned: bool,
+) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.assign_milestone_issue(&milestone_id, &issue_id, assigned))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn list_initiatives(state: State<'_, AppState>) -> Result<Vec<Initiative>, CommandError> {
+    state
+        .with_service(|service| service.list_initiatives())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_initiative(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<InitiativeDetail, CommandError> {
+    state
+        .with_service(|service| service.get_initiative(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_initiative(
+    state: State<'_, AppState>,
+    input: InitiativeInput,
+) -> Result<Initiative, CommandError> {
+    state
+        .with_service(|service| service.create_initiative(input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn update_initiative(
+    state: State<'_, AppState>,
+    id: String,
+    input: InitiativeInput,
+) -> Result<Initiative, CommandError> {
+    state
+        .with_service(|service| service.update_initiative(&id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn list_cycles(state: State<'_, AppState>) -> Result<Vec<Cycle>, CommandError> {
+    state
+        .with_service(|service| service.list_cycles())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_cycle(state: State<'_, AppState>, id: String) -> Result<CycleDetail, CommandError> {
+    state
+        .with_service(|service| service.get_cycle(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_cycle(state: State<'_, AppState>, input: CycleInput) -> Result<Cycle, CommandError> {
+    state
+        .with_service(|service| service.create_cycle(input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn update_cycle(
+    state: State<'_, AppState>,
+    id: String,
+    input: CycleInput,
+) -> Result<Cycle, CommandError> {
+    state
+        .with_service(|service| service.update_cycle(&id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn assign_cycle_issue(
+    state: State<'_, AppState>,
+    cycle_id: String,
+    issue_id: String,
+    assigned: bool,
+) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.assign_cycle_issue(&cycle_id, &issue_id, assigned))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn list_documents(state: State<'_, AppState>) -> Result<Vec<Document>, CommandError> {
+    state
+        .with_service(|service| service.list_documents())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_document(state: State<'_, AppState>, id: String) -> Result<Document, CommandError> {
+    state
+        .with_service(|service| service.get_document(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn create_document(
+    state: State<'_, AppState>,
+    input: DocumentInput,
+) -> Result<Document, CommandError> {
+    state
+        .with_service(|service| service.create_document(input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn update_document(
+    state: State<'_, AppState>,
+    id: String,
+    input: DocumentInput,
+) -> Result<Document, CommandError> {
+    state
+        .with_service(|service| service.update_document(&id, input))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn delete_document(state: State<'_, AppState>, id: String) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.delete_document(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn export_document(state: State<'_, AppState>, id: String) -> Result<String, CommandError> {
+    state
+        .with_service(|service| service.export_document(&id))
         .map_err(CommandError::from)
 }

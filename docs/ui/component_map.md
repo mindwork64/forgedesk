@@ -60,6 +60,20 @@ props change; do not re-read every component for unrelated work.
 | `SavedViewsMenu` / `SaveViewDialog` | `src/components/issues/` | Apply/pin/delete and save/update/as-new |
 | `IssueList` virtualization | `src/components/issues/IssueList.vue` | Windowed rows above 100, grouped sections otherwise |
 
+## Planning components
+
+| Component | Path | Purpose |
+|---|---|---|
+| `ProgressBar` | `src/components/planning/ProgressBar.vue` | Accessible percent/completed/total bar |
+| `PlanningStatusBadge` | `src/components/planning/PlanningStatusBadge.vue` | Planned/active/paused/completed/canceled dot + label |
+| `ProjectsView` / `ProjectDialog` | `src/features/projects/` | Dense project table, create/edit dialog |
+| `ProjectOverviewView` / `MilestoneDialog` | `src/features/projects/` | Six tabs, milestones, issue counts/docs |
+| `InitiativesView` / `InitiativeDialog` | `src/features/initiatives/` | Initiative table + create/edit |
+| `InitiativeOverviewView` | `src/features/initiatives/` | Objective, aggregate progress, linked projects |
+| `CyclesView` / `CycleDialog` | `src/features/cycles/` | Cycle selector, metrics, assignment |
+| `DocumentsView` | `src/features/documents/` | List + Markdown editor/autosave |
+| `RoadmapView` | `src/features/roadmap/` | Projects/initiatives time axis |
+
 ## Feature screens
 
 | Component | Path | Purpose |
@@ -88,6 +102,7 @@ props change; do not re-read every component for unrelated work.
 |---|---|---|
 | `app` store | `src/stores/app.ts` | Bootstrap, optimistic serialized settings writes, backups/restore, appearance |
 | `issues` store | `src/stores/issues.ts` | List/detail, serialized mutations, request guards, search, board grouping |
+| `planning` store | `src/stores/planning.ts` | Projects/initiatives/cycles/documents queries and mutations |
 | `ui` store | `src/stores/ui.ts` | Palette/shortcut overlays, sidebar groups, viewport width, chord hint |
 | `toasts` store | `src/stores/toasts.ts` | Bounded toast stack with timed dismissal |
 | IPC facade | `src/lib/ipc.ts` | Typed commands, error normalization, dev-only transport |
@@ -95,3 +110,4 @@ props change; do not re-read every component for unrelated work.
 | Navigation | `src/navigation.ts`, `src/router/index.ts` | Fixed nav order and routes |
 | Visual harness | `src/dev/visualHarness.ts`, `src/dev/issueFixtures.ts` | Visual-gate fixtures only; excluded from production build |
 | CI | `scripts/ci.sh`, `Jenkinsfile` | Shared local/Jenkins verification; screenshots archived |
+| Planning fixtures | `src/dev/planningFixtures.ts` | Build-gated Stage 3 screenshots only |

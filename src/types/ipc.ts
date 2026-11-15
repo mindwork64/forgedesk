@@ -105,6 +105,29 @@ export type CommandName =
   | 'create_saved_view'
   | 'update_saved_view'
   | 'delete_saved_view'
+  | 'list_project_cards'
+  | 'get_project'
+  | 'create_project'
+  | 'update_project'
+  | 'archive_project'
+  | 'create_milestone'
+  | 'update_milestone'
+  | 'assign_milestone_issue'
+  | 'list_initiatives'
+  | 'get_initiative'
+  | 'create_initiative'
+  | 'update_initiative'
+  | 'list_cycles'
+  | 'get_cycle'
+  | 'create_cycle'
+  | 'update_cycle'
+  | 'assign_cycle_issue'
+  | 'list_documents'
+  | 'get_document'
+  | 'create_document'
+  | 'update_document'
+  | 'delete_document'
+  | 'export_document'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -362,4 +385,164 @@ export interface SavedViewInput {
   columns?: string[]
   density?: 'standard' | 'compact' | null
   isPinned?: boolean | null
+}
+
+export type PlanningStatus = 'planned' | 'active' | 'paused' | 'completed' | 'canceled'
+export type MilestoneStatus = 'planned' | 'active' | 'completed' | 'canceled'
+export type CycleStatus = 'upcoming' | 'active' | 'completed'
+
+export interface Progress {
+  completed: number
+  total: number
+  percent: number
+}
+
+export interface InitiativeRef {
+  id: string
+  name: string
+}
+
+export interface Project {
+  id: string
+  name: string
+  description: string
+  status: PlanningStatus
+  priority: Priority
+  startDate: string | null
+  targetDate: string | null
+  initiative: InitiativeRef | null
+  progress: Progress
+  color: string
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}
+
+export interface ProjectInput {
+  name: string
+  description?: string
+  status?: PlanningStatus | null
+  priority?: Priority | null
+  startDate?: string | null
+  targetDate?: string | null
+  initiativeId?: string | null
+  color?: string | null
+}
+
+export interface ProjectQuery {
+  search?: string | null
+  status?: PlanningStatus | null
+  initiativeId?: string | null
+  includeArchived?: boolean
+}
+
+export interface StatusCount {
+  status: StatusSummary
+  count: number
+}
+
+export interface ProjectDetail {
+  project: Project
+  milestones: Milestone[]
+  issueCounts: StatusCount[]
+  issueCount: number
+}
+
+export interface Milestone {
+  id: string
+  projectId: string
+  name: string
+  description: string
+  dueDate: string | null
+  status: MilestoneStatus
+  progress: Progress
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MilestoneInput {
+  name: string
+  description?: string
+  dueDate?: string | null
+  status?: MilestoneStatus | null
+}
+
+export interface Initiative {
+  id: string
+  name: string
+  description: string
+  status: PlanningStatus
+  priority: Priority
+  startDate: string | null
+  targetDate: string | null
+  progress: Progress
+  projectCount: number
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}
+
+export interface InitiativeInput {
+  name: string
+  description?: string
+  status?: PlanningStatus | null
+  priority?: Priority | null
+  startDate?: string | null
+  targetDate?: string | null
+}
+
+export interface InitiativeDetail {
+  initiative: Initiative
+  projects: Project[]
+}
+
+export interface CycleSummary {
+  issueCount: number
+  completedCount: number
+  totalEstimate: number
+  completedEstimate: number
+  carryOverCount: number
+  daysRemaining: number
+}
+
+export interface Cycle {
+  id: string
+  name: string
+  startDate: string
+  endDate: string
+  status: CycleStatus
+  summary: CycleSummary
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CycleInput {
+  name: string
+  startDate: string
+  endDate: string
+}
+
+export interface CycleDetail {
+  cycle: Cycle
+  issues: IssueSummary[]
+}
+
+export interface Document {
+  id: string
+  title: string
+  body: string
+  projectId: string | null
+  initiativeId: string | null
+  projectName: string | null
+  initiativeName: string | null
+  archivedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DocumentInput {
+  title: string
+  body?: string
+  projectId?: string | null
+  initiativeId?: string | null
 }

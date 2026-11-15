@@ -17,6 +17,20 @@ import type {
   RestoreResult,
   SavedView,
   SavedViewInput,
+  Cycle,
+  CycleDetail,
+  CycleInput,
+  Document,
+  DocumentInput,
+  Initiative,
+  InitiativeDetail,
+  InitiativeInput,
+  Milestone,
+  MilestoneInput,
+  Project,
+  ProjectDetail,
+  ProjectInput,
+  ProjectQuery,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -142,4 +156,44 @@ export const api = {
   updateSavedView: (id: string, input: SavedViewInput) =>
     call<SavedView>('update_saved_view', { id, input }),
   deleteSavedView: (id: string) => call<void>('delete_saved_view', { id }),
+  listProjectCards: (query: ProjectQuery = {}) =>
+    call<Project[]>('list_project_cards', { query }),
+  getProject: (id: string) => call<ProjectDetail>('get_project', { id }),
+  createProject: (input: ProjectInput) =>
+    call<Project>('create_project', { input }),
+  updateProject: (id: string, input: ProjectInput) =>
+    call<Project>('update_project', { id, input }),
+  archiveProject: (id: string, archived: boolean) =>
+    call<Project>('archive_project', { id, archived }),
+  createMilestone: (projectId: string, input: MilestoneInput) =>
+    call<Milestone>('create_milestone', { projectId, input }),
+  updateMilestone: (id: string, input: MilestoneInput) =>
+    call<Milestone>('update_milestone', { id, input }),
+  assignMilestoneIssue: (
+    milestoneId: string,
+    issueId: string,
+    assigned: boolean,
+  ) =>
+    call<void>('assign_milestone_issue', { milestoneId, issueId, assigned }),
+  listInitiatives: () => call<Initiative[]>('list_initiatives'),
+  getInitiative: (id: string) => call<InitiativeDetail>('get_initiative', { id }),
+  createInitiative: (input: InitiativeInput) =>
+    call<Initiative>('create_initiative', { input }),
+  updateInitiative: (id: string, input: InitiativeInput) =>
+    call<Initiative>('update_initiative', { id, input }),
+  listCycles: () => call<Cycle[]>('list_cycles'),
+  getCycle: (id: string) => call<CycleDetail>('get_cycle', { id }),
+  createCycle: (input: CycleInput) => call<Cycle>('create_cycle', { input }),
+  updateCycle: (id: string, input: CycleInput) =>
+    call<Cycle>('update_cycle', { id, input }),
+  assignCycleIssue: (cycleId: string, issueId: string, assigned: boolean) =>
+    call<void>('assign_cycle_issue', { cycleId, issueId, assigned }),
+  listDocuments: () => call<Document[]>('list_documents'),
+  getDocument: (id: string) => call<Document>('get_document', { id }),
+  createDocument: (input: DocumentInput) =>
+    call<Document>('create_document', { input }),
+  updateDocument: (id: string, input: DocumentInput) =>
+    call<Document>('update_document', { id, input }),
+  deleteDocument: (id: string) => call<void>('delete_document', { id }),
+  exportDocument: (id: string) => call<string>('export_document', { id }),
 }

@@ -3,12 +3,16 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 
 use crate::backup::{self, BackupInfo};
-use crate::db::repositories::{issues, labels as label_repo, projects, saved_views, workflow};
+use crate::db::repositories::{
+    issues, labels as label_repo, planning, projects, saved_views, workflow,
+};
 use crate::db::Database;
 use crate::domain::{
-    AppSettings, BatchIssueInput, CreateIssueInput, IssueDetail, IssueQuery, IssueRelation,
-    IssueSummary, Label, ProjectRef, RelationInputKind, SavedView, SavedViewInput, SettingsPatch,
-    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
+    AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail, CycleInput, Document,
+    DocumentInput, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
+    IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
+    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, SavedView, SavedViewInput,
+    SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
 
@@ -260,6 +264,166 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db
             .with_conn(|conn| issues::list_relations(conn, &workspace.id, issue_id))
+    }
+
+    pub fn list_project_cards(&self, query: ProjectQuery) -> CoreResult<Vec<Project>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::list_projects(conn, &workspace.id, &query))
+    }
+
+    pub fn get_project(&self, id: &str) -> CoreResult<ProjectDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::project_detail(conn, &workspace.id, id))
+    }
+
+    pub fn create_project(&self, input: ProjectInput) -> CoreResult<Project> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::create_project(tx, &workspace.id, &input))
+    }
+
+    pub fn update_project(&self, id: &str, input: ProjectInput) -> CoreResult<Project> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::update_project(tx, &workspace.id, id, &input))
+    }
+
+    pub fn archive_project(&self, id: &str, archived: bool) -> CoreResult<Project> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::archive_project(tx, &workspace.id, id, archived))
+    }
+
+    pub fn create_milestone(
+        &self,
+        project_id: &str,
+        input: MilestoneInput,
+    ) -> CoreResult<Milestone> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            planning::create_milestone(tx, &workspace.id, project_id, &input)
+        })
+    }
+
+    pub fn update_milestone(
+        &self,
+        milestone_id: &str,
+        input: MilestoneInput,
+    ) -> CoreResult<Milestone> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            planning::update_milestone(tx, &workspace.id, milestone_id, &input)
+        })
+    }
+
+    pub fn assign_milestone_issue(
+        &self,
+        milestone_id: &str,
+        issue_id: &str,
+        assigned: bool,
+    ) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            planning::assign_milestone_issue(tx, &workspace.id, milestone_id, issue_id, assigned)
+        })
+    }
+
+    pub fn list_initiatives(&self) -> CoreResult<Vec<Initiative>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::list_initiatives(conn, &workspace.id))
+    }
+
+    pub fn get_initiative(&self, id: &str) -> CoreResult<InitiativeDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::initiative_detail(conn, &workspace.id, id))
+    }
+
+    pub fn create_initiative(&self, input: InitiativeInput) -> CoreResult<Initiative> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::create_initiative(tx, &workspace.id, &input))
+    }
+
+    pub fn update_initiative(&self, id: &str, input: InitiativeInput) -> CoreResult<Initiative> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::update_initiative(tx, &workspace.id, id, &input))
+    }
+
+    pub fn list_cycles(&self) -> CoreResult<Vec<Cycle>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::list_cycles(conn, &workspace.id))
+    }
+
+    pub fn get_cycle(&self, id: &str) -> CoreResult<CycleDetail> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::cycle_detail(conn, &workspace.id, id))
+    }
+
+    pub fn create_cycle(&self, input: CycleInput) -> CoreResult<Cycle> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::create_cycle(tx, &workspace.id, &input))
+    }
+
+    pub fn update_cycle(&self, id: &str, input: CycleInput) -> CoreResult<Cycle> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::update_cycle(tx, &workspace.id, id, &input))
+    }
+
+    pub fn assign_cycle_issue(
+        &self,
+        cycle_id: &str,
+        issue_id: &str,
+        assigned: bool,
+    ) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            planning::assign_cycle_issue(tx, &workspace.id, cycle_id, issue_id, assigned)
+        })
+    }
+
+    pub fn list_documents(&self) -> CoreResult<Vec<Document>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::list_documents(conn, &workspace.id))
+    }
+
+    pub fn get_document(&self, id: &str) -> CoreResult<Document> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::get_document(conn, &workspace.id, id))
+    }
+
+    pub fn create_document(&self, input: DocumentInput) -> CoreResult<Document> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::create_document(tx, &workspace.id, &input))
+    }
+
+    pub fn update_document(&self, id: &str, input: DocumentInput) -> CoreResult<Document> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::update_document(tx, &workspace.id, id, &input))
+    }
+
+    pub fn delete_document(&self, id: &str) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| planning::delete_document(tx, &workspace.id, id))
+    }
+
+    pub fn export_document(&self, id: &str) -> CoreResult<String> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| planning::export_document(conn, &workspace.id, id))
     }
 
     pub fn list_saved_views(&self) -> CoreResult<Vec<SavedView>> {

@@ -1,8 +1,8 @@
-# Visual baseline — UI Gates 0–1
+# Visual baseline — UI Gates 0–2
 
-**Gates:** UI Gate 0 — Design System + App Shell; UI Gate 1 — Issues and views (Stage 2)  
+**Gates:** UI Gate 0 — Design System + App Shell; UI Gate 1 — Issues and views (Stage 2); UI Gate 2 — Projects/planning/documents (Stage 3)  
 **Date:** 2026-11-15  
-**Result:** PASS for the browser-rendered shell; UI Gate 1 core flow PASS/PARTIAL; native-window capture SKIPPED  
+**Result:** PASS for the browser-rendered shell; UI Gate 1 PASS; Gate 2 PARTIAL (delivered planning screens); native-window capture SKIPPED  
 **Artifacts:** `docs/ui/current/` (screenshots + `measurements.json`)
 
 ## Environment
@@ -63,6 +63,15 @@ Query parameters used by the harness: `theme=dark|light`,
 | 27 | `gate1-saved-views-menu-dark-1440.png` | 1440×900 | Dark | 240 px | saved views menu |
 | 28 | `gate1-save-view-dialog-dark-1440.png` | 1440×900 | Dark | 240 px | save view dialog |
 | 29 | `gate1-palette-issues-dark-1440.png` | 1440×900 | Dark | 240 px | palette issue search |
+| 30 | `gate2-projects-dark-1440.png` | 1440×900 | Dark | 240 px | projects table |
+| 31 | `gate2-project-dialog-dark-1440.png` | 1440×900 | Dark | 240 px | project dialog 560 px |
+| 32 | `gate2-project-overview-dark-1440.png` | 1440×900 | Dark | 240 px | project overview + milestones |
+| 33 | `gate2-project-issues-dark-1440.png` | 1440×900 | Dark | 240 px | project issues tab |
+| 34 | `gate2-initiatives-dark-1440.png` | 1440×900 | Dark | 240 px | initiatives table |
+| 35 | `gate2-initiative-overview-dark-1440.png` | 1440×900 | Dark | 240 px | initiative overview |
+| 36 | `gate2-cycles-dark-1440.png` | 1440×900 | Dark | 240 px | active cycle summary |
+| 37 | `gate2-documents-dark-1440.png` | 1440×900 | Dark | 240 px | Markdown editor |
+| 38 | `gate2-roadmap-dark-1440.png` | 1440×900 | Dark | 240 px | projects timeline |
 
 ## Measured geometry
 
@@ -79,8 +88,10 @@ From `docs/ui/current/measurements.json` (tolerance ±2 px):
 Gate 1 measurements: 16 baseline list rows; detail pane 440 px at 1440 and 1100
 (absolute overlay at 1100); board 5 columns with first four card counts 4/4/4/3;
 create dialog 720 px; filter state 1 chip / 4 rows; grouped list 5 sections; saved
-views menu 2 rows; palette issue search 6 results; no console errors. The component
-test covers 250 virtual rows (fewer than 30 in DOM).
+views menu 2 rows; palette issue search 6 results; project dialog 560 px; project
+overview 6 tabs; 6 project issues; 2 initiatives; 2 linked projects; 5 cycle
+metrics; 3 documents; 3 roadmap bars; no console errors. The component test covers
+250 virtual rows (fewer than 30 in DOM).
 
 Additional automated assertions:
 

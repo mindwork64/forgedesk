@@ -5,7 +5,18 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
-### Stage 2 — Issues, workflow, search and views (partial)
+### Stage 3 — Projects, planning and documents (partial)
+
+- Schema v3: initiatives, project metadata, milestones, cycles, documents and
+  issue↔cycle/milestone links.
+- Project list/overview/create/edit/archive, milestones with progress/issue links,
+  initiative hierarchy with weighted progress, cycles with summary/assignment,
+  documents with autosave/Markdown copy, roadmap timeline.
+- 36 core tests, 78 frontend tests, 38 visual-gate captures.
+- Remaining: templates, document import/outline, cycle board/analytics, roadmap
+  milestones/drag/dependencies, project repositories/activity.
+
+### Stage 2 — Issues, workflow, search and views
 
 - Schema v2: workflow/status, projects FK target, labels, issue key counter,
   issues, relations, comments, activity, saved-view table, FTS5 triggers.

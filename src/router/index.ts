@@ -2,6 +2,13 @@ import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-rou
 
 import AboutView from '@/features/about/AboutView.vue'
 import MyIssuesView from '@/features/issues/MyIssuesView.vue'
+import CyclesView from '@/features/cycles/CyclesView.vue'
+import DocumentsView from '@/features/documents/DocumentsView.vue'
+import InitiativesView from '@/features/initiatives/InitiativesView.vue'
+import InitiativeOverviewView from '@/features/initiatives/InitiativeOverviewView.vue'
+import ProjectOverviewView from '@/features/projects/ProjectOverviewView.vue'
+import ProjectsView from '@/features/projects/ProjectsView.vue'
+import RoadmapView from '@/features/roadmap/RoadmapView.vue'
 import PlaceholderView from '@/features/placeholder/PlaceholderView.vue'
 import SettingsView from '@/features/settings/SettingsView.vue'
 
@@ -58,7 +65,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/projects',
     name: 'projects',
-    component: PlaceholderView,
+    component: ProjectsView,
+    meta: {
+      titleKey: 'pages.projects.title',
+      descriptionKey: 'pages.projects.description',
+      stage: 3,
+    },
+  },
+  {
+    path: '/projects/:id',
+    name: 'project-overview',
+    component: ProjectOverviewView,
     meta: {
       titleKey: 'pages.projects.title',
       descriptionKey: 'pages.projects.description',
@@ -68,7 +85,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/initiatives',
     name: 'initiatives',
-    component: PlaceholderView,
+    component: InitiativesView,
+    meta: {
+      titleKey: 'pages.initiatives.title',
+      descriptionKey: 'pages.initiatives.description',
+      stage: 3,
+    },
+  },
+  {
+    path: '/initiatives/:id',
+    name: 'initiative-overview',
+    component: InitiativeOverviewView,
     meta: {
       titleKey: 'pages.initiatives.title',
       descriptionKey: 'pages.initiatives.description',
@@ -78,7 +105,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/cycles',
     name: 'cycles',
-    component: PlaceholderView,
+    component: CyclesView,
     meta: {
       titleKey: 'pages.cycles.title',
       descriptionKey: 'pages.cycles.description',
@@ -88,7 +115,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/roadmap',
     name: 'roadmap',
-    component: PlaceholderView,
+    component: RoadmapView,
     meta: {
       titleKey: 'pages.roadmap.title',
       descriptionKey: 'pages.roadmap.description',
@@ -98,7 +125,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/documents',
     name: 'documents',
-    component: PlaceholderView,
+    component: DocumentsView,
     meta: {
       titleKey: 'pages.documents.title',
       descriptionKey: 'pages.documents.description',

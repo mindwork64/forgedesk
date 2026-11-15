@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-15T07:37:33.046Z",
-  "baseUrl": "http://127.0.0.1:46213",
+  "generatedAt": "2026-11-15T07:59:54.439Z",
+  "baseUrl": "http://127.0.0.1:45165",
   "harness": true,
   "cases": [
     {
@@ -300,7 +300,7 @@
       "route": "/settings/storage",
       "screenshot": "docs/ui/current/gate0-restore-dialog-dark-1440.png",
       "consoleErrors": [],
-      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 8:37 AM. Current data is saved as a safety snapshot first.CancelRestore backup"
+      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 15, 2026, 8:59 AM. Current data is saved as a safety snapshot first.CancelRestore backup"
     },
     {
       "name": "gate0-onboarding-dark-1440",
@@ -347,7 +347,7 @@
       "route": "/my-issues",
       "screenshot": "docs/ui/current/gate0-toast-dark-1440.png",
       "consoleErrors": [],
-      "toastText": "Backup createdSnapshot forgedesk-1794728261542-288277a3 was written to the local backups folder.",
+      "toastText": "Backup createdSnapshot forgedesk-1794729602916-930032ab was written to the local backups folder.",
       "issueRows": 16
     },
     {
@@ -505,6 +505,89 @@
       "issueRows": 16
     },
     {
+      "name": "gate2-projects-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/projects",
+      "screenshot": "docs/ui/current/gate2-projects-dark-1440.png",
+      "consoleErrors": [],
+      "projectRows": 3
+    },
+    {
+      "name": "gate2-project-dialog-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/projects",
+      "screenshot": "docs/ui/current/gate2-project-dialog-dark-1440.png",
+      "consoleErrors": [],
+      "projectDialogWidth": 560,
+      "projectRows": 3
+    },
+    {
+      "name": "gate2-project-overview-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/projects/project-exhi",
+      "screenshot": "docs/ui/current/gate2-project-overview-dark-1440.png",
+      "consoleErrors": [],
+      "projectTabs": 6
+    },
+    {
+      "name": "gate2-project-issues-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/projects/project-exhi",
+      "screenshot": "docs/ui/current/gate2-project-issues-dark-1440.png",
+      "consoleErrors": [],
+      "projectTabs": 6,
+      "projectIssueRows": 6
+    },
+    {
+      "name": "gate2-initiatives-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/initiatives",
+      "screenshot": "docs/ui/current/gate2-initiatives-dark-1440.png",
+      "consoleErrors": [],
+      "initiativeRows": 2
+    },
+    {
+      "name": "gate2-initiative-overview-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/initiatives/init-capture",
+      "screenshot": "docs/ui/current/gate2-initiative-overview-dark-1440.png",
+      "consoleErrors": [],
+      "initiativeProjects": 2
+    },
+    {
+      "name": "gate2-cycles-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/cycles",
+      "screenshot": "docs/ui/current/gate2-cycles-dark-1440.png",
+      "consoleErrors": [],
+      "cycleMetrics": 5
+    },
+    {
+      "name": "gate2-documents-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/documents",
+      "screenshot": "docs/ui/current/gate2-documents-dark-1440.png",
+      "consoleErrors": [],
+      "documentItems": 3
+    },
+    {
+      "name": "gate2-roadmap-dark-1440",
+      "viewport": "1440x900",
+      "theme": "dark",
+      "route": "/roadmap",
+      "screenshot": "docs/ui/current/gate2-roadmap-dark-1440.png",
+      "consoleErrors": [],
+      "roadmapBars": 3
+    },
+    {
       "name": "gate0-startup-error-dark-1440",
       "viewport": "1440x900",
       "theme": "dark",
@@ -544,6 +627,15 @@
     "docs/ui/current/gate1-saved-views-menu-dark-1440.png",
     "docs/ui/current/gate1-save-view-dialog-dark-1440.png",
     "docs/ui/current/gate1-palette-issues-dark-1440.png",
+    "docs/ui/current/gate2-projects-dark-1440.png",
+    "docs/ui/current/gate2-project-dialog-dark-1440.png",
+    "docs/ui/current/gate2-project-overview-dark-1440.png",
+    "docs/ui/current/gate2-project-issues-dark-1440.png",
+    "docs/ui/current/gate2-initiatives-dark-1440.png",
+    "docs/ui/current/gate2-initiative-overview-dark-1440.png",
+    "docs/ui/current/gate2-cycles-dark-1440.png",
+    "docs/ui/current/gate2-documents-dark-1440.png",
+    "docs/ui/current/gate2-roadmap-dark-1440.png",
     "docs/ui/current/gate0-startup-error-dark-1440.png"
   ]
 }

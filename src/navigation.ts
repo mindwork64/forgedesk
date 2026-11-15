@@ -65,8 +65,8 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'planning',
     labelKey: 'nav.groups.planning',
     items: [
-      { key: 'projects', path: '/projects', labelKey: 'nav.projects', icon: FolderKanban },
-      { key: 'initiatives', path: '/initiatives', labelKey: 'nav.initiatives', icon: Target },
+      { key: 'projects', path: '/projects', labelKey: 'nav.projects', icon: FolderKanban, prefix: true },
+      { key: 'initiatives', path: '/initiatives', labelKey: 'nav.initiatives', icon: Target, prefix: true },
       { key: 'cycles', path: '/cycles', labelKey: 'nav.cycles', icon: Timer },
       { key: 'roadmap', path: '/roadmap', labelKey: 'nav.roadmap', icon: Map },
       { key: 'documents', path: '/documents', labelKey: 'nav.documents', icon: FileText },

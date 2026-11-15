@@ -87,3 +87,18 @@ Each entry is small and reversible unless noted.
     is added.
 25. **Virtualization:** flat lists virtualize above 100 rows (40 px rows, 8-row
     overscan); grouped lists are not windowed yet. The API page limit is 500.
+
+## Planning (Stage 3)
+
+26. **Progress:** completed / (total − canceled) for projects, milestones and
+    initiatives; initiatives aggregate completed/total across linked projects.
+    Archived/deleted issues are excluded; canceled is excluded from the denominator.
+27. **Relationships:** a project has at most one initiative; an issue has at most
+    one cycle and one milestone in v1 (primary-key join rows). Moving an issue
+    replaces the previous link.
+28. **Cycle status** is derived from local dates; no stored status and no
+    background scheduler.
+29. **Documents** are Markdown source with optional project/initiative links;
+    export is Markdown text, import/outline are follow-ups.
+30. **Roadmap v1** is read-only and plots projects/initiatives; milestones level,
+    drag editing and dependencies are deferred.

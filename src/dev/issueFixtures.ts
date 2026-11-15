@@ -669,6 +669,10 @@ function sortIssues(result: IssueSummary[], sort: SortSpec[] | undefined): Issue
   })
 }
 
+export function issueFixtureList(): IssueSummary[] {
+  return structuredClone(issues)
+}
+
 export function handleIssueFixtureCommand<T>(
   command: CommandName,
   args?: Record<string, unknown>,
