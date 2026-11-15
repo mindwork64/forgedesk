@@ -64,7 +64,8 @@ issue import/export and conflict UI remain pending. No remote write was attempte
 | Frontend typecheck/tests | `npm run typecheck`, `npm test` | PASS — 78 |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 44 captures (auth dialog included) |
 | Jenkins build 8 | Sync foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
-| Jenkins build 9 | Auth foundation snapshot | Pending commit/mirror push |
+| Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
+| GitHub Actions | public repo `main` | SUCCESS — frontend, core Ubuntu/Windows, Tauri Linux/Windows, visual gates |
 | Live GitHub sync | — | NOT RUN — auth/provider client absent |
 
 ## Next

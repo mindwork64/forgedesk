@@ -76,7 +76,7 @@ through `user_version`. See ADR-0001…0006.
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
-| Jenkins build 9 | Auth foundation snapshot | Pending commit/mirror push |
+| Jenkins build 9 | Auth foundation `64f7469` | SUCCESS — 199 s, 49 core tests, 44 captures, 45 artifacts |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
@@ -102,8 +102,8 @@ through `user_version`. See ADR-0001…0006.
   milestones).
 - Bundle exceeds Vite’s 500 kB warning threshold.
 - Native Tauri runtime/screenshots remain unverified.
-- GitHub Actions initial public-repo run: frontend/core/UI gates green; Windows
-  Tauri compile status must be checked before release.
+- GitHub Actions on the public repo is green (frontend, core Ubuntu/Windows, Tauri
+  Linux/Windows, visual gates); Linux core now installs `libdbus-1-dev` for keyring.
 - Jenkins mirror requires local git daemon; rotate the API token after setup.
 
 ## Next step
