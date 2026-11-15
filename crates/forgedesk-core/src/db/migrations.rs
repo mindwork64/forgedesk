@@ -106,6 +106,52 @@ mod tests {
     }
 
     #[test]
+    fn upgrades_v5_database_to_current_without_data_loss() {
+        let mut conn = connection();
+        for migration in MIGRATIONS.iter().take(5) {
+            let tx = conn.transaction().expect("tx");
+            tx.execute_batch(migration.sql).expect("apply");
+            tx.execute(
+                "INSERT INTO schema_migration (version, name, applied_at) VALUES (?1, ?2, ?3)",
+                rusqlite::params![migration.version, migration.name, now_rfc3339()],
+            )
+            .expect("record");
+            tx.pragma_update(None, "user_version", migration.version)
+                .expect("version");
+            tx.commit().expect("commit");
+        }
+        assert_eq!(current_schema_version(&conn).expect("v5"), 5);
+        conn.execute(
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at)              VALUES ('ws-1', 'Upgrade', 'FD', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .expect("workspace");
+
+        assert_eq!(run(&mut conn).expect("upgrade"), CURRENT_SCHEMA_VERSION);
+        assert_eq!(
+            conn.query_row("SELECT count(*) FROM workspace", [], |row| row
+                .get::<_, i64>(0))
+                .expect("count"),
+            1
+        );
+        for table in [
+            "pull_request_link",
+            "inbox_state",
+            "automation_rule",
+            "dashboard_widget",
+        ] {
+            let exists: i64 = conn
+                .query_row(
+                    "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?1",
+                    [table],
+                    |row| row.get(0),
+                )
+                .expect("table check");
+            assert_eq!(exists, 1, "missing {table}");
+        }
+    }
+
+    #[test]
     fn applies_migrations_idempotently() {
         let mut conn = connection();
         assert_eq!(run(&mut conn).expect("first run"), CURRENT_SCHEMA_VERSION);

@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15
-**Stage:** 9 — COMPLETE (optional AI fixtures); Stage 5 sync writes remain partial
+**Stage:** 10 — Stabilization/release (partial; native/signing blocked); Stage 5 sync writes remain partial
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 90 core (+3 ignored live), 5 AI crate, 107 frontend, 57 default visual captures (+1 optional AI capture).
+- **Tests:** 91 core (+3 ignored live), 5 AI crate, 107 frontend, 57 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -126,6 +126,18 @@ through `user_version`. See ADR-0001…0007.
 - Contract tests use local mock HTTP servers; live hosts/tokens are unavailable and
   explicitly reported as not run.
 
+### Stage 10 — stabilization/release (partial)
+
+- Route-level code splitting: main JS chunk reduced from ~501 KB to ~231 KB; Vite
+  chunk warning removed.
+- Migration test covers v5→v9 upgrade preserving workspace data and adding Stage 7–9
+  tables.
+- Accessibility gate asserts every visible button has an accessible name; all 57
+  visual cases pass.
+- CI covers default and optional AI builds; release checklist added.
+- Native desktop smoke tests, signed installers, export/import and larger soak tests
+  remain release blockers.
+
 ### Stage 9 — optional AI extension (complete, fixtures)
 
 - Separate `forgedesk-ai` crate + optional `ai-extension` desktop feature; default
@@ -148,7 +160,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (90 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (91 + 3 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |
@@ -157,8 +169,8 @@ through `user_version`. See ADR-0001…0007.
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (107) |
-| Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 57 captures (16/13/9/15/4 across Gates 0–4) |
+| Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 57 captures; accessibility button-name checks |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
@@ -196,15 +208,16 @@ through `user_version`. See ADR-0001…0007.
 - No API budget settings UI; documented defaults 10%/20%, max in-flight 1.
 - Stage 3 follow-ups remain (templates, doc import/outline, cycle analytics, roadmap
   milestones).
-- Bundle exceeds Vite’s 500 kB warning threshold.
-- Native Tauri runtime/screenshots remain unverified.
+- Native Tauri runtime/screenshots remain unverified (no desktop WebKitGTK).
+- Signed installers are blocked on signing credentials.
+- Workspace export/import beyond SQLite backup/restore is not implemented.
 - GitHub Actions on the public repo is green (frontend, core Ubuntu/Windows, Tauri
   Linux/Windows, visual gates); Linux core now installs `libdbus-1-dev` for keyring.
 - Jenkins mirror requires local git daemon; rotate the API token after setup.
 
 ## Next step
 
-Stage 10: stabilization, release/migration checks, native verification and remaining
-Stage 5 sync writes. Live AI provider verification remains a release task requiring
-user credentials. Remaining Stage 6 polish (inline comment
+Release blockers: native Windows/Linux smoke tests, signing credentials, export/import,
+and large-workspace/soak testing. Stage 5 sync writes and live AI/GitLab/Gitea
+verification remain tracked. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.

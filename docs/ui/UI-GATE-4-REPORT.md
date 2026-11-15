@@ -31,6 +31,11 @@ Full run: **57 captures** (16 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 4 Gate
 | Dashboards layout/widgets | PASS | persisted 12-column edit mode |
 | GitLab/Gitea capability cards | PASS | read-only adapter ready, credentials not configured |
 
+## Accessibility
+
+- Every visible button has an accessible name (`aria-label`, `title` or text).
+- Assertion runs for all 57 visual cases.
+
 ## Notes
 
 - Fixture events are deterministic and only used behind `VITE_VISUAL_HARNESS`.

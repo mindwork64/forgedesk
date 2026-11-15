@@ -1,27 +1,28 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 
-import AboutView from '@/features/about/AboutView.vue'
-import MyIssuesView from '@/features/issues/MyIssuesView.vue'
-import CyclesView from '@/features/cycles/CyclesView.vue'
-import DocumentsView from '@/features/documents/DocumentsView.vue'
-import InitiativesView from '@/features/initiatives/InitiativesView.vue'
-import InitiativeOverviewView from '@/features/initiatives/InitiativeOverviewView.vue'
-import ProjectOverviewView from '@/features/projects/ProjectOverviewView.vue'
-import ProjectsView from '@/features/projects/ProjectsView.vue'
-import RoadmapView from '@/features/roadmap/RoadmapView.vue'
-import ApiMonitorView from '@/features/api-monitor/ApiMonitorView.vue'
-import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
-import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
-import InboxView from '@/features/inbox/InboxView.vue'
-import InsightsView from '@/features/insights/InsightsView.vue'
-import AutomationsView from '@/features/automations/AutomationsView.vue'
-import DashboardsView from '@/features/dashboards/DashboardsView.vue'
-import ReviewsView from '@/features/reviews/ReviewsView.vue'
-import CiView from '@/features/ci/CiView.vue'
-import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
-import RepositoryDetailView from '@/features/repositories/RepositoryDetailView.vue'
-import PlaceholderView from '@/features/placeholder/PlaceholderView.vue'
-import SettingsView from '@/features/settings/SettingsView.vue'
+
+const AboutView = () => import('@/features/about/AboutView.vue')
+const MyIssuesView = () => import('@/features/issues/MyIssuesView.vue')
+const CyclesView = () => import('@/features/cycles/CyclesView.vue')
+const DocumentsView = () => import('@/features/documents/DocumentsView.vue')
+const InitiativesView = () => import('@/features/initiatives/InitiativesView.vue')
+const InitiativeOverviewView = () => import('@/features/initiatives/InitiativeOverviewView.vue')
+const ProjectOverviewView = () => import('@/features/projects/ProjectOverviewView.vue')
+const ProjectsView = () => import('@/features/projects/ProjectsView.vue')
+const RoadmapView = () => import('@/features/roadmap/RoadmapView.vue')
+const ApiMonitorView = () => import('@/features/api-monitor/ApiMonitorView.vue')
+const IntegrationsView = () => import('@/features/integrations/IntegrationsView.vue')
+const PullRequestsView = () => import('@/features/pull-requests/PullRequestsView.vue')
+const InboxView = () => import('@/features/inbox/InboxView.vue')
+const InsightsView = () => import('@/features/insights/InsightsView.vue')
+const AutomationsView = () => import('@/features/automations/AutomationsView.vue')
+const DashboardsView = () => import('@/features/dashboards/DashboardsView.vue')
+const ReviewsView = () => import('@/features/reviews/ReviewsView.vue')
+const CiView = () => import('@/features/ci/CiView.vue')
+const RepositoriesView = () => import('@/features/repositories/RepositoriesView.vue')
+const RepositoryDetailView = () => import('@/features/repositories/RepositoryDetailView.vue')
+const PlaceholderView = () => import('@/features/placeholder/PlaceholderView.vue')
+const SettingsView = () => import('@/features/settings/SettingsView.vue')
 
 declare module 'vue-router' {
   interface RouteMeta {

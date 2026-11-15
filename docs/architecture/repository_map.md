@@ -166,7 +166,8 @@ ForgeDesk/
 │   ├── architecture/           overview, repository_map, assumptions
 │   ├── decisions/              ADR-0001…0010 (…/provider-adapters/optional-AI)
 │   ├── development/            setup.md, jenkins.md
-│   ├── stages/                 Stage 0/1/2/3/4/5/6/7/8/9 reports
+│   ├── stages/                 Stage 0/1/2/3/4/5/6/7/8/9/10 reports
+│   ├── release/                Release checklist and blockers
 │   ├── ui/
 │   │   ├── component_map.md
 │   │   ├── visual_baseline.md

@@ -5,6 +5,13 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 10 — stabilization (partial)
+
+- Route-level code splitting (main JS ~231 KB, warning gone).
+- v5→v9 migration test, accessible-name visual assertions, optional AI CI lanes.
+- 91 core tests, 5 AI crate tests, 107 frontend, 57 visual captures.
+- Native/signing/export-import release blockers documented.
+
 ### Stage 9 — optional AI extension
 
 - Separate `forgedesk-ai` crate/feature, off by default; default builds and UI contain

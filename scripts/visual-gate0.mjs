@@ -761,6 +761,21 @@ async function main() {
       )
 
       if (!testCase.error) {
+        const unnamedButtons = await page.locator('button:visible').evaluateAll((buttons) =>
+          buttons.filter((button) => {
+            const label =
+              button.getAttribute('aria-label') ||
+              button.getAttribute('title') ||
+              button.textContent ||
+              ''
+            return label.trim().length === 0
+          }).length,
+        )
+        assert(
+          unnamedButtons === 0,
+          `${testCase.name}: visible buttons without an accessible name`,
+          report.failures,
+        )
         const aiNav = await page.getByText('AI Assistant', { exact: true }).count()
         assert(aiNav === 0, `${testCase.name}: AI navigation must be absent by default`, report.failures)
       }
