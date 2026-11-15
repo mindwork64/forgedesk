@@ -96,5 +96,7 @@ machine with WebKitGTK/WebView2.
 - Build 6 (Stage 3 planning snapshot, commit `8a999ee`): **SUCCESS** in 98 s;
   36 core tests, 38 visual captures, 39 archived artifacts.
 - Build 7 (Stage 4 Git/API-budget snapshot, commit `9ab85bb`): **SUCCESS** in 104 s;
-  44 core tests, 43 visual captures, 44 archived artifacts. `measurements.json`
+  44 core tests, 43 visual captures, 44 archived artifacts.
+- Build 8 (Stage 5 sync foundation, commit `6d6bf52`): **SUCCESS** in 109 s;
+  46 core tests, 43 visual captures, 44 archived artifacts. `measurements.json`
   reports `assertions: PASS`, `failures: []`.

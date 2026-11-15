@@ -44,7 +44,7 @@ client. No remote write was attempted.
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Frontend typecheck/tests | `npm run typecheck`, `npm test` | PASS — 78 |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 43 captures (no Stage 5 UI yet) |
-| Jenkins | `ForgeDesk-CI` build 8 | Pending commit/mirror push |
+| Jenkins | `ForgeDesk-CI` build 8 (`6d6bf52`) | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Live GitHub sync | — | NOT RUN — auth/provider client absent |
 
 ## Required next decision/action

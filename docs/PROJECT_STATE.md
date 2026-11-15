@@ -71,7 +71,7 @@ through `user_version`. See ADR-0001…0006.
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 43 captures (16/13/9/5 across Gates 0–3) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
-| Jenkins build 8 | Stage 5 foundation snapshot | Pending commit/mirror push |
+| Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
 | Tauri config | `npx tauri info` | Valid; WebKitGTK absent locally |
 
 ## Known issues / limitations
