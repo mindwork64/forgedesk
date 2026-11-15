@@ -42,9 +42,14 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "pull_links",
         sql: include_str!("migrations/0006_pull_links.sql"),
     },
+    Migration {
+        version: 7,
+        name: "inbox",
+        sql: include_str!("migrations/0007_inbox.sql"),
+    },
 ];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 6;
+pub const CURRENT_SCHEMA_VERSION: i64 = 7;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -128,7 +133,7 @@ mod tests {
         .expect("workspace");
         tx.commit().expect("commit");
 
-        assert_eq!(run(&mut conn).expect("migrate to current"), 6);
+        assert_eq!(run(&mut conn).expect("migrate to current"), 7);
 
         let workflows: i64 = conn
             .query_row("SELECT count(*) FROM workflow", [], |row| row.get(0))

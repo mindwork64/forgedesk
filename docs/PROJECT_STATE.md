@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-15
-**Stage:** 6 — COMPLETE (DoD); Stage 5 sync writes remain partial
+**Stage:** 7 — Inbox/triage started (partial); Stage 5 sync writes remain partial
 **Revision:** working tree / local git repository (see `git log -1`)
 
 ## Current objective
@@ -38,11 +38,11 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 78 core (+3 ignored live), 107 frontend, 53 visual captures.
+- **Tests:** 80 core (+3 ignored live), 107 frontend, 54 visual captures.
 
 ### Stage 5 — sync safety foundation and read-only import
 
-- **Schema v6:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`, `pull_request_link`.
+- **Schema v7:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`, `pull_request_link`, `inbox_state`.
 - Remote link ownership JSON, per-resource cursors (page/watermark/last success),
   idempotent outbox enqueue and closed state machine:
   `pending → dispatching → succeeded | failed_definite | outcome_unknown →
@@ -55,7 +55,7 @@ through `user_version`. See ADR-0001…0007.
   written to logs. Read-only repository discovery + issue import is implemented and
   live-tested; local→remote writes, comments and the outbox dispatcher remain open.
 
-### Stage 6 — pull requests, checks and reviews (read-only)
+### Stage 6 — pull requests, checks and reviews (complete)
 
 - GitHub REST: list pulls (open/closed/all), pull detail, commits, reviews and
   check-runs for the head SHA.
@@ -92,6 +92,17 @@ through `user_version`. See ADR-0001…0007.
 - Split diff/line comments, review submission, merge/close, PR↔issue links and
   budget-aware PR request logging remain open.
 
+### Stage 7 — Inbox/triage (partial)
+
+- **Schema v7:** `inbox_state` stores read/archived state for normalized activity events.
+- Inbox lists local issue activity (created, updated, status/labels, comments, archive,
+  relations) with source badges, Today/Yesterday/Earlier groups, All/Unread/GitHub/
+  Local/Sync filters, unread markers, mark read/unread, archive and mark-all-read.
+- Normalization currently covers local `activity_event` rows; GitHub sync events will
+  be added with the sync engine. No fake external events.
+- Detail pane shows event summary/entity and links to local issues.
+- Automations, Insights and Dashboards remain to do.
+
 ### Stages 1–3 (preserved)
 
 - Local-first shell/settings/backups/themes.
@@ -102,14 +113,14 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (78 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (80 + 3 ignored live) |
 | Core clippy | `cargo clippy -p forgedesk-core --all-targets -- -D warnings` | PASS |
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
 | Frontend tests | `npm test` | PASS (107) |
 | Frontend build | `npm run build` | PASS (Vite chunk warning ~501 kB) |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 53 captures (16/13/9/15 across Gates 0–3) |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 54 captures (16/13/9/15/1 across Gates 0–4) |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
@@ -153,7 +164,6 @@ through `user_version`. See ADR-0001…0007.
 
 ## Next step
 
-Remaining Stage 6: inline comment placement/thread resolution, budget-aware PR
-request logs, GraphQL list summaries and native verification. Then Stage 5
-write/reconciliation: comments, explicit local→remote issue create/update, conflict
-UI and outbox dispatcher. Authenticate via Integrations → Connect.
+Continue Stage 7: triage actions/tabs polish, then automations (rules, preview, run
+history), Insights aggregates and Dashboards. Remaining Stage 6 polish (inline comment
+placement, PR read budgets) and Stage 5 sync writes stay tracked.

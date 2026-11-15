@@ -53,6 +53,7 @@ import type {
   PullCapabilities,
   GitHubMergeResult,
   GitHubReview,
+  InboxEvent,
   SettingsPatch,
   StatusSummary,
   UpdateIssueInput,
@@ -301,4 +302,10 @@ export const api = {
       body,
       confirmed,
     }),
+  inboxList: (filter: string) => call<InboxEvent[]>('inbox_list', { filter }),
+  inboxMarkRead: (eventId: string, read: boolean) =>
+    call<void>('inbox_mark_read', { eventId, read }),
+  inboxArchive: (eventId: string) =>
+    call<void>('inbox_archive', { eventId }),
+  inboxMarkAllRead: () => call<number>('inbox_mark_all_read'),
 }

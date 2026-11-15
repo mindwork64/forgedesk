@@ -2,6 +2,7 @@ pub mod error;
 
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
+use forgedesk_core::domain::inbox::InboxEvent;
 use forgedesk_core::domain::pull_link::PullLink;
 use forgedesk_core::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
@@ -865,5 +866,40 @@ pub fn github_submit_review(
                 &token, &owner, &repo, number, &event, &body, &login, confirmed,
             )
         })
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn inbox_list(
+    state: State<'_, AppState>,
+    filter: String,
+) -> Result<Vec<InboxEvent>, CommandError> {
+    state
+        .with_service(|service| service.inbox(&filter))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn inbox_mark_read(
+    state: State<'_, AppState>,
+    event_id: String,
+    read: bool,
+) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.inbox_mark_read(&event_id, read))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn inbox_archive(state: State<'_, AppState>, event_id: String) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.inbox_archive(&event_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn inbox_mark_all_read(state: State<'_, AppState>) -> Result<i64, CommandError> {
+    state
+        .with_service(|service| service.inbox_mark_all_read())
         .map_err(CommandError::from)
 }

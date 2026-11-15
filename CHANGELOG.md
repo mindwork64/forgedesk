@@ -5,6 +5,12 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### Stage 7 — Inbox/triage (partial)
+
+- Schema v7 `inbox_state`; normalized local activity Inbox with filters, unread/
+  archive actions, grouping and detail pane.
+- 80 core tests (+3 ignored live), 107 frontend, 54 visual captures.
+
 ### Stage 6 completion
 
 - Schema v6 `pull_request_link`; PR↔local issue link/unlink.

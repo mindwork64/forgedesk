@@ -159,6 +159,10 @@ export type CommandName =
   | 'github_merge_pull'
   | 'github_close_pull'
   | 'github_submit_review'
+  | 'inbox_list'
+  | 'inbox_mark_read'
+  | 'inbox_archive'
+  | 'inbox_mark_all_read'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type IssueType =
@@ -884,4 +888,19 @@ export interface GitHubMergeResult {
   merged: boolean
   message: string
   sha: string | null
+}
+
+export interface InboxEvent {
+  id: string
+  source: 'local' | 'github' | 'sync'
+  kind: string
+  title: string
+  summary: string
+  entityType: string
+  entityId: string
+  entityKey: string
+  entityTitle: string
+  createdAt: string
+  read: boolean
+  archived: boolean
 }

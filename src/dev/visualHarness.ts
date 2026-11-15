@@ -12,6 +12,7 @@ import { handleIssueFixtureCommand } from './issueFixtures'
 import { handlePlanningFixtureCommand } from './planningFixtures'
 import { handleStage4FixtureCommand } from './stage4Fixtures'
 import { handleStage6FixtureCommand } from './stage6Fixtures'
+import { handleStage7FixtureCommand } from './stage7Fixtures'
 import type {
   AppSettings,
   BackupInfo,
@@ -74,7 +75,7 @@ let backups: BackupInfo[] = [
     id: 'forgedesk-20261115-043012-a1b2c3d4',
     filePath: `${dataDir}/backups/forgedesk-20261115-043012-a1b2c3d4.db`,
     createdAt: isoOffset(2),
-    schemaVersion: 6,
+    schemaVersion: 7,
     sizeBytes: 28_672,
     appVersion: '0.1.0',
     valid: true,
@@ -83,7 +84,7 @@ let backups: BackupInfo[] = [
     id: 'forgedesk-20261114-102211-9e8d7c6b',
     filePath: `${dataDir}/backups/forgedesk-20261114-102211-9e8d7c6b.db`,
     createdAt: isoOffset(20),
-    schemaVersion: 6,
+    schemaVersion: 7,
     sizeBytes: 28_672,
     appVersion: '0.1.0',
     valid: true,
@@ -92,7 +93,7 @@ let backups: BackupInfo[] = [
     id: 'forgedesk-20261113-090403-5f4e3d2c',
     filePath: `${dataDir}/backups/forgedesk-20261113-090403-5f4e3d2c.db`,
     createdAt: isoOffset(44),
-    schemaVersion: 6,
+    schemaVersion: 7,
     sizeBytes: 24_576,
     appVersion: '0.1.0',
     valid: true,
@@ -105,7 +106,7 @@ function bootstrap(): Bootstrap {
   }
   return structuredClone({
     appVersion: '0.1.0',
-    schemaVersion: 6,
+    schemaVersion: 7,
     dataDir,
     dbPath: `${dataDir}/forgedesk.db`,
     backupsDir: `${dataDir}/backups`,
@@ -137,6 +138,11 @@ export function installVisualHarness(): void {
 
   setDevTransport(async <T,>(command: CommandName, args?: Record<string, unknown>): Promise<T> => {
     await new Promise((resolve) => setTimeout(resolve, 15))
+
+    const stage7Result = handleStage7FixtureCommand<T>(command)
+    if (stage7Result.handled) {
+      return stage7Result.value as T
+    }
 
     const stage6Result = handleStage6FixtureCommand<T>(command, args)
     if (stage6Result.handled) {
@@ -191,7 +197,7 @@ export function installVisualHarness(): void {
           id: `forgedesk-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
           filePath: `${dataDir}/backups/new.db`,
           createdAt: isoOffset(0),
-          schemaVersion: 6,
+          schemaVersion: 7,
           sizeBytes: 28_672,
           appVersion: '0.1.0',
           valid: true,
@@ -209,7 +215,7 @@ export function installVisualHarness(): void {
           id: `forgedesk-safety-${Date.now()}`,
           filePath: `${dataDir}/backups/safety.db`,
           createdAt: isoOffset(0),
-          schemaVersion: 6,
+          schemaVersion: 7,
           sizeBytes: 28_672,
           appVersion: '0.1.0',
           valid: true,

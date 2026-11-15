@@ -523,6 +523,15 @@ const cases = [
     waitFor: '.fd-ci-check-list',
   },
   {
+    name: 'gate4-inbox-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/inbox',
+    waitFor: '.fd-inbox-row',
+  },
+  {
     name: 'gate3-api-monitor-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1215,6 +1224,14 @@ async function main() {
         caseReport.ciCommits = commits
         caseReport.ciChecks = checks
         assert(commits >= 3 && checks >= 3, `${testCase.name}: expected CI activity`, report.failures)
+      }
+
+      if (testCase.route === '/inbox') {
+        const rows = await page.locator('.fd-inbox-row').count()
+        const unread = await page.locator('.fd-inbox-dot--on').count()
+        caseReport.inboxRows = rows
+        caseReport.inboxUnread = unread
+        assert(rows >= 3 && unread >= 2, `${testCase.name}: expected inbox events`, report.failures)
       }
 
       if (testCase.route === '/integrations') {

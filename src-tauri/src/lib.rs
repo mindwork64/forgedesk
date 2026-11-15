@@ -118,6 +118,10 @@ pub fn run() {
             commands::github_merge_pull,
             commands::github_close_pull,
             commands::github_submit_review,
+            commands::inbox_list,
+            commands::inbox_mark_read,
+            commands::inbox_archive,
+            commands::inbox_mark_all_read,
         ]);
 
     let app = builder

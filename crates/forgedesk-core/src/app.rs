@@ -8,6 +8,7 @@ use crate::db::repositories::{
     workflow,
 };
 use crate::db::Database;
+use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
@@ -477,6 +478,34 @@ impl AppService {
         crate::github_actions::submit_review(
             token, owner, repo, number, event, body, login, confirmed,
         )
+    }
+
+    pub fn inbox(&self, filter: &str) -> CoreResult<Vec<InboxEvent>> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::inbox::list(conn, &workspace.id, InboxFilter::parse(filter))
+        })
+    }
+
+    pub fn inbox_mark_read(&self, event_id: &str, read: bool) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::inbox::mark_read(conn, &workspace.id, event_id, read)
+        })
+    }
+
+    pub fn inbox_archive(&self, event_id: &str) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::inbox::archive(conn, &workspace.id, event_id)
+        })
+    }
+
+    pub fn inbox_mark_all_read(&self) -> CoreResult<i64> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|conn| {
+            crate::db::repositories::inbox::mark_all_read(conn, &workspace.id)
+        })
     }
 
     pub fn git_available(&self) -> GitAvailability {

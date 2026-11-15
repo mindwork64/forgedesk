@@ -12,6 +12,7 @@ import RoadmapView from '@/features/roadmap/RoadmapView.vue'
 import ApiMonitorView from '@/features/api-monitor/ApiMonitorView.vue'
 import IntegrationsView from '@/features/integrations/IntegrationsView.vue'
 import PullRequestsView from '@/features/pull-requests/PullRequestsView.vue'
+import InboxView from '@/features/inbox/InboxView.vue'
 import ReviewsView from '@/features/reviews/ReviewsView.vue'
 import CiView from '@/features/ci/CiView.vue'
 import RepositoriesView from '@/features/repositories/RepositoriesView.vue'
@@ -42,7 +43,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/inbox',
     name: 'inbox',
-    component: PlaceholderView,
+    component: InboxView,
     meta: {
       titleKey: 'pages.inbox.title',
       descriptionKey: 'pages.inbox.description',
