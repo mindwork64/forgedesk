@@ -747,7 +747,8 @@ mod model_tests {
             })
             .expect("add");
         assert_eq!(added.checkouts.len(), 1);
-        assert_eq!(added.checkouts[0].path, repo.to_string_lossy());
+        let canonical = git::canonical_repo_path(&repo.to_string_lossy()).expect("canonical");
+        assert_eq!(added.checkouts[0].path, canonical.to_string_lossy());
         let unlinked = db
             .with_transaction(|tx| unlink(tx, &workspace.id, &added.id, &project_id))
             .expect("unlink");
