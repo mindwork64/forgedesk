@@ -57,9 +57,14 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "dashboards",
         sql: include_str!("migrations/0009_dashboards.sql"),
     },
+    Migration {
+        version: 10,
+        name: "repositories",
+        sql: include_str!("migrations/0010_repository_model.sql"),
+    },
 ];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 9;
+pub const CURRENT_SCHEMA_VERSION: i64 = 10;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -81,6 +86,9 @@ pub fn run(conn: &mut Connection) -> CoreResult<i64> {
     for migration in MIGRATIONS.iter().filter(|m| m.version > current) {
         let tx = conn.transaction()?;
         tx.execute_batch(migration.sql)?;
+        if migration.version == 10 {
+            crate::db::repositories::repo_registry::reconcile_legacy_remotes(&tx)?;
+        }
         tx.execute(
             "INSERT INTO schema_migration (version, name, applied_at) VALUES (?1, ?2, ?3)",
             rusqlite::params![migration.version, migration.name, now_rfc3339()],
@@ -214,12 +222,34 @@ mod tests {
         )
         .expect("document");
         conn.execute(
-            "INSERT INTO repository (id, workspace_id, name, path, provider, project_id, \
+            "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, project_id, \
              created_at, updated_at) VALUES ('repo-1', 'ws-1', 'ForgeDesk', \
-             '/tmp/forgedesk-v5-repo', 'local', ?1, ?2, ?2)",
+             '/tmp/forgedesk-v5-repo', 'local', 'git@github.com:mindwork64/forgedesk.git', ?1, ?2, ?2)",
             rusqlite::params![project_id, now],
         )
         .expect("repository");
+        conn.execute(
+            "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, \
+             created_at, updated_at) VALUES ('repo-2', 'ws-1', 'Other', '/tmp/forgedesk-other', \
+             'local', 'https://github.com/mindwork64/other.git', ?1, ?1)",
+            [now],
+        )
+        .expect("https repository");
+        conn.execute(
+            "INSERT INTO project (id, workspace_id, name, description, status, priority, \
+             created_at, updated_at) VALUES ('project-2', 'ws-1', 'Release clone', \
+             'separate project', 'active', 'medium', ?1, ?1)",
+            [now],
+        )
+        .expect("second project");
+        conn.execute(
+            "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, project_id, \
+             created_at, updated_at) VALUES ('repo-3', 'ws-1', 'ForgeDesk clone 2', \
+             '/tmp/forgedesk-v5-repo-2', 'local', 'https://github.com/mindwork64/forgedesk.git', \
+             'project-2', ?1, ?1)",
+            [now],
+        )
+        .expect("duplicate origin checkout");
         conn.execute(
             "INSERT INTO remote_issue_link (id, local_issue_id, provider, account_id, \
              repository_id, remote_id, remote_number, remote_url, created_at, updated_at) \
@@ -287,12 +317,95 @@ mod tests {
         );
         assert_eq!(
             conn.query_row(
-                "SELECT path FROM repository WHERE id = 'repo-1'",
+                "SELECT path FROM repository_checkout WHERE repository_id = 'repo-1'",
                 [],
                 |row| { row.get::<_, String>(0) }
             )
             .expect("repository"),
             "/tmp/forgedesk-v5-repo"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT provider || '|' || host || '|' || full_name || '|' || canonical_remote_url \
+                 FROM repository WHERE id = 'repo-2'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("https normalized"),
+            "github|github.com|mindwork64/other|https://github.com/mindwork64/other"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT provider || '|' || host || '|' || full_name || '|' || \
+                 COALESCE(canonical_remote_url, '<none>') || '|' || \
+                 CASE WHEN identity_conflict IS NULL THEN 'clear' ELSE 'conflict' END \
+                 FROM repository WHERE id = 'repo-3'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("duplicate identity"),
+            "local|local|ForgeDesk clone 2|<none>|conflict"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT path FROM repository_checkout WHERE repository_id = 'repo-3'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("conflict checkout"),
+            "/tmp/forgedesk-v5-repo-2"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT count(*) FROM repository_project \
+                 WHERE repository_id = 'repo-3' AND project_id = 'project-2'",
+                [],
+                |row| row.get::<_, i64>(0)
+            )
+            .expect("conflict project link"),
+            1
+        );
+        let discovered = crate::db::repositories::repo_registry::upsert_remote(
+            &conn,
+            "ws-1",
+            &crate::db::repositories::repo_registry::RemoteRepositoryInput {
+                provider: "github".into(),
+                host: "github.com".into(),
+                external_id: Some("123".into()),
+                owner: Some("mindwork64".into()),
+                name: "forgedesk".into(),
+                full_name: "mindwork64/forgedesk".into(),
+                description: None,
+                visibility: None,
+                default_branch: Some("main".into()),
+                html_url: Some("https://github.com/mindwork64/forgedesk".into()),
+                clone_url: Some("https://github.com/mindwork64/forgedesk.git".into()),
+                canonical_remote_url: Some("https://github.com/mindwork64/forgedesk".into()),
+                is_archived: false,
+            },
+        )
+        .expect("discovery reconcile");
+        assert_eq!(discovered.id, "repo-1");
+        assert_eq!(discovered.checkouts.len(), 1);
+        assert_eq!(discovered.projects.len(), 1);
+
+        assert_eq!(
+            conn.query_row(
+                "SELECT count(*) FROM repository_project                  WHERE workspace_id = 'ws-1' AND repository_id = 'repo-1'                    AND project_id = 'project-1'",
+                [],
+                |row| row.get::<_, i64>(0)
+            )
+            .expect("project link"),
+            1
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT remote_repository_key FROM remote_issue_link WHERE id = 'link-1'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("remote repository key"),
+            "owner/repo"
         );
         assert_eq!(
             conn.query_row(
@@ -364,6 +477,88 @@ mod tests {
     }
 
     #[test]
+    fn reverse_insertion_keeps_primary_identity_and_preserves_both_links() {
+        let mut conn = connection();
+        apply_through(&mut conn, 1);
+        conn.execute(
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \
+             VALUES ('ws-1', 'Reverse', 'RV', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .expect("workspace");
+        apply_through(&mut conn, 9);
+        for (id, name) in [("project-a", "A"), ("project-b", "B")] {
+            conn.execute(
+                "INSERT INTO project (id, workspace_id, name, description, status, priority, \
+                 created_at, updated_at) VALUES (?1, 'ws-1', ?2, '', 'active', 'none', \
+                 '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+                rusqlite::params![id, name],
+            )
+            .expect("project");
+        }
+        // Insert the higher ID first: deterministic reconciliation must still choose legacy-a.
+        for (id, project, path) in [
+            ("legacy-b", "project-b", "/tmp/checkout-b"),
+            ("legacy-a", "project-a", "/tmp/checkout-a"),
+        ] {
+            conn.execute(
+                "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, \
+                 project_id, created_at, updated_at) VALUES (?1, 'ws-1', ?1, ?2, 'local', \
+                 'https://github.com/owner/repo.git', ?3, '2026-01-01T00:00:00Z', \
+                 '2026-01-01T00:00:00Z')",
+                rusqlite::params![id, path, project],
+            )
+            .expect("legacy repository");
+        }
+
+        assert_eq!(run(&mut conn).expect("migrate"), CURRENT_SCHEMA_VERSION);
+        assert_eq!(
+            conn.query_row(
+                "SELECT id FROM repository WHERE canonical_remote_url IS NOT NULL",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("primary"),
+            "legacy-a"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT id FROM repository WHERE identity_conflict IS NOT NULL",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("conflict"),
+            "legacy-b"
+        );
+        for (repository, project, path) in [
+            ("legacy-a", "project-a", "/tmp/checkout-a"),
+            ("legacy-b", "project-b", "/tmp/checkout-b"),
+        ] {
+            assert_eq!(
+                conn.query_row(
+                    "SELECT path FROM repository_checkout WHERE repository_id = ?1",
+                    [repository],
+                    |row| row.get::<_, String>(0)
+                )
+                .expect("checkout"),
+                path
+            );
+            assert_eq!(
+                conn.query_row(
+                    "SELECT count(*) FROM repository_project \
+                     WHERE repository_id = ?1 AND project_id = ?2",
+                    rusqlite::params![repository, project],
+                    |row| row.get::<_, i64>(0)
+                )
+                .expect("project link"),
+                1
+            );
+        }
+        let mut check = conn.prepare("PRAGMA foreign_key_check").expect("fk check");
+        assert_eq!(check.query_map([], |_| Ok(())).expect("rows").count(), 0);
+    }
+
+    #[test]
     fn applies_migrations_idempotently() {
         let mut conn = connection();
         assert_eq!(run(&mut conn).expect("first run"), CURRENT_SCHEMA_VERSION);
@@ -401,7 +596,10 @@ mod tests {
         .expect("workspace");
         tx.commit().expect("commit");
 
-        assert_eq!(run(&mut conn).expect("migrate to current"), 9);
+        assert_eq!(
+            run(&mut conn).expect("migrate to current"),
+            CURRENT_SCHEMA_VERSION
+        );
 
         let workflows: i64 = conn
             .query_row("SELECT count(*) FROM workflow", [], |row| row.get(0))

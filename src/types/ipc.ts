@@ -132,6 +132,14 @@ export type CommandName =
   | 'list_repositories'
   | 'add_local_repository'
   | 'remove_repository'
+  | 'get_repository'
+  | 'get_project_repositories'
+  | 'link_repository'
+  | 'unlink_repository'
+  | 'attach_repository_checkout'
+  | 'detach_repository_checkout'
+  | 'select_repository'
+  | 'selected_repository'
   | 'get_git_overview'
   | 'create_git_branch'
   | 'switch_git_branch'
@@ -598,18 +606,48 @@ export interface DocumentInput {
   initiativeId?: string | null
 }
 
-export interface Repository {
+export interface RepositoryCheckout {
   id: string
-  name: string
+  repositoryId: string
   path: string
-  provider: 'local' | 'github' | 'gitlab' | 'gitea'
-  remoteUrl: string | null
-  defaultBranch: string | null
-  projectId: string | null
-  projectName: string | null
   lastCheckedAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface Repository {
+  id: string
+  provider: 'local' | 'github' | 'gitlab' | 'gitea'
+  host: string
+  externalId: string | null
+  owner: string | null
+  name: string
+  fullName: string
+  description: string | null
+  visibility: 'public' | 'private' | 'internal' | null
+  defaultBranch: string | null
+  htmlUrl: string | null
+  cloneUrl: string | null
+  canonicalRemoteUrl: string | null
+  isArchived: boolean
+  identityConflict: string | null
+  checkouts: RepositoryCheckout[]
+  projects: ProjectRef[]
+  lastCheckedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface RepositoryLinkInput {
+  repositoryId: string
+  projectId: string
+}
+
+export interface RepositoryDiscoveryResult {
+  items: Repository[]
+  hasMore: boolean
+  pagesLoaded: number
+  nextPage: number | null
 }
 
 export interface RepositoryInput {
@@ -755,16 +793,9 @@ export interface DeviceFlowPoll {
   connection: GitHubConnection | null
 }
 
-export interface GitHubRepo {
-  id: number
-  name: string
-  fullName: string
-  private: boolean
-  defaultBranch: string | null
-  htmlUrl: string
-  description: string | null
-  updatedAt: string | null
-  owner: { login: string }
+export interface GitHubImportTarget {
+  repositoryId: string
+  projectId: string
 }
 
 export interface GitHubImportResult {
@@ -772,8 +803,10 @@ export interface GitHubImportResult {
   skipped: number
   projectId: string
   projectName: string
+  repositoryId: string
   hasMore: boolean
   pages: number
+  nextPage: number | null
 }
 
 export interface GitHubRef {

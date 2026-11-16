@@ -7,54 +7,79 @@ import { i18n } from '@/i18n'
 import { setDevTransport } from '@/lib/ipc'
 import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useToastStore } from '@/stores/toasts'
-import type { GitHubImportResult, GitHubRepo } from '@/types/ipc'
+import type { GitHubImportResult, Repository } from '@/types/ipc'
 import GitHubRepoDialog from './GitHubRepoDialog.vue'
 
-const repo: GitHubRepo = {
-  id: 123,
+const repo: Repository = {
+  id: 'repo-1',
+  provider: 'github',
+  host: 'github.com',
+  externalId: '123',
+  owner: 'mindwork64',
   name: 'forgedesk',
   fullName: 'mindwork64/forgedesk',
-  private: false,
+  description: 'Test repository',
+  visibility: 'public',
   defaultBranch: 'main',
   htmlUrl: 'https://github.com/mindwork64/forgedesk',
-  description: 'Test repository',
+  cloneUrl: 'https://github.com/mindwork64/forgedesk.git',
+  canonicalRemoteUrl: 'https://github.com/mindwork64/forgedesk',
+  isArchived: false,
+  identityConflict: null,
+  checkouts: [],
+  projects: [],
+  lastCheckedAt: null,
+  createdAt: '2026-11-15T12:00:00Z',
   updatedAt: '2026-11-15T12:00:00Z',
-  owner: { login: 'mindwork64' },
 }
 const result: GitHubImportResult = {
   imported: 2,
   skipped: 1,
   projectId: 'project-1',
   projectName: 'mindwork64/forgedesk',
-  hasMore: false,
-  pages: 1,
+  repositoryId: 'repo-1',
+  hasMore: true,
+  pages: 5,
+  nextPage: 6,
 }
 
 let wrapper: ReturnType<typeof mount> | null = null
+let currentResult: GitHubImportResult = structuredClone(result)
+let discoveryProjects: { id: string; name: string }[] = []
 let importCalls = 0
+let importPages: number[] = []
+let lastTarget: string | null = null
 let importError: Error | null = null
 let importGate: Promise<void> | null = null
 let router: ReturnType<typeof createRouter>
 
-async function mountDialog(): Promise<void> {
+async function mountDialog(projects: { id: string; name: string }[] = []): Promise<void> {
   setActivePinia(createPinia())
   importCalls = 0
+  currentResult = structuredClone(result)
+  discoveryProjects = projects
+  importPages = []
+  lastTarget = null
   importError = null
   importGate = null
   i18n.global.locale.value = 'en'
   localStorage.clear()
-  setDevTransport(async <T,>(command: string) => {
-    if (command === 'github_discover_repositories') return [repo] as T
+  const discovered = () => ({ ...repo, projects: discoveryProjects })
+  setDevTransport(async <T,>(command: string, args?: Record<string, unknown>) => {
+    if (command === 'github_discover_repositories') return { items: [discovered()], hasMore: false, pagesLoaded: 1, nextPage: null } as T
+    if (command === 'select_repository') return structuredClone(discovered()) as T
     if (command === 'github_import_issues') {
       importCalls += 1
+      importPages.push(Number(args?.startPage ?? 1))
+      lastTarget = (args?.targetProjectId as string | null | undefined) ?? null
       if (importGate) await importGate
       if (importError) throw importError
-      return structuredClone(result) as T
+      return structuredClone(currentResult) as T
     }
     throw { code: 'unsupported_capability', message: String(command) }
   })
   const auth = useGithubAuthStore()
-  auth.repositories = [repo]
+  auth.repositories = [discovered()]
   router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -125,6 +150,7 @@ describe('GitHubRepoDialog', () => {
     await flushPromises()
     const auth = useGithubAuthStore()
     expect(auth.selectedRepo).toEqual({
+      repositoryId: 'repo-1',
       owner: 'mindwork64',
       name: 'forgedesk',
       fullName: 'mindwork64/forgedesk',
@@ -143,9 +169,79 @@ describe('GitHubRepoDialog', () => {
     await new Promise((resolve) => setTimeout(resolve, 15))
     await flushPromises()
     expect(document.body.textContent).toContain('Imported 2, skipped 1')
+    expect(document.body.textContent).toContain('more issues remain')
+    expect(document.body.textContent).toContain('Continue import')
+    currentResult = { ...result, hasMore: false, nextPage: null }
+    button('Continue import').click()
+    await flushPromises()
+    expect(importCalls).toBe(2)
+    expect(importPages[1]).toBe(6)
+    expect(document.body.textContent).not.toContain('Continue import')
     button('View imported project').click()
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/projects/project-1')
+  })
+
+  it('requires an explicit target project when multiple projects are linked', async () => {
+    await wrapper?.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
+    await mountDialog([
+      { id: 'p1', name: 'One' },
+      { id: 'p2', name: 'Two' },
+    ])
+    const select = document.querySelector<HTMLSelectElement>('.fd-github-repo-target')!
+    const importButton = button('Import issues')
+    expect(importButton.disabled).toBe(true)
+    select.value = 'p2'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    expect(importButton.disabled).toBe(false)
+    importButton.click()
+    await flushPromises()
+    expect(lastTarget).toBe('p2')
+  })
+
+  it('drops a stale target when discovery no longer returns it', async () => {
+    await wrapper?.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
+    await mountDialog([
+      { id: 'p1', name: 'One' },
+      { id: 'p2', name: 'Two' },
+    ])
+    const select = document.querySelector<HTMLSelectElement>('.fd-github-repo-target')!
+    select.value = 'p1'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    const auth = useGithubAuthStore()
+    auth.repositories = [{ ...repo, projects: [{ id: 'p2', name: 'Two' }] }]
+    await flushPromises()
+    button('Import issues').click()
+    await flushPromises()
+    expect(lastTarget).toBeNull()
+  })
+
+  it('clears a selected target when the dialog is reopened', async () => {
+    await wrapper?.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
+    await mountDialog([
+      { id: 'p1', name: 'One' },
+      { id: 'p2', name: 'Two' },
+    ])
+    const select = document.querySelector<HTMLSelectElement>('.fd-github-repo-target')!
+    select.value = 'p1'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    const mounted = wrapper as unknown as ReturnType<typeof mount>
+    await mounted.setProps({ open: false })
+    discoveryProjects = [{ id: 'p2', name: 'Two' }]
+    await mounted.setProps({ open: true })
+    await flushPromises()
+    button('Import issues').click()
+    await flushPromises()
+    expect(lastTarget).toBeNull()
   })
 
   it('keeps the import error visible through the existing toast path', async () => {

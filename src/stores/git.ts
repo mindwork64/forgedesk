@@ -16,11 +16,15 @@ export const useGitStore = defineStore('git', () => {
   const toast = useToastStore()
 
   const repositories = ref<Repository[]>([])
+  const repository = ref<Repository | null>(null)
   const overview = ref<GitOverview | null>(null)
+  const projectRepositories = ref<Repository[]>([])
+  const projectRepositoriesLoading = ref(false)
   const availability = ref<GitAvailability | null>(null)
   const loading = ref(false)
   const error = ref<ReturnType<typeof toIpcError> | null>(null)
   let overviewRequest = 0
+  let projectRepositoriesRequest = 0
 
   async function loadAvailability(): Promise<void> {
     try {
@@ -43,6 +47,67 @@ export const useGitStore = defineStore('git', () => {
       error.value = toIpcError(caught)
     } finally {
       loading.value = false
+    }
+  }
+
+  async function loadProjectRepositories(projectId: string): Promise<void> {
+    const request = ++projectRepositoriesRequest
+    projectRepositoriesLoading.value = true
+    try {
+      const next = await api.getProjectRepositories(projectId)
+      if (request === projectRepositoriesRequest) {
+        projectRepositories.value = next
+      }
+    } catch (caught) {
+      if (request === projectRepositoriesRequest) {
+        error.value = toIpcError(caught)
+        projectRepositories.value = []
+      }
+    } finally {
+      if (request === projectRepositoriesRequest) {
+        projectRepositoriesLoading.value = false
+      }
+    }
+  }
+
+  async function linkProjectRepository(
+    repositoryId: string,
+    projectId: string,
+  ): Promise<boolean> {
+    try {
+      const updated = await api.linkRepository(repositoryId, projectId)
+      projectRepositories.value = [
+        ...projectRepositories.value.filter((item) => item.id !== updated.id),
+        updated,
+      ]
+      repositories.value = repositories.value.map((item) =>
+        item.id === updated.id ? updated : item,
+      )
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('repositories.linkError'), wire.message, wire.detail)
+      return false
+    }
+  }
+
+  async function unlinkProjectRepository(
+    repositoryId: string,
+    projectId: string,
+  ): Promise<boolean> {
+    try {
+      const updated = await api.unlinkRepository(repositoryId, projectId)
+      projectRepositories.value = projectRepositories.value.filter(
+        (item) => item.id !== updated.id,
+      )
+      repositories.value = repositories.value.map((item) =>
+        item.id === updated.id ? updated : item,
+      )
+      return true
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('repositories.unlinkError'), wire.message, wire.detail)
+      return false
     }
   }
 
@@ -72,6 +137,20 @@ export const useGitStore = defineStore('git', () => {
       const wire = toIpcError(caught)
       toast.error(t('repositories.removeError'), wire.message, wire.detail)
       return false
+    }
+  }
+
+  async function loadRepository(id: string): Promise<void> {
+    loading.value = true
+    error.value = null
+    overview.value = null
+    try {
+      repository.value = await api.getRepository(id)
+    } catch (caught) {
+      error.value = toIpcError(caught)
+      repository.value = null
+    } finally {
+      loading.value = false
     }
   }
 
@@ -121,12 +200,19 @@ export const useGitStore = defineStore('git', () => {
 
   return {
     repositories,
+    repository,
     overview,
+    projectRepositories,
+    projectRepositoriesLoading,
     availability,
     loading,
     error,
     loadAvailability,
     loadRepositories,
+    loadRepository,
+    loadProjectRepositories,
+    linkProjectRepository,
+    unlinkProjectRepository,
     addRepository,
     removeRepository,
     loadOverview,

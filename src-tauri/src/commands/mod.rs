@@ -22,7 +22,6 @@ use forgedesk_core::github_actions::PullCapabilities;
 use forgedesk_core::github_activity::CiOverview;
 use forgedesk_core::github_auth::{DeviceFlowPoll, DeviceFlowStart, GitHubConnection};
 use forgedesk_core::github_client::GitHubPull;
-use forgedesk_core::github_client::GitHubRepo;
 use forgedesk_core::github_client::GitHubReview;
 use forgedesk_core::github_client::{GitHubCheckRun, GitHubSearchIssue};
 use forgedesk_core::github_client::{GitHubMergeResult, GitHubPull as GitHubPullModel};
@@ -521,6 +520,83 @@ pub fn remove_repository(state: State<'_, AppState>, id: String) -> Result<(), C
 }
 
 #[tauri::command]
+pub fn get_repository(state: State<'_, AppState>, id: String) -> Result<Repository, CommandError> {
+    state
+        .with_service(|service| service.get_repository(&id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn get_project_repositories(
+    state: State<'_, AppState>,
+    project_id: String,
+) -> Result<Vec<Repository>, CommandError> {
+    state
+        .with_service(|service| service.list_project_repositories(&project_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn link_repository(
+    state: State<'_, AppState>,
+    repository_id: String,
+    project_id: String,
+) -> Result<Repository, CommandError> {
+    state
+        .with_service(|service| service.link_repository(&repository_id, &project_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn unlink_repository(
+    state: State<'_, AppState>,
+    repository_id: String,
+    project_id: String,
+) -> Result<Repository, CommandError> {
+    state
+        .with_service(|service| service.unlink_repository(&repository_id, &project_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn attach_repository_checkout(
+    state: State<'_, AppState>,
+    repository_id: String,
+    path: String,
+) -> Result<Repository, CommandError> {
+    state
+        .with_service(|service| service.attach_repository_checkout(&repository_id, &path))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn detach_repository_checkout(
+    state: State<'_, AppState>,
+    checkout_id: String,
+) -> Result<(), CommandError> {
+    state
+        .with_service(|service| service.detach_repository_checkout(&checkout_id))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn select_repository(
+    state: State<'_, AppState>,
+    repository_id: Option<String>,
+) -> Result<Option<Repository>, CommandError> {
+    state
+        .with_service(|service| service.select_repository(repository_id.as_deref()))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn selected_repository(state: State<'_, AppState>) -> Result<Option<Repository>, CommandError> {
+    state
+        .with_service(|service| service.selected_repository())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub fn get_git_overview(
     state: State<'_, AppState>,
     id: String,
@@ -637,10 +713,13 @@ pub fn github_disconnect(state: State<'_, AppState>) -> Result<(), CommandError>
 #[tauri::command]
 pub fn github_discover_repositories(
     state: State<'_, AppState>,
-) -> Result<Vec<GitHubRepo>, CommandError> {
+    start_page: Option<u32>,
+) -> Result<forgedesk_core::domain::RepositoryDiscoveryResult, CommandError> {
     let token = state.with_github(|github| github.access_token())?;
     state
-        .with_service(|service| service.discover_github_repositories(&token))
+        .with_service(|service| {
+            service.discover_github_repositories(&token, start_page.unwrap_or(1))
+        })
         .map_err(CommandError::from)
 }
 
@@ -649,6 +728,8 @@ pub fn github_import_issues(
     state: State<'_, AppState>,
     owner: String,
     repo: String,
+    target_project_id: Option<String>,
+    start_page: Option<u32>,
 ) -> Result<ImportResult, CommandError> {
     let (token, login, user_id) = state.with_github(|github| {
         let token = github.access_token()?;
@@ -659,7 +740,15 @@ pub fn github_import_issues(
     })?;
     state
         .with_service(|service| {
-            service.import_github_issues(&token, &login, user_id, &owner, &repo)
+            service.import_github_issues(
+                &token,
+                &login,
+                user_id,
+                &owner,
+                &repo,
+                target_project_id.as_deref(),
+                start_page.unwrap_or(1),
+            )
         })
         .map_err(CommandError::from)
 }

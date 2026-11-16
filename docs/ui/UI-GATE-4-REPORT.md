@@ -13,7 +13,7 @@
 | 3 | `docs/ui/current/gate4-automations-dark-1440.png` | 1440×900 | automation rules and actions |
 | 4 | `docs/ui/current/gate4-dashboards-dark-1440.png` | 1440×900 | persisted dashboard widgets |
 
-Full run: **58 captures** (17 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 4 Gate 4).
+Full run: **59 captures** (17 Gate 0 + 13 Gate 1 + 14 Gate 2 + 15 Gate 3 + 4 Gate 4).
 
 ## Acceptance
 
@@ -33,7 +33,7 @@ Full run: **58 captures** (17 Gate 0 + 13 Gate 1 + 9 Gate 2 + 15 Gate 3 + 4 Gate
 
 ## Accessibility
 
-- axe-core `button-name`/`aria-command-name` runs for all 58 visual cases.
+- axe-core `button-name`/`aria-command-name` runs for all 59 visual cases.
 - Regression fixtures prove valid names pass and empty/hidden-only/role-button failures
   are rejected.
 

@@ -8,8 +8,15 @@ import type {
   DeviceFlowStart,
   GitHubConnection,
   GitHubImportResult,
-  GitHubRepo,
+  Repository,
 } from '@/types/ipc'
+
+interface SelectedRepository {
+  repositoryId: string
+  owner: string
+  name: string
+  fullName: string
+}
 
 export const useGithubAuthStore = defineStore('githubAuth', () => {
   const t = i18n.global.t
@@ -20,10 +27,11 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   const polling = ref(false)
   const starting = ref(false)
   const error = ref<ReturnType<typeof toIpcError> | null>(null)
-  const repositories = ref<GitHubRepo[]>([])
-  const selectedRepo = ref<{ owner: string; name: string; fullName: string } | null>(
-    readSelectedRepo(),
-  )
+  const repositories = ref<Repository[]>([])
+  const selectedRepo = ref<SelectedRepository | null>(readSelectedRepo())
+  const discoveryHasMore = ref(false)
+  const discoveryPages = ref(0)
+  const discoveryNextPage = ref<number | null>(null)
   const discovering = ref(false)
   const importing = ref(false)
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -32,25 +40,52 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   const storageUnavailable = ref(false)
   const connectionCheckFailed = ref(false)
 
-  function readSelectedRepo(): { owner: string; name: string; fullName: string } | null {
+  function readSelectedRepo(): SelectedRepository | null {
     try {
       const raw = localStorage.getItem('forgedesk.githubRepo')
-      return raw ? JSON.parse(raw) : null
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as Partial<SelectedRepository>
+      return parsed.repositoryId && parsed.owner && parsed.name && parsed.fullName
+        ? (parsed as SelectedRepository)
+        : null
     } catch {
       return null
     }
   }
 
-  function selectRepository(repo: GitHubRepo): void {
-    selectedRepo.value = {
-      owner: repo.owner.login,
-      name: repo.name,
-      fullName: repo.fullName,
+  async function restoreSelectedRepository(): Promise<void> {
+    try {
+      const repository = await api.selectedRepository()
+      selectedRepo.value = repository ? toSelected(repository) : null
+    } catch {
+      selectedRepo.value = null
     }
+  }
+
+  function toSelected(repository: Repository): SelectedRepository {
+    return {
+      repositoryId: repository.id,
+      owner: repository.owner ?? repository.fullName.split('/')[0] ?? '',
+      name: repository.name,
+      fullName: repository.fullName,
+    }
+  }
+
+  async function selectRepository(repository: Repository): Promise<boolean> {
+    selectedRepo.value = toSelected(repository)
     try {
       localStorage.setItem('forgedesk.githubRepo', JSON.stringify(selectedRepo.value))
     } catch {
-      // Storage is optional; the in-memory selection still works.
+      // localStorage is a compatibility cache only.
+    }
+    try {
+      await api.selectRepository(repository.id)
+      return true
+    } catch (caught) {
+      selectedRepo.value = null
+      const wire = toIpcError(caught)
+      toast.error(t('githubRepos.selectError'), wire.message, wire.detail)
+      return false
     }
   }
 
@@ -64,6 +99,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   async function loadConnection(): Promise<void> {
     try {
       connection.value = await api.githubConnection()
+      await restoreSelectedRepository()
       error.value = null
       storageUnavailable.value = false
       connectionCheckFailed.value = false
@@ -147,10 +183,14 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     }
   }
 
-  async function discoverRepositories(): Promise<void> {
+  async function discoverRepositories(startPage = 1): Promise<void> {
     discovering.value = true
     try {
-      repositories.value = await api.githubDiscoverRepositories()
+      const result = await api.githubDiscoverRepositories(startPage)
+      repositories.value = startPage > 1 ? [...repositories.value, ...result.items] : result.items
+      discoveryHasMore.value = result.hasMore
+      discoveryPages.value = result.pagesLoaded
+      discoveryNextPage.value = result.nextPage
     } catch (caught) {
       const wire = toIpcError(caught)
       toast.error(t('githubRepos.discoverError'), wire.message, wire.detail)
@@ -162,10 +202,12 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   async function importIssues(
     owner: string,
     repo: string,
+    targetProjectId: string | null = null,
+    startPage = 1,
   ): Promise<GitHubImportResult | null> {
     importing.value = true
     try {
-      const result = await api.githubImportIssues(owner, repo)
+      const result = await api.githubImportIssues(owner, repo, targetProjectId, startPage)
       toast.success(
         t('githubRepos.imported', {
           imported: result.imported,
@@ -208,6 +250,9 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     connectionCheckFailed,
     repositories,
     selectedRepo,
+    discoveryHasMore,
+    discoveryPages,
+    discoveryNextPage,
     discovering,
     importing,
     loadConnection,
@@ -216,6 +261,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     cancel,
     refresh,
     discoverRepositories,
+    restoreSelectedRepository,
     importIssues,
     selectRepository,
     disconnect,

@@ -18,14 +18,13 @@ use crate::domain::{
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
     GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
     IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
-    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository, RepositoryInput,
-    SavedView, SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState,
-    Workflow, Workspace,
+    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository,
+    RepositoryDiscoveryResult, RepositoryInput, SavedView, SavedViewInput, SettingsPatch,
+    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
 use crate::github_actions::PullCapabilities;
 use crate::github_activity::CiOverview;
-use crate::github_client::GitHubRepo;
 use crate::github_client::GitHubSearchIssue;
 use crate::github_client::{GitHubMergeResult, GitHubPull, GitHubReview};
 use crate::github_pr::PullRequestDetail;
@@ -281,11 +280,59 @@ impl AppService {
             .with_conn(|conn| issues::list_relations(conn, &workspace.id, issue_id))
     }
 
-    pub fn discover_github_repositories(&self, token: &str) -> CoreResult<Vec<GitHubRepo>> {
+    pub fn discover_github_repositories(
+        &self,
+        token: &str,
+        start_page: u32,
+    ) -> CoreResult<RepositoryDiscoveryResult> {
         let client = crate::github_client::GitHubClient::new(token)?;
-        Ok(client.list_repositories()?.items)
+        let workspace = self.require_workspace()?;
+        let (remotes, has_more, pages_loaded, next_page) =
+            client.list_repositories_bounded(start_page, 10)?;
+        let mut items = Vec::new();
+        for remote in remotes {
+            let canonical = crate::db::repositories::repo_registry::normalize_remote(
+                remote
+                    .clone_url
+                    .as_deref()
+                    .or(Some(remote.html_url.as_str()))
+                    .unwrap_or_default(),
+            )
+            .map(|value| value.canonical);
+            let repository = self.db.with_transaction(|tx| {
+                crate::db::repositories::repo_registry::upsert_remote(
+                    tx,
+                    &workspace.id,
+                    &crate::db::repositories::repo_registry::RemoteRepositoryInput {
+                        provider: "github".into(),
+                        host: "github.com".into(),
+                        external_id: Some(remote.id.to_string()),
+                        owner: Some(remote.owner.login.clone()),
+                        name: remote.name.clone(),
+                        full_name: remote.full_name.clone(),
+                        description: remote.description.clone(),
+                        visibility: remote.visibility.clone().or_else(|| {
+                            Some(if remote.private { "private" } else { "public" }.into())
+                        }),
+                        default_branch: remote.default_branch.clone(),
+                        html_url: Some(remote.html_url.clone()),
+                        clone_url: remote.clone_url.clone(),
+                        canonical_remote_url: canonical,
+                        is_archived: remote.archived,
+                    },
+                )
+            })?;
+            items.push(repository);
+        }
+        Ok(RepositoryDiscoveryResult {
+            items,
+            has_more,
+            pages_loaded,
+            next_page,
+        })
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn import_github_issues(
         &self,
         token: &str,
@@ -293,17 +340,20 @@ impl AppService {
         user_id: i64,
         owner: &str,
         repo: &str,
+        target_project_id: Option<&str>,
+        start_page: u32,
     ) -> CoreResult<ImportResult> {
+        let client = crate::github_client::GitHubClient::new(token)?;
+        let fetched = crate::github_sync::fetch_import(&client, owner, repo, start_page)?;
         let workspace = self.require_workspace()?;
         self.db.with_transaction(|tx| {
-            crate::github_sync::import_issues(
+            crate::github_sync::apply_import(
                 tx,
                 &workspace.id,
-                token,
                 account_login,
                 user_id,
-                owner,
-                repo,
+                &fetched,
+                target_project_id,
             )
         })
     }
@@ -667,18 +717,83 @@ impl AppService {
             .with_transaction(|tx| repo_registry::remove(tx, &workspace.id, id))
     }
 
+    pub fn get_repository(&self, id: &str) -> CoreResult<Repository> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| repo_registry::get(conn, &workspace.id, id))
+    }
+
+    pub fn list_project_repositories(&self, project_id: &str) -> CoreResult<Vec<Repository>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| repo_registry::list_for_project(conn, &workspace.id, project_id))
+    }
+
+    pub fn link_repository(&self, repository_id: &str, project_id: &str) -> CoreResult<Repository> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            repo_registry::link(tx, &workspace.id, repository_id, project_id)
+        })
+    }
+
+    pub fn unlink_repository(
+        &self,
+        repository_id: &str,
+        project_id: &str,
+    ) -> CoreResult<Repository> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            repo_registry::unlink(tx, &workspace.id, repository_id, project_id)
+        })
+    }
+
+    pub fn attach_repository_checkout(
+        &self,
+        repository_id: &str,
+        path: &str,
+    ) -> CoreResult<Repository> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            repo_registry::attach_checkout_checked(tx, &workspace.id, repository_id, path)?;
+            repo_registry::get(tx, &workspace.id, repository_id)
+        })
+    }
+
+    pub fn detach_repository_checkout(&self, checkout_id: &str) -> CoreResult<()> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| repo_registry::detach_checkout(tx, &workspace.id, checkout_id))
+    }
+
+    pub fn select_repository(&self, repository_id: Option<&str>) -> CoreResult<Option<Repository>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_transaction(|tx| repo_registry::set_selected(tx, &workspace.id, repository_id))
+    }
+
+    pub fn selected_repository(&self) -> CoreResult<Option<Repository>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| repo_registry::selected(conn, &workspace.id))
+    }
+
     pub fn git_overview(&self, repository_id: &str) -> CoreResult<GitOverview> {
         let workspace = self.require_workspace()?;
         let repository = self
             .db
             .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
-        let path = std::path::Path::new(&repository.path);
+        let checkout = repository
+            .checkouts
+            .first()
+            .ok_or_else(|| CoreError::unsupported("This repository has no local checkout."))?;
+        let path = std::path::Path::new(&checkout.path);
         let status = crate::git::status(path)?;
         let branches = crate::git::branches(path)?;
         let log = crate::git::log(path, 12)?;
         let diff = crate::git::diff_stat(path)?;
-        self.db
-            .with_conn(|conn| repo_registry::touch(conn, &workspace.id, repository_id))?;
+        self.db.with_conn(|conn| {
+            repo_registry::touch(conn, &workspace.id, repository_id, &checkout.id)
+        })?;
         Ok(GitOverview {
             repository,
             status,
@@ -693,7 +808,8 @@ impl AppService {
         let repository = self
             .db
             .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
-        crate::git::checkout_branch(std::path::Path::new(&repository.path), branch, true)?;
+        let path = repo_registry::checkout_path(&repository)?;
+        crate::git::checkout_branch(&path, branch, true)?;
         self.git_overview(repository_id)
     }
 
@@ -702,7 +818,8 @@ impl AppService {
         let repository = self
             .db
             .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
-        crate::git::checkout_branch(std::path::Path::new(&repository.path), branch, false)?;
+        let path = repo_registry::checkout_path(&repository)?;
+        crate::git::checkout_branch(&path, branch, false)?;
         self.git_overview(repository_id)
     }
 
@@ -711,7 +828,7 @@ impl AppService {
         let repository = self
             .db
             .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
-        crate::git::log(std::path::Path::new(&repository.path), limit)
+        crate::git::log(&repo_registry::checkout_path(&repository)?, limit)
     }
 
     pub fn git_diff(&self, repository_id: &str) -> CoreResult<GitDiffStat> {
@@ -719,7 +836,7 @@ impl AppService {
         let repository = self
             .db
             .with_conn(|conn| repo_registry::get(conn, &workspace.id, repository_id))?;
-        crate::git::diff_stat(std::path::Path::new(&repository.path))
+        crate::git::diff_stat(&repo_registry::checkout_path(&repository)?)
     }
 
     pub fn api_monitor(&self) -> CoreResult<ApiMonitorState> {

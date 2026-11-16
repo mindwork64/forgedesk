@@ -202,8 +202,12 @@ forgedesk/
 ### 6.2. Git/provider tables
 
 - `provider_account`: тип провайдера, host/base URL, external account identity, auth state (без токена).
-- `repository`: provider-neutral репозиторий с owner/name/default branch/visibility/clone URL metadata/local path.
-- `repository_project`: many-to-many связи project/repository.
+- `repository`: логическая provider-neutral сущность (stable provider ID, host,
+  owner/name, metadata, canonical remote URL); remote-only repository не требует path.
+- `repository_checkout`: локальные clone/checkout пути, привязанные к repository;
+  path уникален в workspace, но не является идентичностью repository.
+- `repository_project`: единственный источник истины many-to-many связи
+  project/repository, с проверкой принадлежности одному workspace.
 - `remote_entity`: тип провайдера, opaque remote ID, repository/account, number, URL, timestamps, minimal metadata and sync state.
 - `remote_link`: связь local issue/project/document с remote entity.
 - `pull_request_cache`: нормализованные PR fields, branch/head/base, draft/state/mergedAt/review state.

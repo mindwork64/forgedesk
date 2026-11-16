@@ -349,6 +349,16 @@ const cases = [
     waitFor: '.fd-issue-list',
   },
   {
+    name: 'gate2-project-repositories-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/projects/project-exhi',
+    projectTab: 'Repositories',
+    waitFor: '.fd-project-repositories',
+  },
+  {
     name: 'gate2-initiatives-dark-1440',
     theme: 'dark',
     sidebar: 'expanded',
@@ -1003,7 +1013,11 @@ async function main() {
           .locator('.fd-project-tab')
           .filter({ hasText: testCase.projectTab })
           .click()
-        await page.waitForSelector('.fd-issue-list')
+        await page.waitForSelector(
+          testCase.projectTab === 'Repositories'
+            ? '.fd-project-repositories'
+            : '.fd-issue-list',
+        )
       }
 
       if (testCase.paletteQuery) {
@@ -1297,6 +1311,11 @@ async function main() {
           caseReport.projectIssueRows = rows
           assert(rows >= 3, `${testCase.name}: expected project issues`, report.failures)
         }
+        if (testCase.projectTab === 'Repositories') {
+          const rows = await page.locator('.fd-project-repository').count()
+          caseReport.projectRepositoryRows = rows
+          assert(rows >= 1, `${testCase.name}: expected project repositories`, report.failures)
+        }
       }
 
       if (testCase.route === '/initiatives') {
@@ -1326,7 +1345,9 @@ async function main() {
       if (testCase.route === '/repositories') {
         const rows = await page.locator('.fd-repository-row').count()
         caseReport.repositoryRows = rows
-        assert(rows >= 2, `${testCase.name}: expected local repositories`, report.failures)
+        assert(rows >= 3, `${testCase.name}: expected logical repositories`, report.failures)
+        const remoteOnly = await page.getByText('Remote only', { exact: true }).count()
+        assert(remoteOnly >= 1, `${testCase.name}: expected remote-only repository`, report.failures)
       }
 
       if (testCase.route.startsWith('/repositories/')) {

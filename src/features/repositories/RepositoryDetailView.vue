@@ -6,9 +6,11 @@ import { useRoute, useRouter } from 'vue-router'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import FdButton from '@/components/ui/FdButton.vue'
+import FdConfirmDialog from '@/components/ui/FdConfirmDialog.vue'
 import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdInput from '@/components/ui/FdInput.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
+import { api, toIpcError } from '@/lib/ipc'
 import { formatRelative } from '@/lib/format'
 import { useAppStore } from '@/stores/app'
 import { useGitStore } from '@/stores/git'
@@ -23,9 +25,15 @@ const { t } = useI18n()
 
 const activeTab = ref<Tab>('overview')
 const newBranch = ref('')
+const attachPath = ref('')
+const attaching = ref(false)
+const attachError = ref<string | null>(null)
+const removeOpen = ref(false)
+const detachTarget = ref<{ id: string; path: string } | null>(null)
+const detachOpen = ref(false)
 const repositoryId = computed(() => String(route.params.id ?? ''))
 const overview = computed(() => git.overview)
-const repo = computed(() => overview.value?.repository ?? null)
+const repo = computed(() => git.repository ?? overview.value?.repository ?? null)
 const status = computed(() => overview.value?.status ?? null)
 const branches = computed(() => overview.value?.branches ?? [])
 const commits = computed(() => overview.value?.log ?? [])
@@ -45,8 +53,42 @@ const tabs = computed(() => [
   { id: 'commits' as const, label: t('repositories.commits') },
 ])
 
+async function attachCheckout(): Promise<void> {
+  if (!repo.value || !attachPath.value.trim() || attaching.value) return
+  attaching.value = true
+  attachError.value = null
+  try {
+    git.repository = await api.attachRepositoryCheckout(repo.value.id, attachPath.value.trim())
+    await git.loadOverview(repo.value.id)
+    attachPath.value = ''
+  } catch (caught) {
+    attachError.value = toIpcError(caught).message
+  } finally {
+    attaching.value = false
+  }
+}
+
+async function detachCheckout(): Promise<void> {
+  if (!detachTarget.value) return
+  await api.detachRepositoryCheckout(detachTarget.value.id)
+  detachOpen.value = false
+  detachTarget.value = null
+  await load()
+}
+
+async function removeRepository(): Promise<void> {
+  if (!repo.value) return
+  const ok = await git.removeRepository(repo.value.id)
+  if (ok) {
+    removeOpen.value = false
+    void router.push('/repositories')
+  }
+}
+
 async function load(): Promise<void> {
-  if (repositoryId.value) {
+  if (!repositoryId.value) return
+  await git.loadRepository(repositoryId.value)
+  if (repo.value && repo.value.checkouts.length > 0) {
     await git.loadOverview(repositoryId.value)
   }
 }
@@ -91,12 +133,45 @@ async function switchBranch(branch: string): Promise<void> {
         @retry="load"
       />
     </div>
+    <div v-else-if="repo && repo.checkouts.length === 0" class="fd-repository-state">
+      <PageHeader :title="repo.fullName" :description="t('repositories.remoteOnly')">
+        <template #actions>
+          <FdButton variant="destructive" @click="removeOpen = true">
+            {{ t('repositories.remove') }}
+          </FdButton>
+        </template>
+      </PageHeader>
+      <section class="fd-repository-section">
+        <p v-if="repo.identityConflict" class="fd-repository-warning">
+          {{ repo.identityConflict }}
+        </p>
+        <h2>{{ t('repositories.details') }}</h2>
+        <dl class="fd-repository-facts">
+          <div><dt>{{ t('repositories.columns.provider') }}</dt><dd>{{ repo.provider }}</dd></div>
+          <div><dt>{{ t('repositories.columns.branch') }}</dt><dd>{{ repo.defaultBranch ?? '—' }}</dd></div>
+          <div><dt>{{ t('repositories.columns.project') }}</dt><dd>{{ repo.projects.map((project) => project.name).join(', ') || '—' }}</dd></div>
+          <div><dt>Remote</dt><dd>{{ repo.cloneUrl ?? repo.htmlUrl ?? '—' }}</dd></div>
+        </dl>
+        <p class="fd-repository-muted">{{ t('repositories.remoteOnlyHint') }}</p>
+        <div class="fd-repository-attach">
+          <FdInput v-model="attachPath" :placeholder="t('repositories.attachPathPlaceholder')" />
+          <FdButton variant="secondary" :loading="attaching" @click="attachCheckout">
+            {{ t('repositories.attachCheckout') }}
+          </FdButton>
+        </div>
+        <p v-if="attachError" class="fd-repository-error">{{ attachError }}</p>
+      </section>
+    </div>
+
     <template v-else-if="repo && status">
-      <PageHeader :title="repo.name" :description="repo.path">
+      <PageHeader :title="repo.fullName" :description="repo.checkouts[0]?.path ?? t('repositories.remoteOnly')">
         <template #actions>
           <span class="fd-repository-status" :class="{ 'fd-repository-status--dirty': status.dirty }">
             {{ status.dirty ? t('repositories.dirty') : t('repositories.clean') }}
           </span>
+          <FdButton variant="destructive" @click="removeOpen = true">
+            {{ t('repositories.remove') }}
+          </FdButton>
         </template>
       </PageHeader>
 
@@ -126,13 +201,27 @@ async function switchBranch(branch: string): Promise<void> {
           <section class="fd-repository-section">
             <h2>{{ t('repositories.details') }}</h2>
             <dl class="fd-repository-facts">
-              <div><dt>{{ t('repositories.columns.path') }}</dt><dd>{{ repo.path }}</dd></div>
+              <div><dt>{{ t('repositories.columns.path') }}</dt><dd>{{ repo.checkouts.map((checkout) => checkout.path).join(', ') || '—' }}</dd></div>
               <div><dt>{{ t('repositories.columns.branch') }}</dt><dd>{{ repo.defaultBranch ?? '—' }}</dd></div>
               <div><dt>{{ t('repositories.columns.provider') }}</dt><dd>{{ repo.provider }}</dd></div>
-              <div><dt>{{ t('repositories.columns.project') }}</dt><dd>{{ repo.projectName ?? '—' }}</dd></div>
-              <div><dt>Remote</dt><dd>{{ repo.remoteUrl ?? '—' }}</dd></div>
+              <div><dt>{{ t('repositories.columns.project') }}</dt><dd>{{ repo.projects.map((project) => project.name).join(', ') || '—' }}</dd></div>
+              <div><dt>Remote</dt><dd>{{ repo.cloneUrl ?? repo.htmlUrl ?? '—' }}</dd></div>
               <div><dt>{{ t('repositories.changes', { count: diff.filesChanged }) }}</dt><dd>{{ status.dirty ? t('repositories.dirty') : t('repositories.clean') }}</dd></div>
             </dl>
+          </section>
+
+          <section v-if="repo.checkouts.length" class="fd-repository-section">
+            <h2>{{ t('repositories.checkouts') }}</h2>
+            <div v-for="checkout in repo.checkouts" :key="checkout.id" class="fd-repository-checkout">
+              <span class="fd-settings-mono">{{ checkout.path }}</span>
+              <FdButton
+                variant="ghost"
+                size="sm"
+                @click="detachTarget = checkout; detachOpen = true"
+              >
+                {{ t('repositories.detach') }}
+              </FdButton>
+            </div>
           </section>
 
           <section class="fd-repository-section">
@@ -232,6 +321,21 @@ async function switchBranch(branch: string): Promise<void> {
         </template>
       </div>
     </template>
+
+    <FdConfirmDialog
+      v-model="removeOpen"
+      :title="t('repositories.removeTitle')"
+      :body="t('repositories.removeBody', { name: repo?.fullName ?? '' })"
+      :confirm-label="t('repositories.remove')"
+      @confirm="removeRepository"
+    />
+    <FdConfirmDialog
+      v-model="detachOpen"
+      :title="t('repositories.detachTitle')"
+      :body="t('repositories.detachBody')"
+      :confirm-label="t('repositories.detach')"
+      @confirm="detachCheckout"
+    />
   </div>
 </template>
 
@@ -468,5 +572,22 @@ async function switchBranch(branch: string): Promise<void> {
   .fd-commit-time {
     display: none;
   }
+}
+.fd-repository-attach {
+  display: flex;
+  gap: var(--fd-space-2);
+  align-items: center;
+  margin-top: var(--fd-space-3);
+}
+.fd-repository-error { color: var(--fd-danger); font-size: var(--fd-text-12); }
+.fd-repository-checkout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fd-space-3);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--fd-border-subtle);
+  color: var(--fd-text-secondary);
+  font-size: var(--fd-text-12);
 }
 </style>
