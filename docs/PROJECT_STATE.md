@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-16
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
-**Verified CI revision:** `b6a041d` on branch `fix/repository-project-associations`; feature branch CI run `43885398233` passed all jobs. Not merged to main.
+**Verified CI revision:** `db130f5` on branch `fix/repository-project-associations`; feature branch CI run `43886712296` passed all jobs. Not merged to main.
 
 ## Current objective
 
@@ -151,7 +151,7 @@ through `user_version`. See ADR-0001…0007.
   repositories, multiple projects, link/unlink and checkout attachment.
 - PR repository selection is stored by repository ID in SQLite settings.
 - Verified locally: 103 core tests, 126 frontend tests, 59 visual captures; feature
-  branch CI run `43885398233` passed all seven jobs. Not merged to main.
+  branch CI run `43886712296` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
 
