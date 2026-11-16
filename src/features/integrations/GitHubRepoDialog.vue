@@ -134,8 +134,9 @@ function openProject(repo: Repository): void {
             </small>
             <FdSelect
               v-if="repo.projects.length > 1"
-              v-model="targets[repo.id]"
+              :model-value="targets[repo.id] ?? ''"
               :aria-label="t('githubRepos.targetProject')"
+              @update:model-value="targets[repo.id] = $event"
               class="fd-github-repo-target"
             >
               <option value="">{{ t('githubRepos.chooseTarget') }}</option>

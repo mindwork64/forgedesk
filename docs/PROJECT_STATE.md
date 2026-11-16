@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 103 core (+2 ignored live), 5 AI crate, 126 frontend, 59 default visual captures (+1 optional AI capture).
+- **Tests:** 103 core (+2 ignored live), 5 AI crate, 127 frontend, 59 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -150,7 +150,7 @@ through `user_version`. See ADR-0001…0007.
 - Project Overview Repositories and unified Repositories UI support remote-only
   repositories, multiple projects, link/unlink and checkout attachment.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally: 103 core tests, 126 frontend tests, 59 visual captures; feature
+- Verified locally: 103 core tests, 127 frontend tests, 59 visual captures; feature
   branch CI run `43886712296` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
