@@ -1,8 +1,8 @@
 # PROJECT_STATE
 
-**Updated:** 2026-11-15
+**Updated:** 2026-11-16
 **Stage:** 10 — Stabilization/release (partial; native/signing blocked); Stage 5 sync writes remain partial
-**Revision:** working tree / local git repository (see `git log -1`)
+**Verified CI revision:** `bddc4c58c8e9ea5c5b4f06b9fcc9f3705386e0fa`
 
 ## Current objective
 
@@ -145,11 +145,28 @@ through `user_version`. See ADR-0001…0007.
 - axe-core `button-name`/`aria-command-name` validation runs on every visual case,
   with valid/invalid regression fixtures; all 58 cases pass.
 - AI crate Clippy (`-D warnings`) is part of the dedicated CI job; the job
-  explicitly installs the Clippy component. GitHub Actions run `43772258572` passed
+  explicitly installs the Clippy component. GitHub Actions run `43778341394` passed
   all jobs.
 - CI covers default and optional AI builds; release checklist added.
-- Native desktop smoke tests, signed installers, export/import and larger soak tests
-  remain release blockers.
+- GitHub Actions CI run
+  [43778341394](https://github.com/mindwork64/forgedesk/actions/runs/43778341394)
+  passed all seven jobs at `bddc4c58`: Core Ubuntu/Windows, Frontend, Optional AI
+  crate, Tauri Linux/Windows compile and UI visual gates.
+- Windows 10 Pro x64 Build 19042 native run
+  [43778393711](https://github.com/mindwork64/forgedesk/actions/runs/43778393711)
+  passed on a self-hosted runner: frontend typecheck/tests/build, Core tests, Core
+  Clippy, formatting, `cargo build -p forgedesk` and
+  `cargo check -p forgedesk --features ai-extension`.
+  - Debug executable `forgedesk.exe` (7,968,310 bytes):
+    [artifact](https://github.com/mindwork64/forgedesk/actions/runs/43778393711/artifacts/14187497885).
+  - This is a **Debug executable**, not an MSI/release installer; interactive app
+    launch and user scenarios were not exercised.
+- The temporary `.github/workflows/win10-runner-smoke.yml` workflow and WIN10 runner
+  are not part of normal CI and are removed/deprecated.
+- Node.js 20/runtime deprecation warnings appeared during Actions runs but did not
+  affect results; no dependency modernization is included in this update.
+- Native desktop **interactive** smoke tests, signed installers, export/import and
+  larger soak tests remain release blockers.
 
 ### Stage 9 — optional AI extension (complete, fixtures)
 
@@ -184,6 +201,8 @@ through `user_version`. See ADR-0001…0007.
 | Frontend tests | `npm test` | PASS (113) |
 | Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 58 captures; axe button-name/aria-command-name |
+| GitHub Actions CI | run `43778341394` at `bddc4c58` | PASS — all 7 jobs |
+| Windows 10 native build/tests | run `43778393711` at `bddc4c58` | PASS — Debug `forgedesk.exe` artifact; no interactive run |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
 | Jenkins build 8 | Stage 5 foundation `6d6bf52` | SUCCESS — 109 s, 46 core tests, 43 captures, 44 artifacts |
@@ -221,16 +240,21 @@ through `user_version`. See ADR-0001…0007.
 - No API budget settings UI; documented defaults 10%/20%, max in-flight 1.
 - Stage 3 follow-ups remain (templates, doc import/outline, cycle analytics, roadmap
   milestones).
-- Native Tauri runtime/screenshots remain unverified (no desktop WebKitGTK).
-- Signed installers are blocked on signing credentials.
+- Windows 10 native Debug compilation and automated tests are verified; interactive
+  Windows launch/user flows and Linux native runtime are not.
+- Signed installers and MSI/release packaging are blocked on signing credentials.
+- GitHub Actions emits non-fatal Node.js 20 deprecation warnings; no CI architecture
+  changes were made.
 - Workspace export/import beyond SQLite backup/restore is not implemented.
-- GitHub Actions on the public repo is green (frontend, core Ubuntu/Windows, Tauri
-  Linux/Windows, visual gates); Linux core now installs `libdbus-1-dev` for keyring.
+- GitHub Actions on the public repo is green at `bddc4c58` (run `43778341394`):
+  frontend, core Ubuntu/Windows, Tauri Linux/Windows compile, optional AI crate and
+  visual gates. A separate successful Windows 10 native Debug build is documented
+  above; it does not replace interactive smoke testing.
 - Jenkins mirror requires local git daemon; rotate the API token after setup.
 
 ## Next step
 
-Release blockers: native Windows/Linux smoke tests, signing credentials, export/import,
-and large-workspace/soak testing. Stage 5 sync writes and live AI/GitLab/Gitea
+Release blockers: interactive Windows/Linux smoke tests, signing credentials/MSI,
+export/import, and large-workspace/soak testing. Stage 5 sync writes and live AI/GitLab/Gitea
 verification remain tracked. Remaining Stage 6 polish (inline comment
 placement, PR read budgets) and Stage 5 sync writes stay tracked.

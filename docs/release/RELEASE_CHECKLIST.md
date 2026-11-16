@@ -16,7 +16,23 @@
 - [x] `node scripts/visual-gate0.mjs` (58 captures + axe button-name/aria-command-name)
 - [x] Realistic v5→v9 migration data-preservation test + foreign_key_check
 
-## Native smoke tests (blocked here)
+## Verified CI / native build (non-interactive)
+
+- [x] GitHub Actions CI [43778341394](https://github.com/mindwork64/forgedesk/actions/runs/43778341394)
+      at `bddc4c58` — SUCCESS, all seven jobs
+- [x] Windows 10 Pro Build 19042 native run
+      [43778393711](https://github.com/mindwork64/forgedesk/actions/runs/43778393711)
+      at `bddc4c58` — SUCCESS
+- [x] Windows frontend typecheck/tests/build
+- [x] Windows `cargo fmt --all --check`
+- [x] Windows `cargo clippy -p forgedesk-core --all-targets -- -D warnings`
+- [x] Windows `cargo test -p forgedesk-core` (Core only)
+- [x] Windows `cargo build -p forgedesk` — Debug `forgedesk.exe`, 7,968,310 bytes
+      ([artifact](https://github.com/mindwork64/forgedesk/actions/runs/43778393711/artifacts/14187497885))
+- [x] Windows `cargo check -p forgedesk --features ai-extension` (check only)
+- [ ] MSI/release installer and interactive Windows launch — not verified
+
+## Native interactive smoke tests (not yet run)
 
 - [ ] Windows 10/11 installer launch, WebView2 present
 - [ ] Linux AppImage/deb launch with WebKitGTK 4.1
@@ -42,3 +58,7 @@
 - Real AI provider calls require user keys and are not tested in CI.
 - Stage 5 local→remote issue writes/conflicts remain partial.
 - No crash telemetry backend by design/offline policy.
+- GitHub Actions emits non-fatal Node.js 20/runtime deprecation warnings; no dependency
+  modernization was attempted.
+- The temporary WIN10 self-hosted workflow was removed; its successful build evidence
+  remains documented but it is not part of normal push/PR CI.
