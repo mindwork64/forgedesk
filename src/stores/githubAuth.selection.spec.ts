@@ -20,6 +20,7 @@ const repo: Repository = {
   cloneUrl: 'https://github.com/owner/repo.git',
   canonicalRemoteUrl: 'https://github.com/owner/repo',
   isArchived: false,
+  identityConflict: null,
   checkouts: [],
   projects: [],
   lastCheckedAt: null,

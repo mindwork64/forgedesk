@@ -26,6 +26,7 @@ function repository(id: string, name: string): Repository {
     cloneUrl: null,
     canonicalRemoteUrl: null,
     isArchived: false,
+    identityConflict: null,
     checkouts: [
       {
         id: `checkout-${id}`,

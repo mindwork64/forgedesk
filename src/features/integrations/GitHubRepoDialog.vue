@@ -40,6 +40,7 @@ watch(open, (isOpen) => {
     search.value = ''
     results.value = {}
     nextPages.value = {}
+    targets.value = {}
     void auth.discoverRepositories()
   }
 })
@@ -52,7 +53,11 @@ async function importRepo(repo: Repository, page = 1): Promise<void> {
   if (auth.importing) {
     return
   }
-  const targetProjectId = targets.value[repo.id] ?? null
+  const selectedTarget = targets.value[repo.id]
+  const targetProjectId =
+    selectedTarget && repo.projects.some((project) => project.id === selectedTarget)
+      ? selectedTarget
+      : null
   importingId.value = repo.id
   const result = await auth.importIssues(repo.owner ?? '', repo.name, targetProjectId, page)
   importingId.value = null

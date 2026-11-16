@@ -236,6 +236,14 @@ mod tests {
         )
         .expect("https repository");
         conn.execute(
+            "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, project_id, \
+             created_at, updated_at) VALUES ('repo-3', 'ws-1', 'ForgeDesk clone 2', \
+             '/tmp/forgedesk-v5-repo-2', 'local', 'https://github.com/mindwork64/forgedesk.git', \
+             ?1, ?2, ?2)",
+            rusqlite::params![project_id, now],
+        )
+        .expect("duplicate origin checkout");
+        conn.execute(
             "INSERT INTO remote_issue_link (id, local_issue_id, provider, account_id, \
              repository_id, remote_id, remote_number, remote_url, created_at, updated_at) \
              VALUES ('link-1', ?1, 'github', 'account-1', 'owner/repo', 'R-42', 42, \
@@ -318,6 +326,18 @@ mod tests {
             )
             .expect("https normalized"),
             "github|github.com|mindwork64/other|https://github.com/mindwork64/other"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT provider || '|' || host || '|' || full_name || '|' || \
+                 COALESCE(canonical_remote_url, '<none>') || '|' || \
+                 CASE WHEN identity_conflict IS NULL THEN 'clear' ELSE 'conflict' END \
+                 FROM repository WHERE id = 'repo-3'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("duplicate identity"),
+            "local|local|ForgeDesk clone 2|<none>|conflict"
         );
         let discovered = crate::db::repositories::repo_registry::upsert_remote(
             &conn,

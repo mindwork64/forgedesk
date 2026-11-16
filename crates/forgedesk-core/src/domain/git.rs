@@ -30,6 +30,7 @@ pub struct Repository {
     pub clone_url: Option<String>,
     pub canonical_remote_url: Option<String>,
     pub is_archived: bool,
+    pub identity_conflict: Option<String>,
     pub checkouts: Vec<RepositoryCheckout>,
     pub projects: Vec<ProjectRef>,
     pub last_checked_at: Option<String>,

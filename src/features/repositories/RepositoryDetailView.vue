@@ -142,6 +142,9 @@ async function switchBranch(branch: string): Promise<void> {
         </template>
       </PageHeader>
       <section class="fd-repository-section">
+        <p v-if="repo.identityConflict" class="fd-repository-warning">
+          {{ repo.identityConflict }}
+        </p>
         <h2>{{ t('repositories.details') }}</h2>
         <dl class="fd-repository-facts">
           <div><dt>{{ t('repositories.columns.provider') }}</dt><dd>{{ repo.provider }}</dd></div>

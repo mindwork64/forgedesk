@@ -11,7 +11,7 @@ use crate::git;
 const BASE_SELECT: &str = "\
 SELECT r.id, r.provider, r.host, r.external_id, r.owner, r.name, r.full_name, \
        r.description, r.visibility, r.default_branch, r.html_url, r.clone_url, \
-       r.canonical_remote_url, r.is_archived, MIN(c.last_checked_at), \
+       r.canonical_remote_url, r.is_archived, r.identity_conflict, MIN(c.last_checked_at), \
        r.created_at, r.updated_at \
 FROM repository r LEFT JOIN repository_checkout c ON c.repository_id = r.id";
 
@@ -31,6 +31,7 @@ struct RepositoryBase {
     clone_url: Option<String>,
     canonical_remote_url: Option<String>,
     is_archived: bool,
+    identity_conflict: Option<String>,
     last_checked_at: Option<String>,
     created_at: String,
     updated_at: String,
@@ -590,6 +591,7 @@ fn hydrate(conn: &Connection, base: RepositoryBase) -> CoreResult<Repository> {
         clone_url: base.clone_url,
         canonical_remote_url: base.canonical_remote_url,
         is_archived: base.is_archived,
+        identity_conflict: base.identity_conflict,
         checkouts,
         projects,
         last_checked_at: base.last_checked_at,
@@ -614,9 +616,10 @@ fn read_base(row: &Row<'_>) -> rusqlite::Result<RepositoryBase> {
         clone_url: row.get(11)?,
         canonical_remote_url: row.get(12)?,
         is_archived: row.get::<_, i64>(13)? != 0,
-        last_checked_at: row.get(14)?,
-        created_at: row.get(15)?,
-        updated_at: row.get(16)?,
+        identity_conflict: row.get(14)?,
+        last_checked_at: row.get(15)?,
+        created_at: row.get(16)?,
+        updated_at: row.get(17)?,
     })
 }
 
@@ -698,13 +701,23 @@ pub fn reconcile_legacy_remotes(conn: &Connection) -> CoreResult<()> {
                 |row| row.get(0),
             )
             .optional()?;
-        if conflict.is_some() {
+        if let Some(existing) = conflict {
+            conn.execute(
+                "UPDATE repository SET identity_conflict = ?1 WHERE id = ?2",
+                rusqlite::params![
+                    format!(
+                        "Duplicate legacy checkout of {existing} ({}); preserved as local-only because v1 supports one checkout per repository.",
+                        remote.canonical
+                    ),
+                    id
+                ],
+            )?;
             continue;
         }
         conn.execute(
             "UPDATE repository SET provider = ?1, host = ?2, owner = ?3, \
              name = CASE WHEN trim(name) = '' THEN ?4 ELSE name END, \
-             full_name = ?5, canonical_remote_url = ?6 WHERE id = ?7",
+             full_name = ?5, canonical_remote_url = ?6, identity_conflict = NULL WHERE id = ?7",
             rusqlite::params![
                 remote.provider,
                 remote.host,

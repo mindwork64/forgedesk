@@ -26,6 +26,7 @@ function repo(id: string, fullName: string, projects: string[]): Repository {
     cloneUrl: `https://github.com/${fullName}.git`,
     canonicalRemoteUrl: `https://github.com/${fullName}`,
     isArchived: false,
+    identityConflict: null,
     checkouts: [],
     projects: projects.map((id) => ({ id, name: id })),
     lastCheckedAt: null,
@@ -111,6 +112,20 @@ describe('ProjectRepositories', () => {
     await flushPromises()
     expect(document.body.textContent).toContain('owner/one')
     expect(document.body.textContent).not.toContain('No repositories linked')
+  })
+
+  it('reloads repositories when the project id changes without remount', async () => {
+    linked = [repo('r1', 'owner/one', ['p1'])]
+    all = [linked[0]!]
+    await mountView()
+    expect(document.body.textContent).toContain('owner/one')
+
+    linked = [repo('r2', 'owner/two', ['p2'])]
+    all = [linked[0]!]
+    await wrapper?.setProps({ projectId: 'p2' })
+    await flushPromises()
+    expect(document.body.textContent).toContain('owner/two')
+    expect(document.body.textContent).not.toContain('owner/one')
   })
 
   it('unlinks only the association', async () => {

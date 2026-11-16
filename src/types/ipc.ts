@@ -630,6 +630,7 @@ export interface Repository {
   cloneUrl: string | null
   canonicalRemoteUrl: string | null
   isArchived: boolean
+  identityConflict: string | null
   checkouts: RepositoryCheckout[]
   projects: ProjectRef[]
   lastCheckedAt: string | null

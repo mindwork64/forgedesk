@@ -25,6 +25,7 @@ const repo: Repository = {
   cloneUrl: 'https://github.com/mindwork64/forgedesk.git',
   canonicalRemoteUrl: 'https://github.com/mindwork64/forgedesk',
   isArchived: false,
+  identityConflict: null,
   checkouts: [],
   projects: [],
   lastCheckedAt: null,
@@ -44,6 +45,7 @@ const result: GitHubImportResult = {
 
 let wrapper: ReturnType<typeof mount> | null = null
 let currentResult: GitHubImportResult = structuredClone(result)
+let discoveryProjects: { id: string; name: string }[] = []
 let importCalls = 0
 let importPages: number[] = []
 let lastTarget: string | null = null
@@ -55,16 +57,17 @@ async function mountDialog(projects: { id: string; name: string }[] = []): Promi
   setActivePinia(createPinia())
   importCalls = 0
   currentResult = structuredClone(result)
+  discoveryProjects = projects
   importPages = []
   lastTarget = null
   importError = null
   importGate = null
   i18n.global.locale.value = 'en'
   localStorage.clear()
-  const discovered = { ...repo, projects }
+  const discovered = () => ({ ...repo, projects: discoveryProjects })
   setDevTransport(async <T,>(command: string, args?: Record<string, unknown>) => {
-    if (command === 'github_discover_repositories') return { items: [discovered], hasMore: false, pagesLoaded: 1, nextPage: null } as T
-    if (command === 'select_repository') return structuredClone(discovered) as T
+    if (command === 'github_discover_repositories') return { items: [discovered()], hasMore: false, pagesLoaded: 1, nextPage: null } as T
+    if (command === 'select_repository') return structuredClone(discovered()) as T
     if (command === 'github_import_issues') {
       importCalls += 1
       importPages.push(Number(args?.startPage ?? 1))
@@ -76,7 +79,7 @@ async function mountDialog(projects: { id: string; name: string }[] = []): Promi
     throw { code: 'unsupported_capability', message: String(command) }
   })
   const auth = useGithubAuthStore()
-  auth.repositories = [discovered]
+  auth.repositories = [discovered()]
   router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -197,6 +200,47 @@ describe('GitHubRepoDialog', () => {
     importButton.click()
     await flushPromises()
     expect(lastTarget).toBe('p2')
+  })
+
+  it('drops a stale target when discovery no longer returns it', async () => {
+    await wrapper?.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
+    await mountDialog([
+      { id: 'p1', name: 'One' },
+      { id: 'p2', name: 'Two' },
+    ])
+    const select = document.querySelector<HTMLSelectElement>('.fd-github-repo-target')!
+    select.value = 'p1'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    const auth = useGithubAuthStore()
+    auth.repositories = [{ ...repo, projects: [{ id: 'p2', name: 'Two' }] }]
+    await flushPromises()
+    button('Import issues').click()
+    await flushPromises()
+    expect(lastTarget).toBeNull()
+  })
+
+  it('clears a selected target when the dialog is reopened', async () => {
+    await wrapper?.unmount()
+    wrapper = null
+    document.body.innerHTML = ''
+    await mountDialog([
+      { id: 'p1', name: 'One' },
+      { id: 'p2', name: 'Two' },
+    ])
+    const select = document.querySelector<HTMLSelectElement>('.fd-github-repo-target')!
+    select.value = 'p1'
+    select.dispatchEvent(new Event('change'))
+    await flushPromises()
+    await wrapper?.setProps({ open: false })
+    discoveryProjects = [{ id: 'p2', name: 'Two' }]
+    await wrapper?.setProps({ open: true })
+    await flushPromises()
+    button('Import issues').click()
+    await flushPromises()
+    expect(lastTarget).toBeNull()
   })
 
   it('keeps the import error visible through the existing toast path', async () => {

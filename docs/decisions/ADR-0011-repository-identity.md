@@ -15,6 +15,10 @@
   entity. Multiple clones per remote are intentionally out of scope for v1.
 - `repository_project` is the sole source of project↔repository truth (many-to-many).
   The legacy `repository.project_id` was migrated once and is no longer read.
+- Legacy duplicate checkouts of one origin cannot be represented under the one-checkout
+  rule. Migration keeps the first as the provider entity and preserves later rows as
+  explicit local-only conflicts with an `identity_conflict` diagnostic; no row, path or
+  project link is silently discarded.
 - GitHub discovery upserts by stable provider ID, falling back to canonical remote URL.
   A local-only row can be reconciled when discovery supplies provider identity.
 - Import fetches GitHub data before opening the SQLite apply transaction. Repository

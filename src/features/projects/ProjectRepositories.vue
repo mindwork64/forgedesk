@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { FolderGit2, Plus } from '@lucide/vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -65,6 +65,7 @@ function providerLabel(repository: Repository): string {
     : repository.provider.toUpperCase()
 }
 
+watch(() => props.projectId, load)
 onMounted(load)
 </script>
 
@@ -107,6 +108,9 @@ onMounted(load)
               <template v-else> · {{ t('repositories.remoteOnly') }}</template>
             </span>
             <small v-if="repository.description">{{ repository.description }}</small>
+            <small v-if="repository.identityConflict" class="fd-project-repository__warning">
+              {{ repository.identityConflict }}
+            </small>
           </div>
           <div class="fd-project-repository__actions">
             <FdButton variant="ghost" size="sm" @click="router.push(`/repositories/${repository.id}`)">

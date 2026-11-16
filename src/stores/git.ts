@@ -24,6 +24,7 @@ export const useGitStore = defineStore('git', () => {
   const loading = ref(false)
   const error = ref<ReturnType<typeof toIpcError> | null>(null)
   let overviewRequest = 0
+  let projectRepositoriesRequest = 0
 
   async function loadAvailability(): Promise<void> {
     try {
@@ -50,14 +51,22 @@ export const useGitStore = defineStore('git', () => {
   }
 
   async function loadProjectRepositories(projectId: string): Promise<void> {
+    const request = ++projectRepositoriesRequest
     projectRepositoriesLoading.value = true
     try {
-      projectRepositories.value = await api.getProjectRepositories(projectId)
+      const next = await api.getProjectRepositories(projectId)
+      if (request === projectRepositoriesRequest) {
+        projectRepositories.value = next
+      }
     } catch (caught) {
-      error.value = toIpcError(caught)
-      projectRepositories.value = []
+      if (request === projectRepositoriesRequest) {
+        error.value = toIpcError(caught)
+        projectRepositories.value = []
+      }
     } finally {
-      projectRepositoriesLoading.value = false
+      if (request === projectRepositoriesRequest) {
+        projectRepositoriesLoading.value = false
+      }
     }
   }
 

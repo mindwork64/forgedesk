@@ -10,7 +10,7 @@
 - [x] `cargo test -p forgedesk-core` (104 passed, 2 ignored live)
 - [x] `cargo test -p forgedesk-ai` (5 passed)
 - [x] `npm run typecheck`
-- [x] `npm test` (136 passed)
+- [x] `npm test` (139 passed)
 - [x] `npm run build` (main chunk ~244 KB)
 - [x] `VITE_AI_EXTENSION=true npm run build`
 - [x] `node scripts/visual-gate0.mjs` (59 captures + axe button-name/aria-command-name)

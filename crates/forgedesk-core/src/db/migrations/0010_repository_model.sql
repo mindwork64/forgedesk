@@ -18,6 +18,7 @@ CREATE TABLE repository (
     clone_url            TEXT,
     canonical_remote_url TEXT,
     is_archived          INTEGER NOT NULL DEFAULT 0 CHECK (is_archived IN (0, 1)),
+    identity_conflict    TEXT,
     created_at           TEXT NOT NULL,
     updated_at           TEXT NOT NULL
 ) STRICT;
@@ -25,11 +26,11 @@ CREATE TABLE repository (
 INSERT INTO repository
     (id, workspace_id, provider, host, external_id, owner, name, full_name,
      description, visibility, default_branch, html_url, clone_url,
-     canonical_remote_url, is_archived, created_at, updated_at)
+     canonical_remote_url, is_archived, identity_conflict, created_at, updated_at)
 SELECT id, workspace_id, provider,
        CASE provider WHEN 'local' THEN 'local' ELSE '' END,
        NULL, NULL, name, name, NULL, NULL, default_branch, NULL, remote_url,
-       NULL, 0, created_at, updated_at
+       NULL, 0, NULL, created_at, updated_at
 FROM repository_legacy;
 
 CREATE TABLE repository_checkout (
