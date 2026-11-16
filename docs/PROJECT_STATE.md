@@ -241,8 +241,9 @@ through `user_version`. See ADR-0001…0007.
   comment placement/thread resolution, budget-aware PR request logging and native
   Tauri verification remain open; review/check table columns show `—` for rows whose
   detail has not been loaded.
-- PR read calls do not yet write API-budget observations/request logs; selected
-  repository is WebView storage, not SQLite.
+- PR read calls do not yet write API-budget observations/request logs. The selected
+  PR repository is persisted by stable repository ID in SQLite settings; localStorage
+  remains only a compatibility cache.
 - Token storage uses OS keyring; when unavailable it falls back to session-only
   memory and warns. Token revocation is local-only (Disconnect deletes the entry).
 - GitLab/Gitea adapters are contract-tested but not live-tested; no connection/token
