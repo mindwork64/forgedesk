@@ -24,8 +24,8 @@
 - `cargo test -p forgedesk-core` — 106 passed, 2 ignored.
 - `npm test` — 139 passed.
 - Visual gate — 59 captures.
-- Feature branch `fix/repository-project-associations`, final code commit `bd771b6`.
-- GitHub Actions run `43958233990`: all seven jobs passed.
+- Feature branch `fix/repository-project-associations`, final code commit `e912f5a`.
+- GitHub Actions run `43962681063`: all seven jobs passed.
 - Not merged to main.
 
 ## Remaining risks
