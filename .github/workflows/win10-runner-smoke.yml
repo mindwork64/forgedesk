@@ -1,0 +1,48 @@
+name: Temporary WIN10 Runner Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Run the temporary diagnostic on WIN10"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: WIN10 runner diagnostic
+    if: github.ref == 'refs/heads/main' && inputs.confirm == true
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 3
+    steps:
+      - name: Report runner identity and Windows version
+        shell: pwsh
+        run: |
+          Write-Host "=== RUNNER IDENTITY ==="
+          whoami
+
+          Write-Host "`n=== WINDOWS ==="
+          Get-CimInstance Win32_OperatingSystem |
+            Select-Object Caption, Version, BuildNumber, OSArchitecture |
+            Format-List
+
+          Write-Host "`n=== RUNNER ENVIRONMENT ==="
+          Write-Host "Runner name: $env:RUNNER_NAME"
+          Write-Host "User profile: $env:USERPROFILE"
+
+          Write-Host "`n=== TOOLCHAIN VISIBILITY ==="
+          foreach ($tool in @("git", "node", "npm", "rustc", "cargo")) {
+            $command = Get-Command $tool -ErrorAction SilentlyContinue
+            if ($null -eq $command) {
+              Write-Warning "$tool : NOT FOUND in the service environment"
+            } else {
+              Write-Host "$tool : $($command.Source)"
+              & $command.Source --version
+            }
+          }
+
+          Write-Host "`nSmoke test completed."
