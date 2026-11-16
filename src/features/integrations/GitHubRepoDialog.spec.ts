@@ -234,9 +234,10 @@ describe('GitHubRepoDialog', () => {
     select.value = 'p1'
     select.dispatchEvent(new Event('change'))
     await flushPromises()
-    await wrapper?.setProps({ open: false })
+    const mounted = wrapper as unknown as ReturnType<typeof mount>
+    await mounted.setProps({ open: false })
     discoveryProjects = [{ id: 'p2', name: 'Two' }]
-    await wrapper?.setProps({ open: true })
+    await mounted.setProps({ open: true })
     await flushPromises()
     button('Import issues').click()
     await flushPromises()
