@@ -71,7 +71,7 @@ open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 97 (+2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 99 (+2 ignored live) |
 | AI crate | `cargo test -p forgedesk-ai` | PASS — 5 |
 | Frontend | `npm run typecheck`, `npm test` | PASS — 128 |
 | Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 59 captures |

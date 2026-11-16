@@ -676,6 +676,54 @@ mod model_tests {
     }
 
     #[test]
+    fn rejects_cross_workspace_link_and_clears_stale_selection() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db = Database::open(dir.path().join("test.db")).expect("db");
+        let workspace = db
+            .with_conn(|conn| crate::db::repositories::workspace::create_initial(conn, "One"))
+            .expect("workspace");
+        let _project_id = project(&db, &workspace.id, "One project");
+        let remote = RemoteRepositoryInput {
+            provider: "github".into(),
+            host: "github.com".into(),
+            external_id: Some("9".into()),
+            owner: Some("owner".into()),
+            name: "repo".into(),
+            full_name: "owner/repo".into(),
+            description: None,
+            visibility: None,
+            default_branch: None,
+            html_url: None,
+            clone_url: None,
+            canonical_remote_url: Some("https://github.com/owner/repo".into()),
+            is_archived: false,
+        };
+        let repository = db
+            .with_transaction(|tx| upsert_remote(tx, &workspace.id, &remote))
+            .expect("repository");
+        db.with_conn(|conn| {
+            conn.execute(
+                "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at)                  VALUES ('ws-2', 'Two', 'TWO', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+                [],
+            )?;
+            Ok(())
+        })
+        .expect("second workspace");
+        let second_project = project(&db, "ws-2", "Two project");
+        assert!(db
+            .with_transaction(|tx| link(tx, &workspace.id, &repository.id, &second_project))
+            .is_err());
+        db.with_transaction(|tx| set_selected(tx, &workspace.id, Some(&repository.id)))
+            .expect("select");
+        db.with_transaction(|tx| remove(tx, &workspace.id, &repository.id))
+            .expect("remove");
+        let selected = db
+            .with_conn(|conn| selected(conn, &workspace.id))
+            .expect("selected");
+        assert!(selected.is_none());
+    }
+
+    #[test]
     fn remote_only_upsert_is_idempotent_and_preserves_links() {
         let dir = tempfile::tempdir().expect("tempdir");
         let db = Database::open(dir.path().join("test.db")).expect("db");

@@ -510,6 +510,33 @@ mod integration_tests {
     }
 
     #[test]
+    fn failed_apply_rolls_back_repository_and_project() {
+        let (_dir, db, workspace_id) = db();
+        let mut invalid = issue(1, 1);
+        invalid.title = String::new();
+        let data = fetched(vec![invalid], false);
+        assert!(db
+            .with_transaction(|tx| { apply_import(tx, &workspace_id, "login", 7, &data, None) })
+            .is_err());
+        db.with_conn(|conn| {
+            let repositories: i64 = conn.query_row(
+                "SELECT count(*) FROM repository WHERE workspace_id = ?1",
+                [&workspace_id],
+                |row| row.get(0),
+            )?;
+            let projects: i64 = conn.query_row(
+                "SELECT count(*) FROM project WHERE workspace_id = ?1",
+                [&workspace_id],
+                |row| row.get(0),
+            )?;
+            assert_eq!(repositories, 0);
+            assert_eq!(projects, 0);
+            Ok(())
+        })
+        .expect("rollback state");
+    }
+
+    #[test]
     fn import_rejects_archived_target_and_reports_partial() {
         let (_dir, db, workspace_id) = db();
         let data = fetched(vec![issue(1, 1)], true);

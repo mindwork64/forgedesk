@@ -7,7 +7,7 @@
 - [x] `cargo clippy -p forgedesk-ai --all-targets -- -D warnings` (local)
 - [x] AI Clippy command configured in the CI job with explicit `components: clippy`
 - [x] AI Clippy CI execution verified successfully (run 43772258572)
-- [x] `cargo test -p forgedesk-core` (97 passed, 2 ignored live)
+- [x] `cargo test -p forgedesk-core` (99 passed, 2 ignored live)
 - [x] `cargo test -p forgedesk-ai` (5 passed)
 - [x] `npm run typecheck`
 - [x] `npm test` (128 passed)

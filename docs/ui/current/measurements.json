@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-16T11:25:00.091Z",
+  "generatedAt": "2026-11-16T13:09:15.964Z",
   "baseUrl": "http://127.0.0.1:4173",
   "harness": true,
   "cases": [
@@ -308,7 +308,7 @@
       "route": "/settings/storage",
       "screenshot": "docs/ui/current/gate0-restore-dialog-dark-1440.png",
       "consoleErrors": [],
-      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 16, 2026, 12:25 PM. Current data is saved as a safety snapshot first.CancelRestore backup"
+      "dialogText": "Restore this backup?The workspace will be replaced with the snapshot from Nov 16, 2026, 2:09 PM. Current data is saved as a safety snapshot first.CancelRestore backup"
     },
     {
       "name": "gate0-onboarding-dark-1440",
@@ -355,7 +355,7 @@
       "route": "/my-issues",
       "screenshot": "docs/ui/current/gate0-toast-dark-1440.png",
       "consoleErrors": [],
-      "toastText": "Backup createdSnapshot forgedesk-1794828315507-1bb520ac was written to the local backups folder.",
+      "toastText": "Backup createdSnapshot forgedesk-1794834571238-7c89c08a was written to the local backups folder.",
       "issueRows": 16
     },
     {
