@@ -76,7 +76,7 @@ pub struct RemoteIssueLink {
     pub local_issue_id: String,
     pub provider: String,
     pub account_id: String,
-    pub repository_id: Option<String>,
+    pub remote_repository_key: Option<String>,
     pub remote_id: String,
     pub remote_number: i64,
     pub remote_url: String,

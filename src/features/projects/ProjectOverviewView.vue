@@ -25,6 +25,7 @@ import type { Document, IssueSummary, Milestone } from '@/types/ipc'
 
 import MilestoneDialog from './MilestoneDialog.vue'
 import ProjectDialog from './ProjectDialog.vue'
+import ProjectRepositories from './ProjectRepositories.vue'
 
 type ProjectTab = 'overview' | 'issues' | 'roadmap' | 'documents' | 'repositories' | 'activity'
 
@@ -306,7 +307,7 @@ function milestoneLabel(milestone: Milestone): string {
 
             <section class="fd-project-section">
               <h2>{{ t('projects.tabs.repositories') }}</h2>
-              <p class="fd-project-muted">{{ t('projects.noRepositories') }}</p>
+              <ProjectRepositories :project-id="projectId" />
             </section>
 
             <section class="fd-project-section">
@@ -379,12 +380,16 @@ function milestoneLabel(milestone: Milestone): string {
           </div>
         </template>
 
+        <template v-else-if="activeTab === 'repositories'">
+          <ProjectRepositories :project-id="projectId" />
+        </template>
+
         <template v-else>
           <div class="fd-project-state">
             <FdEmptyState
               :icon="Plus"
-              :title="activeTab === 'repositories' ? t('projects.noRepositories') : t('projects.noActivity')"
-              :body="activeTab === 'repositories' ? t('projects.noRepositories') : t('projects.noActivity')"
+              :title="t('projects.noActivity')"
+              :body="t('projects.noActivity')"
             />
           </div>
         </template>

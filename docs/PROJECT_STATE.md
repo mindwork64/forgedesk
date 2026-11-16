@@ -1,14 +1,14 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-16
-**Stage:** 10 — Stabilization/release (partial; native/signing blocked); Stage 5 sync writes remain partial
-**Verified CI revision:** `bddc4c58c8e9ea5c5b4f06b9fcc9f3705386e0fa`
+**Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
+**Revision:** feature branch `fix/repository-project-associations`; CI evidence recorded after push
 
 ## Current objective
 
-Complete the remaining PR polish (inline comment placement, PR read budgets) and
-Stage 5 reconciliation. GitHub merge/close/review actions are permission-checked and
-require explicit confirmation; no automatic retry of ambiguous writes.
+Validate the repository/checkout/project model end-to-end and merge the feature
+branch after CI. Remaining PR polish, native packaging and Stage 5 sync writes stay
+tracked.
 
 ## Architecture (locked)
 
@@ -38,11 +38,11 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 92 core (+3 ignored live), 5 AI crate, 125 frontend, 58 default visual captures (+1 optional AI capture).
+- **Tests:** 97 core (+2 ignored live), 5 AI crate, 128 frontend, 59 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
-- **Schema v9:** `remote_issue_link`, `sync_cursor`, `sync_outbox`, `sync_conflict`, `pull_request_link`, `inbox_state`, `automation_rule`, `automation_run`, `dashboard`, `dashboard_widget`.
+- **Schema v10:** logical `repository` (provider identity, remote-only), `repository_checkout`, `repository_project`, plus v9 sync/inbox/automation/dashboard tables. Legacy `repository.project_id` is migrated and no longer read.
 - Remote link ownership JSON, per-resource cursors (page/watermark/last success),
   idempotent outbox enqueue and closed state machine:
   `pending → dispatching → succeeded | failed_definite | outcome_unknown →
@@ -135,11 +135,28 @@ through `user_version`. See ADR-0001…0007.
 - Onboarding describes GitHub as optional and configurable in Integrations after
   setup; no disabled fake Connect action or Stage 4 badge.
 
+### Repository model correction (schema v10)
+
+- Logical `repository` identity (provider/host/opaque external ID/owner/name/metadata)
+  supports remote-only repositories without a local path.
+- `repository_checkout` stores local clones; a repository may have zero or many
+  checkouts. `repository_project` is the many-to-many source of truth.
+- v10 migration preserves legacy repository IDs, checkouts, project links, Issues and
+  remote links; `remote_issue_link.repository_id` is renamed to
+  `remote_repository_key`.
+- GitHub discovery upserts repositories and exposes pagination; import fetches outside
+  the DB transaction, creates/upserts the repository and project association first,
+  and supports explicit target projects and partial import continuation.
+- Project Overview Repositories and unified Repositories UI support remote-only
+  repositories, multiple projects, link/unlink and checkout attachment.
+- PR repository selection is stored by repository ID in SQLite settings.
+- Verified locally so far: 97 core tests, 128 frontend tests, 59 visual captures.
+
 ### Stage 10 — stabilization/release (partial)
 
 - Route-level code splitting: main JS chunk reduced from ~501 KB to ~231 KB; Vite
   chunk warning removed.
-- Realistic v5→v9 migration test preserves workflow/statuses, project, issue,
+- Realistic v5→v10 migration test preserves workflow/statuses, project, issue,
   comment, document, repository, remote link, outbox and cursor data; foreign keys are
   checked.
 - axe-core `button-name`/`aria-command-name` validation runs on every visual case,
@@ -190,7 +207,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (92 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (97 + 2 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |
@@ -198,9 +215,9 @@ through `user_version`. See ADR-0001…0007.
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (125) |
+| Frontend tests | `npm test` | PASS (128) |
 | Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
-| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 58 captures; axe button-name/aria-command-name |
+| Visual gates | `node scripts/visual-gate0.mjs` | PASS — 59 captures; axe button-name/aria-command-name |
 | GitHub Actions CI | run `43778341394` at `bddc4c58` | PASS — all 7 jobs |
 | Windows 10 native build/tests | run `43778393711` at `bddc4c58` | PASS — Debug `forgedesk.exe` artifact; no interactive run |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
@@ -237,6 +254,8 @@ through `user_version`. See ADR-0001…0007.
 - Local Git has no process timeout, open folder/terminal, branch delete, rebase or
   remote sync; safe subset only.
 - Repository detail has Overview/Branches/Recent commits only.
+- GitHub discovery/import live network paths remain mock/fixture-tested; no live
+  provider write is performed. Import page continuation is explicit and bounded.
 - No API budget settings UI; documented defaults 10%/20%, max in-flight 1.
 - Stage 3 follow-ups remain (templates, doc import/outline, cycle analytics, roadmap
   milestones).

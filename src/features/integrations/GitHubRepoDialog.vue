@@ -9,8 +9,9 @@ import FdEmptyState from '@/components/ui/FdEmptyState.vue'
 import FdInput from '@/components/ui/FdInput.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import FdModal from '@/components/ui/FdModal.vue'
+import FdSelect from '@/components/ui/FdSelect.vue'
 import { useGithubAuthStore } from '@/stores/githubAuth'
-import type { GitHubImportResult, GitHubRepo } from '@/types/ipc'
+import type { GitHubImportResult, Repository } from '@/types/ipc'
 
 const open = defineModel<boolean>('open', { default: false })
 const auth = useGithubAuthStore()
@@ -18,7 +19,9 @@ const router = useRouter()
 const { t } = useI18n()
 const search = ref('')
 const results = ref<Record<string, GitHubImportResult>>({})
-const importingId = ref<number | null>(null)
+const targets = ref<Record<string, string>>({})
+const nextPages = ref<Record<string, number>>({})
+const importingId = ref<string | null>(null)
 
 const filtered = computed(() => {
   const needle = search.value.trim().toLowerCase()
@@ -40,25 +43,33 @@ watch(open, (isOpen) => {
   }
 })
 
-async function importRepo(repo: GitHubRepo): Promise<void> {
+function needsTarget(repo: Repository): boolean {
+  return repo.projects.length > 1 && !targets.value[repo.id]
+}
+
+async function importRepo(repo: Repository, page = 1): Promise<void> {
   if (auth.importing) {
     return
   }
+  const targetProjectId = targets.value[repo.id] ?? null
   importingId.value = repo.id
-  const result = await auth.importIssues(repo.owner.login, repo.name)
+  const result = await auth.importIssues(repo.owner ?? '', repo.name, targetProjectId, page)
   importingId.value = null
   if (result) {
     results.value = { ...results.value, [repo.fullName]: result }
+    if (result.nextPage) {
+      nextPages.value = { ...nextPages.value, [repo.fullName]: result.nextPage }
+    }
   }
 }
 
-function useForPullRequests(repo: GitHubRepo): void {
-  auth.selectRepository(repo)
+async function useForPullRequests(repo: Repository): Promise<void> {
+  await auth.selectRepository(repo)
   open.value = false
   void router.push('/pull-requests')
 }
 
-function openProject(repo: GitHubRepo): void {
+function openProject(repo: Repository): void {
   const result = results.value[repo.fullName]
   if (!result) {
     return
@@ -72,6 +83,18 @@ function openProject(repo: GitHubRepo): void {
   <FdModal v-model="open" :title="t('githubRepos.title')" size="lg">
     <div class="fd-github-repos">
       <p class="fd-github-repos__hint">{{ t('githubRepos.limitHint') }}</p>
+      <p v-if="auth.discoveryHasMore" class="fd-github-repos__hint fd-github-repos__hint--warning">
+        {{ t('githubRepos.discoveryPartial', { pages: auth.discoveryPages }) }}
+        <FdButton
+          v-if="auth.discoveryNextPage"
+          variant="ghost"
+          size="sm"
+          :disabled="auth.discovering"
+          @click="auth.discoverRepositories(auth.discoveryNextPage)"
+        >
+          {{ t('githubRepos.loadMore') }}
+        </FdButton>
+      </p>
       <FdInput
         v-model="search"
         type="search"
@@ -94,7 +117,7 @@ function openProject(repo: GitHubRepo): void {
           <div class="fd-github-repo-row__main">
             <strong>{{ repo.fullName }}</strong>
             <span>
-              {{ repo.private ? t('githubRepos.private') : t('githubRepos.public') }}
+              {{ repo.visibility === 'private' ? t('githubRepos.private') : t('githubRepos.public') }}
               · {{ repo.defaultBranch ?? '—' }}
               <template v-if="repo.description"> · {{ repo.description }}</template>
             </span>
@@ -105,7 +128,21 @@ function openProject(repo: GitHubRepo): void {
                   skipped: results[repo.fullName]!.skipped,
                 })
               }}
+              <span v-if="results[repo.fullName]!.hasMore">
+                · {{ t('githubRepos.importPartial') }}
+              </span>
             </small>
+            <FdSelect
+              v-if="repo.projects.length > 1"
+              v-model="targets[repo.id]"
+              :aria-label="t('githubRepos.targetProject')"
+              class="fd-github-repo-target"
+            >
+              <option value="">{{ t('githubRepos.chooseTarget') }}</option>
+              <option v-for="project in repo.projects" :key="project.id" :value="project.id">
+                {{ project.name }}
+              </option>
+            </FdSelect>
           </div>
           <div class="fd-github-repo-row__actions">
             <FdButton
@@ -124,9 +161,18 @@ function openProject(repo: GitHubRepo): void {
               {{ t('githubRepos.open') }}
             </FdButton>
             <FdButton
-              variant="primary"
+              v-if="nextPages[repo.fullName]"
+              variant="ghost"
               size="sm"
               :disabled="auth.importing"
+              @click="importRepo(repo, nextPages[repo.fullName])"
+            >
+              {{ t('githubRepos.continue') }}
+            </FdButton>
+            <FdButton
+              variant="primary"
+              size="sm"
+              :disabled="auth.importing || needsTarget(repo)"
               @click="importRepo(repo)"
             >
               {{ importingId === repo.id ? t('githubRepos.importing') : t('githubRepos.import') }}

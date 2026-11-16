@@ -59,7 +59,7 @@ ForgeDesk/
 │   └── db/
 │       ├── mod.rs              Guarded SQLite connection, WAL, reopen/replace
 │       ├── migrations.rs       Append-only runner + tests
-│       ├── migrations/0001_init.sql … 0009_dashboards.sql
+│       ├── migrations/0001_init.sql … 0010_repository_model.sql
 │       └── repositories/
 │           ├── issues.rs       Issue CRUD/detail/list/batch/duplicate
 │           ├── issue_query.rs  Whitelisted filter/sort/search SQL builder
@@ -166,7 +166,7 @@ ForgeDesk/
 │   ├── architecture/           overview, repository_map, assumptions
 │   ├── decisions/              ADR-0001…0010 (…/provider-adapters/optional-AI)
 │   ├── development/            setup.md, jenkins.md
-│   ├── stages/                 Stage 0/1/2/3/4/5/6/7/8/9/10 reports
+│   ├── stages/                 Stage 0/1/2/3/4/5/6/7/8/9/10 + repository report
 │   ├── release/                Release checklist and blockers
 │   ├── ui/
 │   │   ├── component_map.md

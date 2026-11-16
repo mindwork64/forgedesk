@@ -33,6 +33,12 @@ pub struct GitHubRepo {
     pub owner: GitHubOwner,
     #[serde(default)]
     pub permissions: Option<GitHubPermissions>,
+    #[serde(default)]
+    pub clone_url: Option<String>,
+    #[serde(default)]
+    pub visibility: Option<String>,
+    #[serde(default)]
+    pub archived: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -249,7 +255,14 @@ impl GitHubClient {
     }
 
     pub fn list_repositories(&self) -> CoreResult<Page<GitHubRepo>> {
-        self.get_page("/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member")
+        self.list_repositories_page(1)
+    }
+
+    pub fn list_repositories_page(&self, page: u32) -> CoreResult<Page<GitHubRepo>> {
+        self.get_page(&format!(
+            "/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member&page={}",
+            page.max(1)
+        ))
     }
 
     pub fn list_issues(

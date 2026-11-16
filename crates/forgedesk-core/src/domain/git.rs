@@ -1,19 +1,56 @@
 use serde::{Deserialize, Serialize};
 
+use crate::domain::issue::ProjectRef;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RepositoryCheckout {
+    pub id: String,
+    pub repository_id: String,
+    pub path: String,
+    pub last_checked_at: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Repository {
     pub id: String,
-    pub name: String,
-    pub path: String,
     pub provider: String,
-    pub remote_url: Option<String>,
+    pub host: String,
+    pub external_id: Option<String>,
+    pub owner: Option<String>,
+    pub name: String,
+    pub full_name: String,
+    pub description: Option<String>,
+    pub visibility: Option<String>,
     pub default_branch: Option<String>,
-    pub project_id: Option<String>,
-    pub project_name: Option<String>,
+    pub html_url: Option<String>,
+    pub clone_url: Option<String>,
+    pub canonical_remote_url: Option<String>,
+    pub is_archived: bool,
+    pub checkouts: Vec<RepositoryCheckout>,
+    pub projects: Vec<ProjectRef>,
     pub last_checked_at: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RepositoryDiscoveryResult {
+    pub items: Vec<Repository>,
+    pub has_more: bool,
+    pub pages_loaded: u32,
+    pub next_page: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RepositoryLinkInput {
+    pub repository_id: String,
+    pub project_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

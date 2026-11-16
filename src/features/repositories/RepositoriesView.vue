@@ -34,8 +34,12 @@ const filtered = computed(() => {
   }
   return git.repositories.filter(
     (repository) =>
-      repository.name.toLowerCase().includes(needle) ||
-      repository.path.toLowerCase().includes(needle),
+      [repository.name, repository.fullName, repository.owner ?? '', repository.description ?? '',
+       repository.cloneUrl ?? '', repository.htmlUrl ?? '',
+       ...repository.checkouts.map((checkout) => checkout.path)]
+        .join(' ')
+        .toLowerCase()
+        .includes(needle),
   )
 })
 
@@ -145,13 +149,15 @@ onMounted(async () => {
           @keydown.enter="open(repository)"
         >
           <span class="fd-repository-row__name" role="cell">
-            <strong>{{ repository.name }}</strong>
-            <small>{{ repository.remoteUrl ?? repository.path }}</small>
+            <strong>{{ repository.fullName }}</strong>
+            <small>{{ repository.cloneUrl ?? repository.htmlUrl ?? t('repositories.remoteOnly') }}</small>
           </span>
           <span role="cell">{{ providerLabel(repository) }}</span>
           <span role="cell">{{ repository.defaultBranch ?? '—' }}</span>
-          <span class="fd-repository-row__path" role="cell">{{ repository.path }}</span>
-          <span role="cell">{{ repository.projectName ?? '—' }}</span>
+          <span class="fd-repository-row__path" role="cell">
+            {{ repository.checkouts.map((checkout) => checkout.path).join(', ') || t('repositories.remoteOnly') }}
+          </span>
+          <span role="cell">{{ repository.projects.map((project) => project.name).join(', ') || '—' }}</span>
           <span class="fd-repository-row__muted" role="cell">
             {{
               repository.lastCheckedAt

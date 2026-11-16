@@ -57,9 +57,14 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "dashboards",
         sql: include_str!("migrations/0009_dashboards.sql"),
     },
+    Migration {
+        version: 10,
+        name: "repositories",
+        sql: include_str!("migrations/0010_repository_model.sql"),
+    },
 ];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 9;
+pub const CURRENT_SCHEMA_VERSION: i64 = 10;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -287,12 +292,30 @@ mod tests {
         );
         assert_eq!(
             conn.query_row(
-                "SELECT path FROM repository WHERE id = 'repo-1'",
+                "SELECT path FROM repository_checkout WHERE repository_id = 'repo-1'",
                 [],
                 |row| { row.get::<_, String>(0) }
             )
             .expect("repository"),
             "/tmp/forgedesk-v5-repo"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT count(*) FROM repository_project                  WHERE workspace_id = 'ws-1' AND repository_id = 'repo-1'                    AND project_id = 'project-1'",
+                [],
+                |row| row.get::<_, i64>(0)
+            )
+            .expect("project link"),
+            1
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT remote_repository_key FROM remote_issue_link WHERE id = 'link-1'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("remote repository key"),
+            "owner/repo"
         );
         assert_eq!(
             conn.query_row(
@@ -401,7 +424,10 @@ mod tests {
         .expect("workspace");
         tx.commit().expect("commit");
 
-        assert_eq!(run(&mut conn).expect("migrate to current"), 9);
+        assert_eq!(
+            run(&mut conn).expect("migrate to current"),
+            CURRENT_SCHEMA_VERSION
+        );
 
         let workflows: i64 = conn
             .query_row("SELECT count(*) FROM workflow", [], |row| row.get(0))

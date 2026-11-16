@@ -7,27 +7,39 @@ import { i18n } from '@/i18n'
 import { setDevTransport } from '@/lib/ipc'
 import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useToastStore } from '@/stores/toasts'
-import type { GitHubImportResult, GitHubRepo } from '@/types/ipc'
+import type { GitHubImportResult, Repository } from '@/types/ipc'
 import GitHubRepoDialog from './GitHubRepoDialog.vue'
 
-const repo: GitHubRepo = {
-  id: 123,
+const repo: Repository = {
+  id: 'repo-1',
+  provider: 'github',
+  host: 'github.com',
+  externalId: '123',
+  owner: 'mindwork64',
   name: 'forgedesk',
   fullName: 'mindwork64/forgedesk',
-  private: false,
+  description: 'Test repository',
+  visibility: 'public',
   defaultBranch: 'main',
   htmlUrl: 'https://github.com/mindwork64/forgedesk',
-  description: 'Test repository',
+  cloneUrl: 'https://github.com/mindwork64/forgedesk.git',
+  canonicalRemoteUrl: 'https://github.com/mindwork64/forgedesk',
+  isArchived: false,
+  checkouts: [],
+  projects: [],
+  lastCheckedAt: null,
+  createdAt: '2026-11-15T12:00:00Z',
   updatedAt: '2026-11-15T12:00:00Z',
-  owner: { login: 'mindwork64' },
 }
 const result: GitHubImportResult = {
   imported: 2,
   skipped: 1,
   projectId: 'project-1',
   projectName: 'mindwork64/forgedesk',
-  hasMore: false,
-  pages: 1,
+  repositoryId: 'repo-1',
+  hasMore: true,
+  pages: 5,
+  nextPage: 6,
 }
 
 let wrapper: ReturnType<typeof mount> | null = null
@@ -44,7 +56,8 @@ async function mountDialog(): Promise<void> {
   i18n.global.locale.value = 'en'
   localStorage.clear()
   setDevTransport(async <T,>(command: string) => {
-    if (command === 'github_discover_repositories') return [repo] as T
+    if (command === 'github_discover_repositories') return { items: [repo], hasMore: false, pagesLoaded: 1, nextPage: null } as T
+    if (command === 'select_repository') return structuredClone(repo) as T
     if (command === 'github_import_issues') {
       importCalls += 1
       if (importGate) await importGate
@@ -125,6 +138,7 @@ describe('GitHubRepoDialog', () => {
     await flushPromises()
     const auth = useGithubAuthStore()
     expect(auth.selectedRepo).toEqual({
+      repositoryId: 'repo-1',
       owner: 'mindwork64',
       name: 'forgedesk',
       fullName: 'mindwork64/forgedesk',
@@ -143,6 +157,8 @@ describe('GitHubRepoDialog', () => {
     await new Promise((resolve) => setTimeout(resolve, 15))
     await flushPromises()
     expect(document.body.textContent).toContain('Imported 2, skipped 1')
+    expect(document.body.textContent).toContain('more issues remain')
+    expect(document.body.textContent).toContain('Continue import')
     button('View imported project').click()
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/projects/project-1')

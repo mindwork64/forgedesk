@@ -114,11 +114,11 @@ pub fn upsert_link(
     let now = now_rfc3339();
     conn.execute(
         "INSERT INTO remote_issue_link \
-         (id, local_issue_id, provider, account_id, repository_id, remote_id, remote_number, \
+         (id, local_issue_id, provider, account_id, remote_repository_key, remote_id, remote_number, \
           remote_url, remote_updated_at, last_synced_at, field_ownership, state, created_at, updated_at) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13) \
          ON CONFLICT(local_issue_id) DO UPDATE SET provider = excluded.provider, \
-          account_id = excluded.account_id, repository_id = excluded.repository_id, \
+          account_id = excluded.account_id, remote_repository_key = excluded.remote_repository_key, \
           remote_id = excluded.remote_id, remote_number = excluded.remote_number, \
           remote_url = excluded.remote_url, remote_updated_at = excluded.remote_updated_at, \
           last_synced_at = excluded.last_synced_at, field_ownership = excluded.field_ownership, \
@@ -128,7 +128,7 @@ pub fn upsert_link(
             link.local_issue_id,
             link.provider,
             link.account_id,
-            link.repository_id,
+            link.remote_repository_key,
             link.remote_id,
             link.remote_number,
             link.remote_url,
@@ -150,7 +150,7 @@ pub fn get_link(
 ) -> CoreResult<Option<RemoteIssueLink>> {
     Ok(conn
         .query_row(
-            "SELECT l.id, l.local_issue_id, l.provider, l.account_id, l.repository_id, \
+            "SELECT l.id, l.local_issue_id, l.provider, l.account_id, l.remote_repository_key, \
                     l.remote_id, l.remote_number, l.remote_url, l.remote_updated_at, \
                     l.last_synced_at, l.field_ownership, l.state, l.created_at, l.updated_at \
              FROM remote_issue_link l JOIN issue i ON i.id = l.local_issue_id \
@@ -170,7 +170,7 @@ pub fn find_by_remote(
 ) -> CoreResult<Option<RemoteIssueLink>> {
     Ok(conn
         .query_row(
-            "SELECT l.id, l.local_issue_id, l.provider, l.account_id, l.repository_id, \
+            "SELECT l.id, l.local_issue_id, l.provider, l.account_id, l.remote_repository_key, \
                     l.remote_id, l.remote_number, l.remote_url, l.remote_updated_at, \
                     l.last_synced_at, l.field_ownership, l.state, l.created_at, l.updated_at \
              FROM remote_issue_link l JOIN issue i ON i.id = l.local_issue_id \
@@ -374,7 +374,7 @@ fn read_link(row: &Row<'_>) -> rusqlite::Result<RemoteIssueLink> {
         local_issue_id: row.get(1)?,
         provider: row.get(2)?,
         account_id: row.get(3)?,
-        repository_id: row.get(4)?,
+        remote_repository_key: row.get(4)?,
         remote_id: row.get(5)?,
         remote_number: row.get(6)?,
         remote_url: row.get(7)?,
@@ -540,7 +540,7 @@ mod tests {
                         local_issue_id: issue_id.clone(),
                         provider: "github".into(),
                         account_id: "acct".into(),
-                        repository_id: Some("repo".into()),
+                        remote_repository_key: Some("repo".into()),
                         remote_id: "R1".into(),
                         remote_number: 42,
                         remote_url: "https://github.com/o/r/issues/42".into(),

@@ -5,14 +5,17 @@
 implemented and tested. CI and a native Windows 10 Debug build are verified. Interactive
 Windows/Linux runtime smoke tests, signed installers and full release packaging remain
 open.
-**Schema:** v9
+**Schema:** v10
 
 ## Delivered
 
+- Repository model v10: logical repositories, local checkouts, project many-to-many
+  links, GitHub discovery/import association and repository UI. See
+  `docs/stages/STAGE-10-repository-model-report.md`.
 - Route-level code splitting for all screens.
   - Main production JS chunk reduced from ~501 KB to ~231 KB.
   - Vite 500 KB chunk warning is gone.
-- Realistic v5→v9 migration data-preservation test:
+- Realistic v5→v10 migration data-preservation test:
   - creates workspace/settings before v2 so the workflow backfill path is exercised;
   - seeds default workflow/statuses/key counter, then inserts project, issue, comment,
     document, repository, remote link, outbox and cursor using real v5 schemas;
@@ -23,7 +26,7 @@ open.
   - regression fixtures prove visible text, `aria-label`, `aria-labelledby` and icon
     button names pass, while empty/hidden-only buttons and unnamed `role="button"`
     fail;
-  - all 58 visual cases pass.
+  - all 59 visual cases pass.
 - Optional AI CI lanes (the workflow includes the commands and explicitly installs
   the Clippy component; local runs do not substitute for a CI execution result):
   - AI crate tests;
@@ -65,12 +68,12 @@ open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 92 (+3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 97 (+2 ignored live) |
 | AI crate | `cargo test -p forgedesk-ai` | PASS — 5 |
-| Frontend | `npm run typecheck`, `npm test` | PASS — 125 |
-| Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 58 captures |
+| Frontend | `npm run typecheck`, `npm test` | PASS — 128 |
+| Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 59 captures |
 | Production chunk | `npm run build` | PASS — main JS ~231 KB |
-| Migration v5→v9 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
+| Migration v5→v10 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
 | AI Clippy (local) | `cargo clippy -p forgedesk-ai ...` | PASS |
 | AI Clippy (CI) | GitHub Actions run `43778341394` | PASS |
 | GitHub Actions CI | run `43778341394` at `bddc4c58` | PASS — all 7 jobs |

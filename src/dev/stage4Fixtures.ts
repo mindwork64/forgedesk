@@ -8,7 +8,6 @@ import type {
   GitLogEntry,
   GitHubConnection,
   GitHubImportResult,
-  GitHubRepo,
   GitOverview,
   GitStatus,
   QueueJob,
@@ -20,34 +19,117 @@ const now = Date.now()
 const iso = (minutesAgo: number): string =>
   new Date(now - minutesAgo * 60_000).toISOString()
 
+function checkout(id: string, repositoryId: string, path: string, checked: number) {
+  return {
+    id,
+    repositoryId,
+    path,
+    lastCheckedAt: iso(checked),
+    createdAt: iso(checked + 100),
+    updatedAt: iso(checked),
+  }
+}
+
 const repositories: Repository[] = [
   {
     id: 'repo-forge',
-    name: 'ForgeDesk',
-    path: '/home/dev/code/forgedesk',
     provider: 'local',
-    remoteUrl: 'git@github.com:eloraam/forgedesk.git',
+    host: 'local',
+    externalId: null,
+    owner: 'eloraam',
+    name: 'ForgeDesk',
+    fullName: 'eloraam/ForgeDesk',
+    description: 'Local-first desktop workspace',
+    visibility: null,
     defaultBranch: 'main',
-    projectId: 'project-forge',
-    projectName: 'ForgeDesk',
+    htmlUrl: 'https://github.com/eloraam/forgedesk',
+    cloneUrl: 'git@github.com:eloraam/forgedesk.git',
+    canonicalRemoteUrl: 'https://github.com/eloraam/forgedesk',
+    isArchived: false,
+    checkouts: [checkout('checkout-forge', 'repo-forge', '/home/dev/code/forgedesk', 4)],
+    projects: [{ id: 'project-forge', name: 'ForgeDesk' }],
     lastCheckedAt: iso(4),
     createdAt: iso(2400),
     updatedAt: iso(4),
   },
   {
-    id: 'repo-exhi',
-    name: 'EXHI Capture',
-    path: '/home/dev/code/exhi capture',
-    provider: 'local',
-    remoteUrl: 'git@github.com:eloraam/exhi-capture.git',
+    id: 'repo-remote',
+    provider: 'github',
+    host: 'github.com',
+    externalId: '9876',
+    owner: 'mindwork64',
+    name: 'remote-only',
+    fullName: 'mindwork64/remote-only',
+    description: 'Remote repository without a local clone',
+    visibility: 'public',
     defaultBranch: 'main',
-    projectId: 'project-exhi',
-    projectName: 'EXHI Capture',
+    htmlUrl: 'https://github.com/mindwork64/remote-only',
+    cloneUrl: 'https://github.com/mindwork64/remote-only.git',
+    canonicalRemoteUrl: 'https://github.com/mindwork64/remote-only',
+    isArchived: false,
+    checkouts: [],
+    projects: [],
+    lastCheckedAt: null,
+    createdAt: iso(5000),
+    updatedAt: iso(30),
+  },
+  {
+    id: 'repo-exhi',
+    provider: 'local',
+    host: 'local',
+    externalId: null,
+    owner: 'eloraam',
+    name: 'EXHI Capture',
+    fullName: 'eloraam/EXHI Capture',
+    description: 'Capture pipeline',
+    visibility: null,
+    defaultBranch: 'main',
+    htmlUrl: null,
+    cloneUrl: 'git@github.com:eloraam/exhi-capture.git',
+    canonicalRemoteUrl: 'https://github.com/eloraam/exhi-capture',
+    isArchived: false,
+    checkouts: [checkout('checkout-exhi', 'repo-exhi', '/home/dev/code/exhi capture', 18)],
+    projects: [{ id: 'project-exhi', name: 'EXHI Capture' }],
     lastCheckedAt: iso(18),
     createdAt: iso(4000),
     updatedAt: iso(18),
   },
 ]
+
+const discoveredRepositories: Repository[] = repositories.map((repository) => ({
+  ...repository,
+  provider: 'github',
+  host: 'github.com',
+  externalId: `gh-${repository.id}`,
+  visibility: 'public',
+  htmlUrl: repository.htmlUrl ?? 'https://github.com/mindwork64/forgedesk',
+  cloneUrl: repository.cloneUrl ?? 'https://github.com/mindwork64/forgedesk.git',
+  canonicalRemoteUrl:
+    repository.canonicalRemoteUrl ?? 'https://github.com/mindwork64/forgedesk',
+  checkouts: [],
+}))
+
+const selectedRepository: Repository = {
+  id: 'selected-gh',
+  provider: 'github',
+  host: 'github.com',
+  externalId: '1001',
+  owner: 'mindwork64',
+  name: 'forgedesk',
+  fullName: 'mindwork64/forgedesk',
+  description: 'Local-first desktop workspace',
+  visibility: 'public',
+  defaultBranch: 'main',
+  htmlUrl: 'https://github.com/mindwork64/forgedesk',
+  cloneUrl: 'https://github.com/mindwork64/forgedesk.git',
+  canonicalRemoteUrl: 'https://github.com/mindwork64/forgedesk',
+  isArchived: false,
+  checkouts: [],
+  projects: [],
+  lastCheckedAt: null,
+  createdAt: iso(6000),
+  updatedAt: iso(30),
+}
 
 const statuses: Record<string, GitStatus> = {
   'repo-forge': {
@@ -355,15 +437,25 @@ export function handleStage4FixtureCommand<T>(
     case 'add_local_repository': {
       const input = (args?.input ?? {}) as { path?: string; name?: string; projectId?: string }
       const path = input.path ?? '/home/dev/code/added'
+      const id = `repo-${Date.now()}`
+      const name = input.name?.trim() || path.split('/').pop() || 'repository'
       const created: Repository = {
-        id: `repo-${Date.now()}`,
-        name: input.name?.trim() || path.split('/').pop() || 'repository',
-        path,
+        id,
         provider: 'local',
-        remoteUrl: null,
+        host: 'local',
+        externalId: null,
+        owner: null,
+        name,
+        fullName: name,
+        description: null,
+        visibility: null,
         defaultBranch: 'main',
-        projectId: input.projectId ?? null,
-        projectName: null,
+        htmlUrl: null,
+        cloneUrl: null,
+        canonicalRemoteUrl: null,
+        isArchived: false,
+        checkouts: [checkout(`checkout-${id}`, id, path, 0)],
+        projects: input.projectId ? [{ id: input.projectId, name: input.projectId }] : [],
         lastCheckedAt: iso(0),
         createdAt: iso(0),
         updatedAt: iso(0),
@@ -468,33 +560,51 @@ export function handleStage4FixtureCommand<T>(
     case 'github_disconnect':
       githubConnected = false
       return { handled: true, value: undefined as T }
+    case 'get_repository':
+      return {
+        handled: true,
+        value: structuredClone(
+          repositories.find((repository) => repository.id === String(args?.id)) ?? repositories[0]!,
+        ) as T,
+      }
+    case 'get_project_repositories':
+      return {
+        handled: true,
+        value: structuredClone(
+          repositories.filter((repository) =>
+            repository.projects.some((project) => project.id === String(args?.projectId)),
+          ),
+        ) as T,
+      }
+    case 'link_repository': {
+      const repository = repositories.find((item) => item.id === String(args?.repositoryId))
+      if (repository && !repository.projects.some((project) => project.id === String(args?.projectId))) {
+        repository.projects.push({ id: String(args?.projectId), name: String(args?.projectId) })
+      }
+      return { handled: true, value: structuredClone(repository) as T }
+    }
+    case 'unlink_repository': {
+      const repository = repositories.find((item) => item.id === String(args?.repositoryId))
+      if (repository) {
+        repository.projects = repository.projects.filter(
+          (project) => project.id !== String(args?.projectId),
+        )
+      }
+      return { handled: true, value: structuredClone(repository) as T }
+    }
+    case 'selected_repository':
+      return { handled: true, value: structuredClone(selectedRepository) as T }
+    case 'select_repository':
+      return { handled: true, value: structuredClone(selectedRepository) as T }
     case 'github_discover_repositories':
       return {
         handled: true,
-        value: [
-          {
-            id: 1001,
-            name: 'forgedesk',
-            fullName: 'mindwork64/forgedesk',
-            private: false,
-            defaultBranch: 'main',
-            htmlUrl: 'https://github.com/mindwork64/forgedesk',
-            description: 'Local-first desktop workspace',
-            updatedAt: iso(30),
-            owner: { login: 'mindwork64' },
-          },
-          {
-            id: 1002,
-            name: 'exhi-capture',
-            fullName: 'eloraam/exhi-capture',
-            private: true,
-            defaultBranch: 'main',
-            htmlUrl: 'https://github.com/eloraam/exhi-capture',
-            description: 'Capture pipeline',
-            updatedAt: iso(90),
-            owner: { login: 'eloraam' },
-          },
-        ] satisfies GitHubRepo[] as T,
+        value: {
+          items: structuredClone(discoveredRepositories),
+          hasMore: false,
+          pagesLoaded: 1,
+          nextPage: null,
+        } as T,
       }
     case 'github_import_issues':
       return {
@@ -504,8 +614,10 @@ export function handleStage4FixtureCommand<T>(
           skipped: 2,
           projectId: 'project-forge',
           projectName: 'mindwork64/forgedesk',
+          repositoryId: 'repo-forge',
           hasMore: false,
           pages: 1,
+          nextPage: null,
         } satisfies GitHubImportResult as T,
       }
     case 'get_api_monitor':

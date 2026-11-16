@@ -35,7 +35,7 @@ const dataDir = '/home/dev/.local/share/dev.forgedesk.app'
 try {
   localStorage.setItem(
     'forgedesk.githubRepo',
-    JSON.stringify({ owner: 'mindwork64', name: 'forgedesk', fullName: 'mindwork64/forgedesk' }),
+    JSON.stringify({ repositoryId: 'selected-gh', owner: 'mindwork64', name: 'forgedesk', fullName: 'mindwork64/forgedesk' }),
   )
 } catch {
   // Harness selection is optional.
@@ -75,7 +75,7 @@ let backups: BackupInfo[] = [
     id: 'forgedesk-20261115-043012-a1b2c3d4',
     filePath: `${dataDir}/backups/forgedesk-20261115-043012-a1b2c3d4.db`,
     createdAt: isoOffset(2),
-    schemaVersion: 9,
+    schemaVersion: 10,
     sizeBytes: 28_672,
     appVersion: '0.1.0',
     valid: true,
@@ -84,7 +84,7 @@ let backups: BackupInfo[] = [
     id: 'forgedesk-20261114-102211-9e8d7c6b',
     filePath: `${dataDir}/backups/forgedesk-20261114-102211-9e8d7c6b.db`,
     createdAt: isoOffset(20),
-    schemaVersion: 9,
+    schemaVersion: 10,
     sizeBytes: 28_672,
     appVersion: '0.1.0',
     valid: true,
@@ -93,7 +93,7 @@ let backups: BackupInfo[] = [
     id: 'forgedesk-20261113-090403-5f4e3d2c',
     filePath: `${dataDir}/backups/forgedesk-20261113-090403-5f4e3d2c.db`,
     createdAt: isoOffset(44),
-    schemaVersion: 9,
+    schemaVersion: 10,
     sizeBytes: 24_576,
     appVersion: '0.1.0',
     valid: true,
@@ -106,7 +106,7 @@ function bootstrap(): Bootstrap {
   }
   return structuredClone({
     appVersion: '0.1.0',
-    schemaVersion: 9,
+    schemaVersion: 10,
     dataDir,
     dbPath: `${dataDir}/forgedesk.db`,
     backupsDir: `${dataDir}/backups`,
@@ -197,7 +197,7 @@ export function installVisualHarness(): void {
           id: `forgedesk-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
           filePath: `${dataDir}/backups/new.db`,
           createdAt: isoOffset(0),
-          schemaVersion: 9,
+          schemaVersion: 10,
           sizeBytes: 28_672,
           appVersion: '0.1.0',
           valid: true,
@@ -215,7 +215,7 @@ export function installVisualHarness(): void {
           id: `forgedesk-safety-${Date.now()}`,
           filePath: `${dataDir}/backups/safety.db`,
           createdAt: isoOffset(0),
-          schemaVersion: 9,
+          schemaVersion: 10,
           sizeBytes: 28_672,
           appVersion: '0.1.0',
           valid: true,

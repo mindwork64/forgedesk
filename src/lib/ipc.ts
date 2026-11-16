@@ -42,7 +42,7 @@ import type {
   DeviceFlowStart,
   DeviceFlowPoll,
   GitHubConnection,
-  GitHubRepo,
+  RepositoryDiscoveryResult,
   GitHubImportResult,
   GitHubPull,
   PullRequestDetail,
@@ -234,6 +234,20 @@ export const api = {
   addLocalRepository: (input: RepositoryInput) =>
     call<Repository>('add_local_repository', { input }),
   removeRepository: (id: string) => call<void>('remove_repository', { id }),
+  getRepository: (id: string) => call<Repository>('get_repository', { id }),
+  getProjectRepositories: (projectId: string) =>
+    call<Repository[]>('get_project_repositories', { projectId }),
+  linkRepository: (repositoryId: string, projectId: string) =>
+    call<Repository>('link_repository', { repositoryId, projectId }),
+  unlinkRepository: (repositoryId: string, projectId: string) =>
+    call<Repository>('unlink_repository', { repositoryId, projectId }),
+  attachRepositoryCheckout: (repositoryId: string, path: string) =>
+    call<Repository>('attach_repository_checkout', { repositoryId, path }),
+  detachRepositoryCheckout: (checkoutId: string) =>
+    call<void>('detach_repository_checkout', { checkoutId }),
+  selectRepository: (repositoryId: string | null) =>
+    call<Repository | null>('select_repository', { repositoryId }),
+  selectedRepository: () => call<Repository | null>('selected_repository'),
   getGitOverview: (id: string) => call<GitOverview>('get_git_overview', { id }),
   createGitBranch: (id: string, branch: string) =>
     call<GitOverview>('create_git_branch', { id, branch }),
@@ -252,10 +266,20 @@ export const api = {
   githubConnection: () => call<GitHubConnection | null>('github_connection'),
   githubRefresh: () => call<GitHubConnection>('github_refresh'),
   githubDisconnect: () => call<void>('github_disconnect'),
-  githubDiscoverRepositories: () =>
-    call<GitHubRepo[]>('github_discover_repositories'),
-  githubImportIssues: (owner: string, repo: string) =>
-    call<GitHubImportResult>('github_import_issues', { owner, repo }),
+  githubDiscoverRepositories: (startPage = 1) =>
+    call<RepositoryDiscoveryResult>('github_discover_repositories', { startPage }),
+  githubImportIssues: (
+    owner: string,
+    repo: string,
+    targetProjectId?: string | null,
+    startPage = 1,
+  ) =>
+    call<GitHubImportResult>('github_import_issues', {
+      owner,
+      repo,
+      targetProjectId: targetProjectId ?? null,
+      startPage,
+    }),
   githubListPulls: (owner: string, repo: string, pullState: string) =>
     call<GitHubPull[]>('github_list_pulls', { owner, repo, pullState }),
   githubPullDetail: (owner: string, repo: string, number: number) =>

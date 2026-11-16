@@ -38,7 +38,7 @@ const settings: AppSettings = {
 }
 const bootstrap: Bootstrap = {
   appVersion: '0.1.0',
-  schemaVersion: 9,
+  schemaVersion: 10,
   dataDir: '/tmp/forgedesk',
   dbPath: '/tmp/forgedesk/forgedesk.db',
   backupsDir: '/tmp/forgedesk/backups',
