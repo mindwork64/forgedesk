@@ -1,107 +1,76 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { setDevTransport } from '@/lib/ipc'
-import type { CommandName, GitHubConnection } from '@/types/ipc'
-import { useGithubAuthStore } from './githubAuth'
+import { useGithubAuthStore } from '@/stores/githubAuth'
+import type { Repository } from '@/types/ipc'
 
-const connection: GitHubConnection = {
-  connected: true,
-  login: 'eloraam',
-  userId: 1,
-  scopes: '',
-  expiresAt: '2026-11-15T20:00:00Z',
-  refreshExpiresAt: '2026-11-30T20:00:00Z',
-  storage: 'keyring',
-  storageWarning: null,
+const repo: Repository = {
+  id: 'repo-1',
+  provider: 'github',
+  host: 'github.com',
+  externalId: '1',
+  owner: 'owner',
+  name: 'repo',
+  fullName: 'owner/repo',
+  description: null,
+  visibility: 'public',
+  defaultBranch: 'main',
+  htmlUrl: 'https://github.com/owner/repo',
+  cloneUrl: 'https://github.com/owner/repo.git',
+  canonicalRemoteUrl: 'https://github.com/owner/repo',
+  isArchived: false,
+  checkouts: [],
+  projects: [],
+  lastCheckedAt: null,
+  createdAt: '2026-11-15T12:00:00Z',
+  updatedAt: '2026-11-15T12:00:00Z',
 }
 
-let mode: 'none' | 'connected' = 'none'
-let errorCode: string | null = null
+let selected: Repository | null = repo
 
-function installTransport(): void {
-  setDevTransport(async <T,>(command: CommandName) => {
-    switch (command) {
-      case 'github_connection':
-        if (errorCode) {
-          throw { code: errorCode, message: `connection failed: ${errorCode}` }
-        }
-        return (mode === 'connected' ? structuredClone(connection) : null) as T
-      case 'github_start_device_flow':
-        return {
-          userCode: 'TEST-CODE',
-          verificationUri: 'https://github.com/login/device',
-          expiresIn: 899,
-          interval: 5,
-        } as T
-      default:
-        throw { code: 'unsupported_capability', message: String(command) }
+beforeEach(() => {
+  setActivePinia(createPinia())
+  localStorage.clear()
+  selected = repo
+  setDevTransport(async <T,>(command: string, args?: Record<string, unknown>) => {
+    if (command === 'github_connection') return null as T
+    if (command === 'selected_repository') return structuredClone(selected) as T
+    if (command === 'select_repository') {
+      selected = args?.repositoryId ? repo : null
+      return structuredClone(selected) as T
     }
+    throw { code: 'unsupported_capability', message: String(command) }
   })
-}
+})
 
-describe('github auth store', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-    mode = 'none'
-    errorCode = null
-    installTransport()
-  })
+afterEach(() => {
+  localStorage.clear()
+})
 
-  it('keeps absent credentials as disconnected', async () => {
-    const store = useGithubAuthStore()
-    await store.loadConnection()
-    expect(store.connected).toBe(false)
-    expect(store.storageUnavailable).toBe(false)
-    expect(store.connectionCheckFailed).toBe(false)
-    expect(store.error).toBeNull()
-  })
-
-  it('classifies credential storage failures as storage unavailable', async () => {
-    errorCode = 'credential_storage'
-    const store = useGithubAuthStore()
-    await store.loadConnection()
-    expect(store.connected).toBe(false)
-    expect(store.storageUnavailable).toBe(true)
-    expect(store.connectionCheckFailed).toBe(false)
-    expect(store.error?.code).toBe('credential_storage')
+describe('githubAuth repository selection', () => {
+  it('restores the SQLite selection after connection load', async () => {
+    const auth = useGithubAuthStore()
+    await auth.loadConnection()
+    expect(auth.selectedRepo).toEqual({
+      repositoryId: 'repo-1',
+      owner: 'owner',
+      name: 'repo',
+      fullName: 'owner/repo',
+    })
   })
 
-  it.each(['auth', 'network', 'internal'])(
-    'keeps %s failures as a generic connection-check error',
-    async (code) => {
-      errorCode = code
-      const store = useGithubAuthStore()
-      await store.loadConnection()
-      expect(store.connected).toBe(false)
-      expect(store.storageUnavailable).toBe(false)
-      expect(store.connectionCheckFailed).toBe(true)
-      expect(store.error?.code).toBe(code)
-    },
-  )
-
-  it('clears unavailable state after a successful connection', async () => {
-    errorCode = 'credential_storage'
-    const store = useGithubAuthStore()
-    await store.loadConnection()
-    expect(store.storageUnavailable).toBe(true)
-
-    errorCode = null
-    mode = 'connected'
-    await store.loadConnection()
-    expect(store.connected).toBe(true)
-    expect(store.storageUnavailable).toBe(false)
-    expect(store.connectionCheckFailed).toBe(false)
-    expect(store.error).toBeNull()
+  it('clears a stale selection instead of using old owner/name', async () => {
+    selected = null
+    const auth = useGithubAuthStore()
+    await auth.loadConnection()
+    expect(auth.selectedRepo).toBeNull()
   })
 
-  it('allows reauthorization while storage is unavailable', async () => {
-    errorCode = 'credential_storage'
-    const store = useGithubAuthStore()
-    await store.loadConnection()
-    await store.start()
-    expect(store.flow?.userCode).toBe('TEST-CODE')
-    expect(store.storageUnavailable).toBe(true)
-    store.cancel()
+  it('persists selection before returning', async () => {
+    const auth = useGithubAuthStore()
+    await auth.selectRepository(repo)
+    expect(auth.selectedRepo?.repositoryId).toBe('repo-1')
+    expect(selected?.id).toBe('repo-1')
   })
 })

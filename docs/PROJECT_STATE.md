@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 99 core (+2 ignored live), 5 AI crate, 128 frontend, 59 default visual captures (+1 optional AI capture).
+- **Tests:** 100 core (+2 ignored live), 5 AI crate, 126 frontend, 59 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -150,7 +150,7 @@ through `user_version`. See ADR-0001…0007.
 - Project Overview Repositories and unified Repositories UI support remote-only
   repositories, multiple projects, link/unlink and checkout attachment.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally: 99 core tests, 128 frontend tests, 59 visual captures; feature
+- Verified locally: 100 core tests, 126 frontend tests, 59 visual captures; feature
   branch CI run `43873315455` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
@@ -208,7 +208,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (99 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (100 + 2 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |

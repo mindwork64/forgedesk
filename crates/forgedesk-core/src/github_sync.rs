@@ -510,6 +510,23 @@ mod integration_tests {
     }
 
     #[test]
+    fn zero_issue_import_still_creates_repository_and_project_link() {
+        let (_dir, db, workspace_id) = db();
+        let result = db
+            .with_transaction(|tx| {
+                apply_import(tx, &workspace_id, "login", 7, &fetched(vec![], false), None)
+            })
+            .expect("empty import");
+        assert_eq!(result.imported, 0);
+        db.with_conn(|conn| {
+            let repository = repo_registry::get(conn, &workspace_id, &result.repository_id)?;
+            assert_eq!(repository.projects.len(), 1);
+            Ok(())
+        })
+        .expect("association");
+    }
+
+    #[test]
     fn failed_apply_rolls_back_repository_and_project() {
         let (_dir, db, workspace_id) = db();
         let mut invalid = issue(1, 1);
