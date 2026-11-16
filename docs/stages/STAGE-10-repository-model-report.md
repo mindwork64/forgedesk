@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-16
 **Schema:** v9 → v10
-**Status:** implemented; tests and CI evidence recorded at the feature commit
+**Status:** implemented on feature branch; CI verified; not merged
 
 ## Scope
 
@@ -24,7 +24,9 @@
 - `cargo test -p forgedesk-core` — 97 passed, 2 ignored.
 - `npm test` — 128 passed.
 - Visual gate — 59 captures.
-- CI evidence is recorded in the final task report after the feature branch run.
+- Feature branch `fix/repository-project-associations`, final code commit `7a1e892`.
+- GitHub Actions run `43858188104`: all seven jobs passed.
+- Not merged to main.
 
 ## Remaining risks
 

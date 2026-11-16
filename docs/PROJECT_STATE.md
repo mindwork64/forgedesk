@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-16
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
-**Revision:** feature branch `fix/repository-project-associations`; CI evidence recorded after push
+**Verified CI revision:** `7a1e892` on branch `fix/repository-project-associations`; feature branch CI run `43858188104` passed all jobs. Not merged to main.
 
 ## Current objective
 
@@ -150,7 +150,8 @@ through `user_version`. See ADR-0001…0007.
 - Project Overview Repositories and unified Repositories UI support remote-only
   repositories, multiple projects, link/unlink and checkout attachment.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally so far: 97 core tests, 128 frontend tests, 59 visual captures.
+- Verified locally: 97 core tests, 128 frontend tests, 59 visual captures; feature
+  branch CI run `43858188104` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
 

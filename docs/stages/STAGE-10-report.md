@@ -32,7 +32,10 @@ open.
   - AI crate tests;
   - default + `VITE_AI_EXTENSION=true` frontend builds;
   - Tauri default and `--features ai-extension` compile checks.
-- GitHub Actions CI run
+- Repository model correction is implemented on branch
+  `fix/repository-project-associations` (commit `7a1e892`); feature CI run
+  `43858188104` passed all seven jobs. It is not merged to main.
+- Historical GitHub Actions CI run
   [43778341394](https://github.com/mindwork64/forgedesk/actions/runs/43778341394)
   passed all seven jobs at `bddc4c58`: Core Ubuntu/Windows, Frontend, Optional AI
   crate, Tauri Linux/Windows compile and UI visual gates.
