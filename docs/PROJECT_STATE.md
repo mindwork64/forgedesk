@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-16
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
-**Verified CI revision:** `8ca0e14` on branch `fix/repository-project-associations`; feature branch CI run `43888367557` passed all jobs. Not merged to main.
+**Verified CI revision:** `af73bcb` on branch `fix/repository-project-associations`; feature branch CI run `43950347854` passed all jobs. Not merged to main.
 
 ## Current objective
 
@@ -152,7 +152,7 @@ through `user_version`. See ADR-0001…0007.
   local clones per remote are intentionally out of scope for v1.
 - PR repository selection is stored by repository ID in SQLite settings.
 - Verified locally: 104 core tests, 136 frontend tests, 59 visual captures; feature
-  branch CI run `43888367557` passed all seven jobs. Not merged to main.
+  branch CI run `43950347854` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
 
