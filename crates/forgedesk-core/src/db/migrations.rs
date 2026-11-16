@@ -477,6 +477,88 @@ mod tests {
     }
 
     #[test]
+    fn reverse_insertion_keeps_primary_identity_and_preserves_both_links() {
+        let mut conn = connection();
+        apply_through(&mut conn, 1);
+        conn.execute(
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \
+             VALUES ('ws-1', 'Reverse', 'RV', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .expect("workspace");
+        apply_through(&mut conn, 9);
+        for (id, name) in [("project-a", "A"), ("project-b", "B")] {
+            conn.execute(
+                "INSERT INTO project (id, workspace_id, name, description, status, priority, \
+                 created_at, updated_at) VALUES (?1, 'ws-1', ?2, '', 'active', 'none', \
+                 '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+                rusqlite::params![id, name],
+            )
+            .expect("project");
+        }
+        // Insert the higher ID first: deterministic reconciliation must still choose legacy-a.
+        for (id, project, path) in [
+            ("legacy-b", "project-b", "/tmp/checkout-b"),
+            ("legacy-a", "project-a", "/tmp/checkout-a"),
+        ] {
+            conn.execute(
+                "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, \
+                 project_id, created_at, updated_at) VALUES (?1, 'ws-1', ?1, ?2, 'local', \
+                 'https://github.com/owner/repo.git', ?3, '2026-01-01T00:00:00Z', \
+                 '2026-01-01T00:00:00Z')",
+                rusqlite::params![id, path, project],
+            )
+            .expect("legacy repository");
+        }
+
+        assert_eq!(run(&mut conn).expect("migrate"), CURRENT_SCHEMA_VERSION);
+        assert_eq!(
+            conn.query_row(
+                "SELECT id FROM repository WHERE canonical_remote_url IS NOT NULL",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("primary"),
+            "legacy-a"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT id FROM repository WHERE identity_conflict IS NOT NULL",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("conflict"),
+            "legacy-b"
+        );
+        for (repository, project, path) in [
+            ("legacy-a", "project-a", "/tmp/checkout-a"),
+            ("legacy-b", "project-b", "/tmp/checkout-b"),
+        ] {
+            assert_eq!(
+                conn.query_row(
+                    "SELECT path FROM repository_checkout WHERE repository_id = ?1",
+                    [repository],
+                    |row| row.get::<_, String>(0)
+                )
+                .expect("checkout"),
+                path
+            );
+            assert_eq!(
+                conn.query_row(
+                    "SELECT count(*) FROM repository_project \
+                     WHERE repository_id = ?1 AND project_id = ?2",
+                    rusqlite::params![repository, project],
+                    |row| row.get::<_, i64>(0)
+                )
+                .expect("project link"),
+                1
+            );
+        }
+        let mut check = conn.prepare("PRAGMA foreign_key_check").expect("fk check");
+        assert_eq!(check.query_map([], |_| Ok(())).expect("rows").count(), 0);
+    }
+
+    #[test]
     fn applies_migrations_idempotently() {
         let mut conn = connection();
         assert_eq!(run(&mut conn).expect("first run"), CURRENT_SCHEMA_VERSION);

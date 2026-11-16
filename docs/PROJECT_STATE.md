@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-16
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
-**Verified CI revision:** `6598d6d` on branch `fix/repository-project-associations`; feature branch CI run `43957798568` passed all jobs. Not merged to main.
+**Verified CI revision:** `bd771b6` on branch `fix/repository-project-associations`; feature branch CI run `43958233990` passed all jobs. Not merged to main.
 
 ## Current objective
 
@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 105 core (+2 ignored live), 5 AI crate, 139 frontend, 59 default visual captures (+1 optional AI capture).
+- **Tests:** 106 core (+2 ignored live), 5 AI crate, 139 frontend, 59 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -151,8 +151,8 @@ through `user_version`. See ADR-0001…0007.
   repositories, multiple projects, link/unlink and checkout attachment. Multiple
   local clones per remote are intentionally out of scope for v1.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally: 105 core tests, 139 frontend tests, 59 visual captures; feature
-  branch CI run `43957798568` passed all seven jobs. Not merged to main.
+- Verified locally: 106 core tests, 139 frontend tests, 59 visual captures; feature
+  branch CI run `43958233990` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
 
@@ -209,7 +209,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (105 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (106 + 2 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |
