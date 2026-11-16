@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 103 core (+2 ignored live), 5 AI crate, 127 frontend, 59 default visual captures (+1 optional AI capture).
+- **Tests:** 104 core (+2 ignored live), 5 AI crate, 136 frontend, 59 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -139,8 +139,8 @@ through `user_version`. See ADR-0001…0007.
 
 - Logical `repository` identity (provider/host/opaque external ID/owner/name/metadata)
   supports remote-only repositories without a local path.
-- `repository_checkout` stores local clones; a repository may have zero or many
-  checkouts. `repository_project` is the many-to-many source of truth.
+- `repository_checkout` stores one optional local clone per logical repository.
+  `repository_project` is the many-to-many source of truth.
 - v10 migration preserves legacy repository IDs, checkouts, project links, Issues and
   remote links; `remote_issue_link.repository_id` is renamed to
   `remote_repository_key`.
@@ -148,9 +148,10 @@ through `user_version`. See ADR-0001…0007.
   the DB transaction, creates/upserts the repository and project association first,
   and supports explicit target projects and partial import continuation.
 - Project Overview Repositories and unified Repositories UI support remote-only
-  repositories, multiple projects, link/unlink and checkout attachment.
+  repositories, multiple projects, link/unlink and checkout attachment. Multiple
+  local clones per remote are intentionally out of scope for v1.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally: 103 core tests, 127 frontend tests, 59 visual captures; feature
+- Verified locally: 104 core tests, 136 frontend tests, 59 visual captures; feature
   branch CI run `43888367557` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
@@ -208,7 +209,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (103 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (104 + 2 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |

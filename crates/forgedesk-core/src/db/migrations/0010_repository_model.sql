@@ -88,6 +88,8 @@ CREATE UNIQUE INDEX repository_canonical_remote
     WHERE canonical_remote_url IS NOT NULL;
 
 CREATE INDEX repository_workspace ON repository(workspace_id, provider);
+CREATE UNIQUE INDEX repository_checkout_one_per_repository
+    ON repository_checkout(repository_id);
 CREATE INDEX repository_checkout_repository ON repository_checkout(repository_id);
 CREATE INDEX repository_project_project ON repository_project(project_id);
 

@@ -7,7 +7,7 @@
 ## Scope
 
 - Normalized logical `repository` identity and remote-only repositories.
-- `repository_checkout` for local clones; attach/detach without deleting files.
+- One optional `repository_checkout` per repository; attach/detach without deleting files. Multiple clones per remote are explicitly out of scope for v1.
 - `repository_project` many-to-many links, workspace-checked.
 - Non-destructive v10 migration preserving legacy repository IDs, paths, project
   links, Issues and remote links.
@@ -21,8 +21,8 @@
 
 ## Verification
 
-- `cargo test -p forgedesk-core` — 103 passed, 2 ignored.
-- `npm test` — 127 passed.
+- `cargo test -p forgedesk-core` — 104 passed, 2 ignored.
+- `npm test` — 136 passed.
 - Visual gate — 59 captures.
 - Feature branch `fix/repository-project-associations`, final code commit `8ca0e14`.
 - GitHub Actions run `43888367557`: all seven jobs passed.
@@ -31,5 +31,6 @@
 ## Remaining risks
 
 - No live GitHub network test in this pass; HTTP contracts remain mock/fixture based.
+- One local checkout per logical repository is an explicit v1 limitation.
 - AppImage/native packaging is not part of this correction.
 - Existing provider-specific sync write limitations remain.

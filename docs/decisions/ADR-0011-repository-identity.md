@@ -9,9 +9,10 @@
 - `repository` is a logical provider or local-only entity. It has stable provider
   identity (`provider`, `host`, `external_id`), provider metadata and a normalized
   canonical remote URL. It has no local path.
-- `repository_checkout` stores local clones. A repository may have zero, one or many
-  checkouts; a canonical path is unique per workspace. Detaching a checkout removes
-  only that row and never deletes files or the repository entity.
+- `repository_checkout` stores one optional local clone per logical repository. A
+  repository may have zero or one checkout; a canonical path is unique per workspace.
+  Detaching a checkout removes only that row and never deletes files or the repository
+  entity. Multiple clones per remote are intentionally out of scope for v1.
 - `repository_project` is the sole source of project↔repository truth (many-to-many).
   The legacy `repository.project_id` was migrated once and is no longer read.
 - GitHub discovery upserts by stable provider ID, falling back to canonical remote URL.

@@ -71,13 +71,21 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     }
   }
 
-  async function selectRepository(repository: Repository): Promise<void> {
+  async function selectRepository(repository: Repository): Promise<boolean> {
     selectedRepo.value = toSelected(repository)
     try {
       localStorage.setItem('forgedesk.githubRepo', JSON.stringify(selectedRepo.value))
-      await api.selectRepository(repository.id)
     } catch {
+      // localStorage is a compatibility cache only.
+    }
+    try {
+      await api.selectRepository(repository.id)
+      return true
+    } catch (caught) {
       selectedRepo.value = null
+      const wire = toIpcError(caught)
+      toast.error(t('githubRepos.selectError'), wire.message, wire.detail)
+      return false
     }
   }
 

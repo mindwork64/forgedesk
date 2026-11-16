@@ -1131,6 +1131,7 @@ export default {
     discover: 'Discover repositories',
     discoverError: 'Could not discover repositories',
     searchPlaceholder: 'Search repositories…',
+    selectError: 'Repository selection could not be saved',
     import: 'Import issues',
     loadMore: 'Load more',
     discoveryPartial: 'Showing the first {pages} pages; more repositories remain.',

@@ -753,11 +753,8 @@ impl AppService {
         path: &str,
     ) -> CoreResult<Repository> {
         let workspace = self.require_workspace()?;
-        let canonical = crate::git::canonical_repo_path(path)?;
-        crate::git::ensure_git_repository(&canonical)?;
-        let path_text = canonical.to_string_lossy().to_string();
         self.db.with_transaction(|tx| {
-            repo_registry::attach_checkout(tx, &workspace.id, repository_id, &path_text)?;
+            repo_registry::attach_checkout_checked(tx, &workspace.id, repository_id, path)?;
             repo_registry::get(tx, &workspace.id, repository_id)
         })
     }

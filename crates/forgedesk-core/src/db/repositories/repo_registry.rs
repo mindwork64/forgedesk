@@ -268,6 +268,36 @@ pub fn upsert_remote(
     get(conn, workspace_id, &repository_id)
 }
 
+pub fn attach_checkout_checked(
+    conn: &Connection,
+    workspace_id: &str,
+    repository_id: &str,
+    raw_path: &str,
+) -> CoreResult<RepositoryCheckout> {
+    let repository = get(conn, workspace_id, repository_id)?;
+    let path = git::canonical_repo_path(raw_path)?;
+    git::ensure_git_repository(&path)?;
+    let path_text = path.to_string_lossy().to_string();
+    if let Some(expected) = &repository.canonical_remote_url {
+        let remote = git::remote_url(&path).ok_or_else(|| {
+            CoreError::validation(
+                "path",
+                "The checkout has no origin remote and cannot be matched to this repository.",
+            )
+        })?;
+        let normalized = normalize_remote(&remote).ok_or_else(|| {
+            CoreError::validation("path", "The checkout origin remote is not recognized.")
+        })?;
+        if &normalized.canonical != expected {
+            return Err(CoreError::validation(
+                "path",
+                "The checkout origin does not match this repository.",
+            ));
+        }
+    }
+    attach_checkout(conn, workspace_id, repository_id, &path_text)
+}
+
 pub fn attach_checkout(
     conn: &Connection,
     workspace_id: &str,
@@ -280,6 +310,16 @@ pub fn attach_checkout(
         ));
     }
     get(conn, workspace_id, repository_id)?;
+    let existing: i64 = conn.query_row(
+        "SELECT count(*) FROM repository_checkout WHERE repository_id = ?1",
+        [repository_id],
+        |row| row.get(0),
+    )?;
+    if existing > 0 {
+        return Err(CoreError::conflict(
+            "This repository already has a local checkout; detach it before attaching another.",
+        ));
+    }
     let id = uuid::Uuid::now_v7().to_string();
     let now = now_rfc3339();
     conn.execute(
@@ -524,7 +564,8 @@ fn hydrate(conn: &Connection, base: RepositoryBase) -> CoreResult<Repository> {
     let mut projects = conn.prepare(
         "SELECT p.id, p.name FROM project p \
          JOIN repository_project rp ON rp.project_id = p.id \
-         WHERE rp.repository_id = ?1 ORDER BY p.name COLLATE NOCASE",
+         WHERE rp.repository_id = ?1 AND p.archived_at IS NULL \
+         ORDER BY p.name COLLATE NOCASE",
     )?;
     let projects = projects
         .query_map([&base.id], |row| {
@@ -631,6 +672,51 @@ pub fn selected(conn: &Connection, workspace_id: &str) -> CoreResult<Option<Repo
         },
         None => Ok(None),
     }
+}
+
+/// Normalize legacy `repository.remote_url` values after the v10 table rebuild.
+/// Unknown or unparsable URLs remain local-only; we never invent provider identity.
+pub fn reconcile_legacy_remotes(conn: &Connection) -> CoreResult<()> {
+    let mut statement = conn.prepare(
+        "SELECT id, clone_url FROM repository \
+         WHERE provider = 'local' AND external_id IS NULL \
+           AND canonical_remote_url IS NULL AND clone_url IS NOT NULL",
+    )?;
+    let rows = statement
+        .query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    for (id, raw) in rows {
+        let Some(remote) = normalize_remote(&raw) else {
+            continue;
+        };
+        let conflict: Option<String> = conn
+            .query_row(
+                "SELECT id FROM repository WHERE canonical_remote_url = ?1 AND id <> ?2",
+                rusqlite::params![remote.canonical, id],
+                |row| row.get(0),
+            )
+            .optional()?;
+        if conflict.is_some() {
+            continue;
+        }
+        conn.execute(
+            "UPDATE repository SET provider = ?1, host = ?2, owner = ?3, \
+             name = CASE WHEN trim(name) = '' THEN ?4 ELSE name END, \
+             full_name = ?5, canonical_remote_url = ?6 WHERE id = ?7",
+            rusqlite::params![
+                remote.provider,
+                remote.host,
+                remote.owner,
+                remote.name,
+                format!("{}/{}", remote.owner, remote.name),
+                remote.canonical,
+                id,
+            ],
+        )?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -763,6 +849,103 @@ mod model_tests {
         assert_eq!(second.full_name, "owner/renamed");
         assert!(second.checkouts.is_empty());
         assert_eq!(second.projects.len(), 1, "rename preserves project links");
+        db.with_conn(|conn| {
+            conn.execute(
+                "UPDATE project SET archived_at = ?1 WHERE id = ?2",
+                rusqlite::params![now_rfc3339(), project_id],
+            )?;
+            Ok(())
+        })
+        .expect("archive project");
+        let archived = db
+            .with_conn(|conn| get(conn, &workspace.id, &first.id))
+            .expect("archived link");
+        assert!(
+            archived.projects.is_empty(),
+            "archived projects stay out of link picker"
+        );
+    }
+
+    #[test]
+    fn attach_checkout_requires_matching_remote_identity() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db = Database::open(dir.path().join("test.db")).expect("db");
+        let workspace = db
+            .with_conn(|conn| crate::db::repositories::workspace::create_initial(conn, "Repos"))
+            .expect("workspace");
+        let remote = RemoteRepositoryInput {
+            provider: "github".into(),
+            host: "github.com".into(),
+            external_id: Some("777".into()),
+            owner: Some("owner".into()),
+            name: "repo".into(),
+            full_name: "owner/repo".into(),
+            description: None,
+            visibility: None,
+            default_branch: None,
+            html_url: None,
+            clone_url: None,
+            canonical_remote_url: Some("https://github.com/owner/repo".into()),
+            is_archived: false,
+        };
+        let repository = db
+            .with_transaction(|tx| upsert_remote(tx, &workspace.id, &remote))
+            .expect("remote");
+        let checkout = dir.path().join("checkout");
+        std::fs::create_dir_all(&checkout).expect("directory");
+        assert!(std::process::Command::new("git")
+            .args(["init", "-b", "main"])
+            .current_dir(&checkout)
+            .status()
+            .expect("git")
+            .success());
+        assert!(std::process::Command::new("git")
+            .args(["remote", "add", "origin", "git@github.com:owner/repo.git",])
+            .current_dir(&checkout)
+            .status()
+            .expect("git")
+            .success());
+        db.with_conn(|conn| {
+            attach_checkout_checked(
+                conn,
+                &workspace.id,
+                &repository.id,
+                &checkout.to_string_lossy(),
+            )
+            .map(|_| ())
+        })
+        .expect("matching remote");
+
+        let mismatch = dir.path().join("mismatch");
+        std::fs::create_dir_all(&mismatch).expect("directory");
+        assert!(std::process::Command::new("git")
+            .args(["init", "-b", "main"])
+            .current_dir(&mismatch)
+            .status()
+            .expect("git")
+            .success());
+        assert!(std::process::Command::new("git")
+            .args([
+                "remote",
+                "add",
+                "origin",
+                "https://github.com/other/repo.git"
+            ])
+            .current_dir(&mismatch)
+            .status()
+            .expect("git")
+            .success());
+        assert!(db
+            .with_conn(|conn| {
+                attach_checkout_checked(
+                    conn,
+                    &workspace.id,
+                    &repository.id,
+                    &mismatch.to_string_lossy(),
+                )
+                .map(|_| ())
+            })
+            .is_err());
     }
 
     #[test]

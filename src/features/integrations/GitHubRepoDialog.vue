@@ -39,6 +39,7 @@ watch(open, (isOpen) => {
   if (isOpen) {
     search.value = ''
     results.value = {}
+    nextPages.value = {}
     void auth.discoverRepositories()
   }
 })
@@ -57,14 +58,18 @@ async function importRepo(repo: Repository, page = 1): Promise<void> {
   importingId.value = null
   if (result) {
     results.value = { ...results.value, [repo.fullName]: result }
+    const next = { ...nextPages.value }
     if (result.nextPage) {
-      nextPages.value = { ...nextPages.value, [repo.fullName]: result.nextPage }
+      next[repo.fullName] = result.nextPage
+    } else {
+      delete next[repo.fullName]
     }
+    nextPages.value = next
   }
 }
 
 async function useForPullRequests(repo: Repository): Promise<void> {
-  await auth.selectRepository(repo)
+  if (!(await auth.selectRepository(repo))) return
   open.value = false
   void router.push('/pull-requests')
 }

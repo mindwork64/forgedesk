@@ -86,6 +86,9 @@ pub fn run(conn: &mut Connection) -> CoreResult<i64> {
     for migration in MIGRATIONS.iter().filter(|m| m.version > current) {
         let tx = conn.transaction()?;
         tx.execute_batch(migration.sql)?;
+        if migration.version == 10 {
+            crate::db::repositories::repo_registry::reconcile_legacy_remotes(&tx)?;
+        }
         tx.execute(
             "INSERT INTO schema_migration (version, name, applied_at) VALUES (?1, ?2, ?3)",
             rusqlite::params![migration.version, migration.name, now_rfc3339()],
@@ -219,12 +222,19 @@ mod tests {
         )
         .expect("document");
         conn.execute(
-            "INSERT INTO repository (id, workspace_id, name, path, provider, project_id, \
+            "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, project_id, \
              created_at, updated_at) VALUES ('repo-1', 'ws-1', 'ForgeDesk', \
-             '/tmp/forgedesk-v5-repo', 'local', ?1, ?2, ?2)",
+             '/tmp/forgedesk-v5-repo', 'local', 'git@github.com:mindwork64/forgedesk.git', ?1, ?2, ?2)",
             rusqlite::params![project_id, now],
         )
         .expect("repository");
+        conn.execute(
+            "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, \
+             created_at, updated_at) VALUES ('repo-2', 'ws-1', 'Other', '/tmp/forgedesk-other', \
+             'local', 'https://github.com/mindwork64/other.git', ?1, ?1)",
+            [now],
+        )
+        .expect("https repository");
         conn.execute(
             "INSERT INTO remote_issue_link (id, local_issue_id, provider, account_id, \
              repository_id, remote_id, remote_number, remote_url, created_at, updated_at) \
@@ -299,6 +309,40 @@ mod tests {
             .expect("repository"),
             "/tmp/forgedesk-v5-repo"
         );
+        assert_eq!(
+            conn.query_row(
+                "SELECT provider || '|' || host || '|' || full_name || '|' || canonical_remote_url \
+                 FROM repository WHERE id = 'repo-2'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("https normalized"),
+            "github|github.com|mindwork64/other|https://github.com/mindwork64/other"
+        );
+        let discovered = crate::db::repositories::repo_registry::upsert_remote(
+            &conn,
+            "ws-1",
+            &crate::db::repositories::repo_registry::RemoteRepositoryInput {
+                provider: "github".into(),
+                host: "github.com".into(),
+                external_id: Some("123".into()),
+                owner: Some("mindwork64".into()),
+                name: "forgedesk".into(),
+                full_name: "mindwork64/forgedesk".into(),
+                description: None,
+                visibility: None,
+                default_branch: Some("main".into()),
+                html_url: Some("https://github.com/mindwork64/forgedesk".into()),
+                clone_url: Some("https://github.com/mindwork64/forgedesk.git".into()),
+                canonical_remote_url: Some("https://github.com/mindwork64/forgedesk".into()),
+                is_archived: false,
+            },
+        )
+        .expect("discovery reconcile");
+        assert_eq!(discovered.id, "repo-1");
+        assert_eq!(discovered.checkouts.len(), 1);
+        assert_eq!(discovered.projects.len(), 1);
+
         assert_eq!(
             conn.query_row(
                 "SELECT count(*) FROM repository_project                  WHERE workspace_id = 'ws-1' AND repository_id = 'repo-1'                    AND project_id = 'project-1'",

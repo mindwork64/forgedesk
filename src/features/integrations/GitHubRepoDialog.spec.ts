@@ -43,6 +43,7 @@ const result: GitHubImportResult = {
 }
 
 let wrapper: ReturnType<typeof mount> | null = null
+let currentResult: GitHubImportResult = structuredClone(result)
 let importCalls = 0
 let importPages: number[] = []
 let lastTarget: string | null = null
@@ -53,6 +54,7 @@ let router: ReturnType<typeof createRouter>
 async function mountDialog(projects: { id: string; name: string }[] = []): Promise<void> {
   setActivePinia(createPinia())
   importCalls = 0
+  currentResult = structuredClone(result)
   importPages = []
   lastTarget = null
   importError = null
@@ -69,7 +71,7 @@ async function mountDialog(projects: { id: string; name: string }[] = []): Promi
       lastTarget = (args?.targetProjectId as string | null | undefined) ?? null
       if (importGate) await importGate
       if (importError) throw importError
-      return structuredClone(result) as T
+      return structuredClone(currentResult) as T
     }
     throw { code: 'unsupported_capability', message: String(command) }
   })
@@ -166,10 +168,12 @@ describe('GitHubRepoDialog', () => {
     expect(document.body.textContent).toContain('Imported 2, skipped 1')
     expect(document.body.textContent).toContain('more issues remain')
     expect(document.body.textContent).toContain('Continue import')
+    currentResult = { ...result, hasMore: false, nextPage: null }
     button('Continue import').click()
     await flushPromises()
     expect(importCalls).toBe(2)
     expect(importPages[1]).toBe(6)
+    expect(document.body.textContent).not.toContain('Continue import')
     button('View imported project').click()
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/projects/project-1')
