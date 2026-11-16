@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 91 core (+3 ignored live), 5 AI crate, 113 frontend, 58 default visual captures (+1 optional AI capture).
+- **Tests:** 92 core (+3 ignored live), 5 AI crate, 125 frontend, 58 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -190,7 +190,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (91 + 3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (92 + 3 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |
@@ -198,7 +198,7 @@ through `user_version`. See ADR-0001…0007.
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (113) |
+| Frontend tests | `npm test` | PASS (125) |
 | Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 58 captures; axe button-name/aria-command-name |
 | GitHub Actions CI | run `43778341394` at `bddc4c58` | PASS — all 7 jobs |

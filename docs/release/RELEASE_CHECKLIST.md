@@ -7,10 +7,10 @@
 - [x] `cargo clippy -p forgedesk-ai --all-targets -- -D warnings` (local)
 - [x] AI Clippy command configured in the CI job with explicit `components: clippy`
 - [x] AI Clippy CI execution verified successfully (run 43772258572)
-- [x] `cargo test -p forgedesk-core` (91 passed, 3 ignored live)
+- [x] `cargo test -p forgedesk-core` (92 passed, 3 ignored live)
 - [x] `cargo test -p forgedesk-ai` (5 passed)
 - [x] `npm run typecheck`
-- [x] `npm test` (113 passed)
+- [x] `npm test` (125 passed)
 - [x] `npm run build` (main chunk ~231 KB)
 - [x] `VITE_AI_EXTENSION=true npm run build`
 - [x] `node scripts/visual-gate0.mjs` (58 captures + axe button-name/aria-command-name)

@@ -20,6 +20,7 @@ pub struct RateSnapshot {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct GitHubRepo {
     pub id: i64,
     pub name: String,
@@ -641,6 +642,43 @@ mod tests {
     use std::thread;
 
     use super::*;
+
+    #[test]
+    fn github_repo_contract_uses_snake_case_in_and_camel_case_out() {
+        let fixture = r#"{
+          "id": 123,
+          "name": "forgedesk",
+          "full_name": "mindwork64/forgedesk",
+          "private": false,
+          "default_branch": "main",
+          "html_url": "https://github.com/mindwork64/forgedesk",
+          "description": "Test repository",
+          "updated_at": "2026-11-15T12:00:00Z",
+          "owner": { "login": "mindwork64" }
+        }"#;
+        let repo: GitHubRepo = serde_json::from_str(fixture).expect("GitHub response");
+        assert_eq!(repo.id, 123);
+        assert_eq!(repo.name, "forgedesk");
+        assert_eq!(repo.full_name, "mindwork64/forgedesk");
+        assert_eq!(repo.default_branch.as_deref(), Some("main"));
+        assert_eq!(repo.html_url, "https://github.com/mindwork64/forgedesk");
+        assert_eq!(repo.updated_at.as_deref(), Some("2026-11-15T12:00:00Z"));
+        assert_eq!(repo.owner.login, "mindwork64");
+
+        let serialized = serde_json::to_value(&repo).expect("frontend DTO");
+        assert_eq!(serialized["fullName"], "mindwork64/forgedesk");
+        assert_eq!(serialized["defaultBranch"], "main");
+        assert_eq!(
+            serialized["htmlUrl"],
+            "https://github.com/mindwork64/forgedesk"
+        );
+        assert_eq!(serialized["updatedAt"], "2026-11-15T12:00:00Z");
+        assert_eq!(serialized["owner"]["login"], "mindwork64");
+        assert!(serialized.get("full_name").is_none());
+        assert!(serialized.get("default_branch").is_none());
+        assert!(serialized.get("html_url").is_none());
+        assert!(serialized.get("updated_at").is_none());
+    }
 
     struct MockServer {
         base: String,

@@ -16,6 +16,7 @@ const ui = useUiStore()
 const router = useRouter()
 const { t } = useI18n()
 const syncOpen = ref(false)
+const emit = defineEmits<{ (event: 'quick-create'): void }>()
 </script>
 
 <template>
@@ -38,15 +39,12 @@ const syncOpen = ref(false)
         </span>
       </button>
 
-      <span v-tooltip="t('header.quickCreateUnavailable')">
-        <FdIconButton
-          :label="t('header.quickCreate')"
-          :tooltip="false"
-          disabled
-        >
-          <Plus :size="16" />
-        </FdIconButton>
-      </span>
+      <FdIconButton
+        :label="t('header.quickCreate')"
+        @click="emit('quick-create')"
+      >
+        <Plus :size="16" />
+      </FdIconButton>
 
       <FdPopover
         v-model:open="syncOpen"

@@ -41,6 +41,9 @@ watch(open, (isOpen) => {
 })
 
 async function importRepo(repo: GitHubRepo): Promise<void> {
+  if (auth.importing) {
+    return
+  }
   importingId.value = repo.id
   const result = await auth.importIssues(repo.owner.login, repo.name)
   importingId.value = null

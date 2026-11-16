@@ -4,23 +4,31 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import CommandPalette from '@/components/CommandPalette.vue'
+import CreateIssueDialog from '@/components/issues/CreateIssueDialog.vue'
 import ShortcutsDialog from '@/components/ShortcutsDialog.vue'
 import AppHeader from '@/components/shell/AppHeader.vue'
 import AppSidebar from '@/components/shell/AppSidebar.vue'
 import StatusStrip from '@/components/shell/StatusStrip.vue'
 import FdKbd from '@/components/ui/FdKbd.vue'
 import { useGlobalShortcuts } from '@/composables/useShortcuts'
+import { toIpcError } from '@/lib/ipc'
 import { normaliseRoute } from '@/lib/routes'
 import { useAppStore } from '@/stores/app'
+import { useIssueStore } from '@/stores/issues'
 import { useUiStore } from '@/stores/ui'
+import { useToastStore } from '@/stores/toasts'
 
 const app = useAppStore()
 const ui = useUiStore()
+const issueStore = useIssueStore()
+const toast = useToastStore()
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 
 const main = ref<HTMLElement | null>(null)
+const createOpen = ref(false)
+const createLoading = ref(false)
 let stopViewportTracking: (() => void) | null = null
 
 const collapsed = computed(
@@ -33,6 +41,22 @@ function toggleSidebar(): void {
     return
   }
   void app.setSidebarCollapsed(!app.sidebarCollapsed)
+}
+
+async function openCreate(): Promise<void> {
+  if (!app.workspace || createOpen.value || createLoading.value) {
+    return
+  }
+  createLoading.value = true
+  try {
+    await issueStore.loadReference()
+    createOpen.value = true
+  } catch (caught) {
+    const wire = toIpcError(caught)
+    toast.error(t('issues.referenceError'), wire.message, wire.detail)
+  } finally {
+    createLoading.value = false
+  }
 }
 
 function focusMain(event: Event): void {
@@ -79,7 +103,7 @@ useGlobalShortcuts()
         @toggle="toggleSidebar"
       />
       <div class="fd-shell__main">
-        <AppHeader />
+        <AppHeader @quick-create="openCreate" />
         <main
           id="fd-main"
           ref="main"
@@ -96,6 +120,7 @@ useGlobalShortcuts()
 
   <CommandPalette />
   <ShortcutsDialog />
+  <CreateIssueDialog v-model="createOpen" />
 
   <Transition name="fd-chord">
     <div v-if="ui.chordPending" class="fd-chord-hint" role="status">

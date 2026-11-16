@@ -52,8 +52,7 @@ export default {
   header: {
     search: 'Search',
     searchPlaceholder: 'Search or jump to…',
-    quickCreate: 'Quick create',
-    quickCreateUnavailable: 'Issue creation arrives in Stage 2',
+    quickCreate: 'Create issue',
     localOnly: 'Local only',
     settings: 'Settings',
     notifications: 'Notifications',
@@ -528,6 +527,7 @@ export default {
     moreProperties: 'More properties',
     create: 'Create issue',
     titleRequired: 'Title is required',
+    referenceError: 'Issue options could not be loaded',
     searchPlaceholder: 'Search issues…',
     columns: {
       issue: 'Issue',

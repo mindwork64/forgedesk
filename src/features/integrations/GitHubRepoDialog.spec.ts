@@ -1,0 +1,158 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
+
+import { i18n } from '@/i18n'
+import { setDevTransport } from '@/lib/ipc'
+import { useGithubAuthStore } from '@/stores/githubAuth'
+import { useToastStore } from '@/stores/toasts'
+import type { GitHubImportResult, GitHubRepo } from '@/types/ipc'
+import GitHubRepoDialog from './GitHubRepoDialog.vue'
+
+const repo: GitHubRepo = {
+  id: 123,
+  name: 'forgedesk',
+  fullName: 'mindwork64/forgedesk',
+  private: false,
+  defaultBranch: 'main',
+  htmlUrl: 'https://github.com/mindwork64/forgedesk',
+  description: 'Test repository',
+  updatedAt: '2026-11-15T12:00:00Z',
+  owner: { login: 'mindwork64' },
+}
+const result: GitHubImportResult = {
+  imported: 2,
+  skipped: 1,
+  projectId: 'project-1',
+  projectName: 'mindwork64/forgedesk',
+  hasMore: false,
+  pages: 1,
+}
+
+let wrapper: ReturnType<typeof mount> | null = null
+let importCalls = 0
+let importError: Error | null = null
+let importGate: Promise<void> | null = null
+let router: ReturnType<typeof createRouter>
+
+async function mountDialog(): Promise<void> {
+  setActivePinia(createPinia())
+  importCalls = 0
+  importError = null
+  importGate = null
+  i18n.global.locale.value = 'en'
+  localStorage.clear()
+  setDevTransport(async <T,>(command: string) => {
+    if (command === 'github_discover_repositories') return [repo] as T
+    if (command === 'github_import_issues') {
+      importCalls += 1
+      if (importGate) await importGate
+      if (importError) throw importError
+      return structuredClone(result) as T
+    }
+    throw { code: 'unsupported_capability', message: String(command) }
+  })
+  const auth = useGithubAuthStore()
+  auth.repositories = [repo]
+  router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/pull-requests', component: { template: '<div />' } },
+      { path: '/projects/:id', component: { template: '<div />' } },
+    ],
+  })
+  await router.push('/pull-requests')
+  await router.isReady()
+  wrapper = mount(GitHubRepoDialog, {
+    props: { open: true },
+    global: { plugins: [router, i18n], directives: { tooltip: {} } },
+    attachTo: document.body,
+  })
+  await flushPromises()
+}
+
+function button(text: string): HTMLButtonElement {
+  const match = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('.fd-modal-panel button'),
+  ).find((candidate) => candidate.textContent?.includes(text))
+  if (!match) throw new Error(`button not found: ${text}`)
+  return match
+}
+
+afterEach(() => {
+  wrapper?.unmount()
+  wrapper = null
+  document.body.innerHTML = ''
+  localStorage.clear()
+})
+
+describe('GitHubRepoDialog', () => {
+  beforeEach(async () => {
+    await mountDialog()
+  })
+
+  it('renders camelCase repository fields, public state and description', async () => {
+    const text = document.body.textContent ?? ''
+    expect(text).toContain('mindwork64/forgedesk')
+    expect(text).toContain('main')
+    expect(text).toContain('Public')
+    expect(text).toContain('Test repository')
+
+    i18n.global.locale.value = 'ru'
+    await flushPromises()
+    expect(document.body.textContent).toContain('Публичный')
+    expect(document.body.textContent).toContain('mindwork64/forgedesk')
+  })
+
+  it('searches by fullName and description', async () => {
+    const input = document.querySelector<HTMLInputElement>(
+      '.fd-modal-panel input[type="search"]',
+    )!
+    input.value = 'mindwork64/forgedesk'
+    input.dispatchEvent(new Event('input'))
+    await flushPromises()
+    expect(document.body.textContent).toContain('mindwork64/forgedesk')
+
+    input.value = 'Test repository'
+    input.dispatchEvent(new Event('input'))
+    await flushPromises()
+    expect(document.body.textContent).toContain('mindwork64/forgedesk')
+  })
+
+  it('selects owner/name for pull requests and navigates', async () => {
+    button('Use for pull requests').click()
+    await flushPromises()
+    const auth = useGithubAuthStore()
+    expect(auth.selectedRepo).toEqual({
+      owner: 'mindwork64',
+      name: 'forgedesk',
+      fullName: 'mindwork64/forgedesk',
+    })
+    expect(router.currentRoute.value.path).toBe('/pull-requests')
+  })
+
+  it('imports once, shows the result, and opens the project', async () => {
+    importGate = new Promise<void>((resolve) => {
+      setTimeout(resolve, 10)
+    })
+    button('Import issues').click()
+    button('Import issues').click()
+    await flushPromises()
+    expect(importCalls).toBe(1)
+    await new Promise((resolve) => setTimeout(resolve, 15))
+    await flushPromises()
+    expect(document.body.textContent).toContain('Imported 2, skipped 1')
+    button('View imported project').click()
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/projects/project-1')
+  })
+
+  it('keeps the import error visible through the existing toast path', async () => {
+    importError = new Error('import failed')
+    button('Import issues').click()
+    await flushPromises()
+    const toasts = useToastStore().items
+    expect(toasts.some((toast) => toast.kind === 'error')).toBe(true)
+  })
+})

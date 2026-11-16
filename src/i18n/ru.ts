@@ -51,8 +51,7 @@ export default {
   header: {
     search: 'Поиск',
     searchPlaceholder: 'Поиск или переход…',
-    quickCreate: 'Быстрое создание',
-    quickCreateUnavailable: 'Создание задач появится на этапе 2',
+    quickCreate: 'Создать задачу',
     localOnly: 'Только локально',
     settings: 'Настройки',
     notifications: 'Уведомления',
@@ -523,6 +522,7 @@ export default {
     moreProperties: 'Дополнительно',
     create: 'Создать задачу',
     titleRequired: 'Укажите название',
+    referenceError: 'Не удалось загрузить параметры задачи',
     searchPlaceholder: 'Поиск задач…',
     columns: {
       issue: 'Задача',

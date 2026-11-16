@@ -65,9 +65,9 @@ open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 91 (+3 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 92 (+3 ignored live) |
 | AI crate | `cargo test -p forgedesk-ai` | PASS — 5 |
-| Frontend | `npm run typecheck`, `npm test` | PASS — 113 |
+| Frontend | `npm run typecheck`, `npm test` | PASS — 125 |
 | Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 58 captures |
 | Production chunk | `npm run build` | PASS — main JS ~231 KB |
 | Migration v5→v9 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
