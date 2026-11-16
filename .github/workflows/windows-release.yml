@@ -73,7 +73,9 @@ jobs:
       - name: Validate MSI and generate SHA-256
         shell: pwsh
         run: |
-          $bundleDir = "src-tauri/target/release/bundle/msi"
+          # This repository is a Cargo workspace, so Cargo writes artifacts to
+          # the workspace-root target directory rather than src-tauri/target.
+          $bundleDir = "target/release/bundle/msi"
           $packages = @(Get-ChildItem $bundleDir -Filter "*.msi" -File -ErrorAction SilentlyContinue)
           if ($packages.Count -ne 1) {
             throw "Expected exactly one MSI in $bundleDir, found $($packages.Count)."
@@ -98,7 +100,7 @@ jobs:
         with:
           name: ForgeDesk-Windows-x64-Release-${{ github.sha }}
           path: |
-            src-tauri/target/release/bundle/msi/*.msi
+            target/release/bundle/msi/*.msi
             SHA256SUMS.txt
           if-no-files-found: error
           compression-level: 0
