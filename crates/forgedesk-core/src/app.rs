@@ -287,60 +287,46 @@ impl AppService {
     ) -> CoreResult<RepositoryDiscoveryResult> {
         let client = crate::github_client::GitHubClient::new(token)?;
         let workspace = self.require_workspace()?;
+        let (remotes, has_more, pages_loaded, next_page) =
+            client.list_repositories_bounded(start_page, 10)?;
         let mut items = Vec::new();
-        let start_page = start_page.max(1);
-        let mut page = start_page;
-        let mut pages_loaded = 0u32;
-        let mut next_page = None;
-        loop {
-            let result = client.list_repositories_page(page)?;
-            pages_loaded += 1;
-            for remote in result.items {
-                let canonical = crate::db::repositories::repo_registry::normalize_remote(
-                    remote
-                        .clone_url
-                        .as_deref()
-                        .or(Some(remote.html_url.as_str()))
-                        .unwrap_or_default(),
+        for remote in remotes {
+            let canonical = crate::db::repositories::repo_registry::normalize_remote(
+                remote
+                    .clone_url
+                    .as_deref()
+                    .or(Some(remote.html_url.as_str()))
+                    .unwrap_or_default(),
+            )
+            .map(|value| value.canonical);
+            let repository = self.db.with_transaction(|tx| {
+                crate::db::repositories::repo_registry::upsert_remote(
+                    tx,
+                    &workspace.id,
+                    &crate::db::repositories::repo_registry::RemoteRepositoryInput {
+                        provider: "github".into(),
+                        host: "github.com".into(),
+                        external_id: Some(remote.id.to_string()),
+                        owner: Some(remote.owner.login.clone()),
+                        name: remote.name.clone(),
+                        full_name: remote.full_name.clone(),
+                        description: remote.description.clone(),
+                        visibility: remote.visibility.clone().or_else(|| {
+                            Some(if remote.private { "private" } else { "public" }.into())
+                        }),
+                        default_branch: remote.default_branch.clone(),
+                        html_url: Some(remote.html_url.clone()),
+                        clone_url: remote.clone_url.clone(),
+                        canonical_remote_url: canonical,
+                        is_archived: remote.archived,
+                    },
                 )
-                .map(|value| value.canonical);
-                let repository = self.db.with_transaction(|tx| {
-                    crate::db::repositories::repo_registry::upsert_remote(
-                        tx,
-                        &workspace.id,
-                        &crate::db::repositories::repo_registry::RemoteRepositoryInput {
-                            provider: "github".into(),
-                            host: "github.com".into(),
-                            external_id: Some(remote.id.to_string()),
-                            owner: Some(remote.owner.login.clone()),
-                            name: remote.name.clone(),
-                            full_name: remote.full_name.clone(),
-                            description: remote.description.clone(),
-                            visibility: remote.visibility.clone().or_else(|| {
-                                Some(if remote.private { "private" } else { "public" }.into())
-                            }),
-                            default_branch: remote.default_branch.clone(),
-                            html_url: Some(remote.html_url.clone()),
-                            clone_url: remote.clone_url.clone(),
-                            canonical_remote_url: canonical,
-                            is_archived: remote.archived,
-                        },
-                    )
-                })?;
-                items.push(repository);
-            }
-            match result.next_page {
-                Some(next) if next != page && pages_loaded < 10 => page = next,
-                Some(next) => {
-                    next_page = Some(next);
-                    break;
-                }
-                None => break,
-            }
+            })?;
+            items.push(repository);
         }
         Ok(RepositoryDiscoveryResult {
             items,
-            has_more: next_page.is_some(),
+            has_more,
             pages_loaded,
             next_page,
         })

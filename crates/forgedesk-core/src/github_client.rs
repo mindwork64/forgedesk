@@ -265,6 +265,31 @@ impl GitHubClient {
         ))
     }
 
+    pub fn list_repositories_bounded(
+        &self,
+        start_page: u32,
+        max_pages: u32,
+    ) -> CoreResult<(Vec<GitHubRepo>, bool, u32, Option<u32>)> {
+        let start_page = start_page.max(1);
+        let max_pages = max_pages.max(1);
+        let mut page = start_page;
+        let mut pages = 0u32;
+        let mut items = Vec::new();
+        loop {
+            let result = self.list_repositories_page(page)?;
+            pages += 1;
+            items.extend(result.items);
+            match result.next_page {
+                Some(next) if next > page && pages < max_pages => page = next,
+                Some(next) if next <= page => {
+                    return Err(CoreError::network("GitHub pagination did not advance."));
+                }
+                Some(next) => return Ok((items, true, pages, Some(next))),
+                None => return Ok((items, false, pages, None)),
+            }
+        }
+    }
+
     pub fn list_issues(
         &self,
         owner: &str,
@@ -655,6 +680,71 @@ mod tests {
     use std::thread;
 
     use super::*;
+
+    fn repo_json(id: i64) -> String {
+        format!(
+            r#"{{"id":{id},"name":"repo{id}","full_name":"owner/repo{id}","private":false,"default_branch":"main","html_url":"https://github.com/owner/repo{id}","description":null,"updated_at":null,"owner":{{"login":"owner"}}}}"#
+        )
+    }
+
+    #[test]
+    fn discovery_pagination_loads_more_than_one_hundred_repositories() {
+        let first = (1..=100).map(repo_json).collect::<Vec<_>>().join(",");
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: format!("[{first}]"),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 200,
+                body: format!("[{}]", repo_json(101)),
+                next_page: None,
+            },
+        ]);
+        let client = GitHubClient::with_base("token", server.base).expect("client");
+        let (repos, has_more, pages, next) =
+            client.list_repositories_bounded(1, 10).expect("pages");
+        assert_eq!(repos.len(), 101);
+        assert!(!has_more);
+        assert_eq!(pages, 2);
+        assert!(next.is_none());
+    }
+
+    #[test]
+    fn discovery_pagination_rejects_non_advancing_links() {
+        let server = mock_server(vec![MockResponse {
+            status: 200,
+            body: format!("[{}]", repo_json(1)),
+            next_page: Some(1),
+        }]);
+        let client = GitHubClient::with_base("token", server.base).expect("client");
+        let error = client
+            .list_repositories_bounded(1, 10)
+            .expect_err("cycle must fail");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Network);
+    }
+
+    #[test]
+    fn discovery_pagination_returns_page_failure() {
+        let server = mock_server(vec![
+            MockResponse {
+                status: 200,
+                body: format!("[{}]", repo_json(1)),
+                next_page: Some(2),
+            },
+            MockResponse {
+                status: 500,
+                body: "server error".into(),
+                next_page: None,
+            },
+        ]);
+        let client = GitHubClient::with_base("token", server.base).expect("client");
+        let error = client
+            .list_repositories_bounded(1, 10)
+            .expect_err("second page must fail");
+        assert_eq!(error.category(), crate::error::ErrorCategory::Network);
+    }
 
     #[test]
     fn github_repo_contract_uses_snake_case_in_and_camel_case_out() {

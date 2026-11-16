@@ -38,7 +38,7 @@ through `user_version`. See ADR-0001…0007.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
-- **Tests:** 100 core (+2 ignored live), 5 AI crate, 126 frontend, 59 default visual captures (+1 optional AI capture).
+- **Tests:** 103 core (+2 ignored live), 5 AI crate, 126 frontend, 59 default visual captures (+1 optional AI capture).
 
 ### Stage 5 — sync safety foundation and read-only import
 
@@ -150,12 +150,12 @@ through `user_version`. See ADR-0001…0007.
 - Project Overview Repositories and unified Repositories UI support remote-only
   repositories, multiple projects, link/unlink and checkout attachment.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally: 100 core tests, 126 frontend tests, 59 visual captures; feature
+- Verified locally: 103 core tests, 126 frontend tests, 59 visual captures; feature
   branch CI run `43885398233` passed all seven jobs. Not merged to main.
 
 ### Stage 10 — stabilization/release (partial)
 
-- Route-level code splitting: main JS chunk reduced from ~501 KB to ~231 KB; Vite
+- Route-level code splitting: main JS chunk reduced from ~501 KB to ~244 KB; Vite
   chunk warning removed.
 - Realistic v5→v10 migration test preserves workflow/statuses, project, issue,
   comment, document, repository, remote link, outbox and cursor data; foreign keys are
@@ -208,7 +208,7 @@ through `user_version`. See ADR-0001…0007.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS (100 + 2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS (103 + 2 ignored live) |
 | AI crate tests | `cargo test -p forgedesk-ai` | PASS (5) |
 | AI feature build | `cargo check -p forgedesk --features ai-extension` | PASS |
 | AI frontend build | `VITE_AI_EXTENSION=true npm run build` | PASS |
@@ -216,8 +216,8 @@ through `user_version`. See ADR-0001…0007.
 | Shell check/clippy | `cargo check/clippy -p forgedesk` (pkg-config shims) | PASS typecheck; native link unverified |
 | Format | `cargo fmt --all --check` | PASS |
 | Frontend typecheck | `npm run typecheck` | PASS |
-| Frontend tests | `npm test` | PASS (128) |
-| Frontend build | `npm run build` | PASS — main chunk ~231 KB; warning gone |
+| Frontend tests | `npm test` | PASS (126) |
+| Frontend build | `npm run build` | PASS — main chunk ~244 KB; warning gone |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 59 captures; axe button-name/aria-command-name |
 | GitHub Actions CI | run `43778341394` at `bddc4c58` | PASS — all 7 jobs |
 | Windows 10 native build/tests | run `43778393711` at `bddc4c58` | PASS — Debug `forgedesk.exe` artifact; no interactive run |

@@ -13,7 +13,7 @@ open.
   links, GitHub discovery/import association and repository UI. See
   `docs/stages/STAGE-10-repository-model-report.md`.
 - Route-level code splitting for all screens.
-  - Main production JS chunk reduced from ~501 KB to ~231 KB.
+  - Main production JS chunk reduced from ~501 KB to ~244 KB.
   - Vite 500 KB chunk warning is gone.
 - Realistic v5→v10 migration data-preservation test:
   - creates workspace/settings before v2 so the workflow backfill path is exercised;
@@ -71,11 +71,11 @@ open.
 
 | Check | Command | Result |
 |---|---|---|
-| Core tests | `cargo test -p forgedesk-core` | PASS — 100 (+2 ignored live) |
+| Core tests | `cargo test -p forgedesk-core` | PASS — 103 (+2 ignored live) |
 | AI crate | `cargo test -p forgedesk-ai` | PASS — 5 |
 | Frontend | `npm run typecheck`, `npm test` | PASS — 126 |
 | Visual/accessibility | `node scripts/visual-gate0.mjs` | PASS — 59 captures |
-| Production chunk | `npm run build` | PASS — main JS ~231 KB |
+| Production chunk | `npm run build` | PASS — main JS ~244 KB |
 | Migration v5→v10 | `cargo test ... upgrades_v5` | PASS — data/FK assertions |
 | AI Clippy (local) | `cargo clippy -p forgedesk-ai ...` | PASS |
 | AI Clippy (CI) | GitHub Actions run `43778341394` | PASS |
