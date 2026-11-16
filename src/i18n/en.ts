@@ -188,11 +188,11 @@ export default {
       name: 'Name',
       id: 'Workspace ID',
       keyPrefix: 'Issue key prefix',
-      keyPrefixHint:
-        'Issue keys will use this prefix when issue tracking arrives in Stage 2.',
+      keyPrefixHint: 'This prefix is used when keys are allocated to new issues.',
       workflow: 'Workflow',
       workflowHint:
-        'Statuses, transitions and workflow profiles arrive with Issue tracking in Stage 2.',
+        'The built-in local issue statuses are active. Workflow transition rules and profile editing are not implemented yet.',
+      builtIn: 'Built in',
     },
     storage: {
       title: 'Storage',
@@ -273,10 +273,31 @@ export default {
     },
     sync: {
       title: 'Sync',
-      description: 'Background sync intervals and API budgets.',
-      plannedTitle: 'Sync scheduler arrives with GitHub integration',
-      plannedBody:
-        'The API Budget Manager, shared dispatcher and adaptive scheduler are mandatory product components. They are not active until provider integration lands in Stage 4, so there is no API activity to display.',
+      description: 'GitHub connection, manual imports and background sync status.',
+      connection: 'GitHub connection',
+      connected: 'Connected as {login}',
+      disconnected: 'Not connected',
+      credentialUnavailable: 'Credential storage unavailable',
+      connectionCheckFailed: 'Connection check failed',
+      mode: 'Current mode',
+      manualOnly: 'Manual actions only',
+      background: 'Background synchronization',
+      backgroundUnavailable: 'Not implemented',
+      backgroundBody:
+        'The periodic scheduler, adaptive interval management and sync-queue worker are not wired yet. ForgeDesk does not poll GitHub automatically in the background.',
+      availableNow: 'Available now',
+      currentCapabilities:
+        'GitHub connection, repository discovery and manual issue import are available. Pull request, check and review data are fetched when the corresponding screens are opened or refreshed. Mutating actions require explicit confirmation.',
+      apiSnapshot: 'API monitor data',
+      apiSummary:
+        'Observed buckets: {buckets} · Request log entries: {requests} · Queued jobs: {queued}',
+      apiLoading: 'Loading API state…',
+      apiError: 'Could not load API monitor state',
+      apiLimitations:
+        'The API budget is still a partial foundation: REST rate-limit observations are saved during manual issue import. Other GitHub calls do not yet pass through a shared dispatcher. The request log and queue do not represent all network activity, and the pause switch does not currently block direct client calls.',
+      openIntegrations: 'Open integrations',
+      openApiMonitor: 'Open API monitor',
+      refresh: 'Refresh status',
     },
     shortcuts: {
       title: 'Keyboard shortcuts',

@@ -35,7 +35,7 @@ const { t } = useI18n()
       :label="t('settings.workspace.workflow')"
       :hint="t('settings.workspace.workflowHint')"
     >
-      <FdBadge tone="neutral">{{ t('common.stage', { stage: 2 }) }}</FdBadge>
+      <FdBadge tone="neutral">{{ t('settings.workspace.builtIn') }}</FdBadge>
     </SettingsRow>
   </SettingsSection>
 </template>
