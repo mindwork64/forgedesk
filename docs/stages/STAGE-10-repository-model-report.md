@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-16
 **Schema:** v9 → v10
-**Status:** implemented on feature branch; CI verified; not merged
+**Status:** merged to `main` via PR #1; CI verified
 
 ## Scope
 
@@ -24,9 +24,9 @@
 - `cargo test -p forgedesk-core` — 106 passed, 2 ignored.
 - `npm test` — 139 passed.
 - Visual gate — 59 captures.
-- Feature branch `fix/repository-project-associations`, final code commit `e912f5a`.
-- GitHub Actions run `43962681063`: all seven jobs passed.
-- Not merged to main.
+- Squash merge commit on `main`: `670b499`.
+- GitHub Actions run `43969772720`: all seven jobs passed.
+- Windows Release Installer run `43969772719`: SUCCESS.
 
 ## Remaining risks
 

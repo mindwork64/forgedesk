@@ -18,8 +18,8 @@
 
 ## Verified CI / native build (non-interactive)
 
-- [x] GitHub Actions CI [43778341394](https://github.com/mindwork64/forgedesk/actions/runs/43778341394)
-      at `bddc4c58` — SUCCESS, all seven jobs
+- [x] GitHub Actions CI [43969772720](https://github.com/mindwork64/forgedesk/actions/runs/43969772720)
+      at `670b499` — SUCCESS, all seven jobs
 - [x] Windows 10 Pro Build 19042 native run
       [43778393711](https://github.com/mindwork64/forgedesk/actions/runs/43778393711)
       at `bddc4c58` — SUCCESS

@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-16
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
-**Verified CI revision:** `e912f5a` on branch `fix/repository-project-associations`; feature branch CI run `43962681063` passed all jobs. Not merged to main.
+**Verified CI revision:** `670b499` on `main`; post-merge CI run `43969772720` passed all jobs. The repository model feature was squash-merged via PR #1.
 
 ## Current objective
 
@@ -151,8 +151,9 @@ through `user_version`. See ADR-0001…0007.
   repositories, multiple projects, link/unlink and checkout attachment. Multiple
   local clones per remote are intentionally out of scope for v1.
 - PR repository selection is stored by repository ID in SQLite settings.
-- Verified locally: 106 core tests, 139 frontend tests, 59 visual captures; feature
-  branch CI run `43962681063` passed all seven jobs. Not merged to main.
+- Verified locally: 106 core tests, 139 frontend tests, 59 visual captures. Post-merge
+  `main` CI run `43969772720` passed all seven jobs; Windows Release Installer run
+  `43969772719` produced the MSI successfully.
 
 ### Stage 10 — stabilization/release (partial)
 
@@ -220,7 +221,7 @@ through `user_version`. See ADR-0001…0007.
 | Frontend tests | `npm test` | PASS (126) |
 | Frontend build | `npm run build` | PASS — main chunk ~244 KB; warning gone |
 | Visual gates | `node scripts/visual-gate0.mjs` | PASS — 59 captures; axe button-name/aria-command-name |
-| GitHub Actions CI | run `43778341394` at `bddc4c58` | PASS — all 7 jobs |
+| GitHub Actions CI | run `43969772720` at `670b499` | PASS — all 7 jobs |
 | Windows 10 native build/tests | run `43778393711` at `bddc4c58` | PASS — Debug `forgedesk.exe` artifact; no interactive run |
 | Jenkins build 6 | Stage 3 `8a999ee` | SUCCESS |
 | Jenkins build 7 | Stage 4 snapshot `9ab85bb` | SUCCESS — 104 s, 44 core tests, 43 captures, 44 artifacts |
@@ -268,7 +269,7 @@ through `user_version`. See ADR-0001…0007.
 - GitHub Actions emits non-fatal Node.js 20 deprecation warnings; no CI architecture
   changes were made.
 - Workspace export/import beyond SQLite backup/restore is not implemented.
-- GitHub Actions on the public repo is green at `bddc4c58` (run `43778341394`):
+- GitHub Actions on the public repo is green at `670b499` (run `43969772720`):
   frontend, core Ubuntu/Windows, Tauri Linux/Windows compile, optional AI crate and
   visual gates. A separate successful Windows 10 native Debug build is documented
   above; it does not replace interactive smoke testing.
