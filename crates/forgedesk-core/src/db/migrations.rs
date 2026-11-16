@@ -236,11 +236,18 @@ mod tests {
         )
         .expect("https repository");
         conn.execute(
+            "INSERT INTO project (id, workspace_id, name, description, status, priority, \
+             created_at, updated_at) VALUES ('project-2', 'ws-1', 'Release clone', \
+             'separate project', 'active', 'medium', ?1, ?1)",
+            [now],
+        )
+        .expect("second project");
+        conn.execute(
             "INSERT INTO repository (id, workspace_id, name, path, provider, remote_url, project_id, \
              created_at, updated_at) VALUES ('repo-3', 'ws-1', 'ForgeDesk clone 2', \
              '/tmp/forgedesk-v5-repo-2', 'local', 'https://github.com/mindwork64/forgedesk.git', \
-             ?1, ?2, ?2)",
-            rusqlite::params![project_id, now],
+             'project-2', ?1, ?1)",
+            [now],
         )
         .expect("duplicate origin checkout");
         conn.execute(
@@ -338,6 +345,25 @@ mod tests {
             )
             .expect("duplicate identity"),
             "local|local|ForgeDesk clone 2|<none>|conflict"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT path FROM repository_checkout WHERE repository_id = 'repo-3'",
+                [],
+                |row| row.get::<_, String>(0)
+            )
+            .expect("conflict checkout"),
+            "/tmp/forgedesk-v5-repo-2"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT count(*) FROM repository_project \
+                 WHERE repository_id = 'repo-3' AND project_id = 'project-2'",
+                [],
+                |row| row.get::<_, i64>(0)
+            )
+            .expect("conflict project link"),
+            1
         );
         let discovered = crate::db::repositories::repo_registry::upsert_remote(
             &conn,

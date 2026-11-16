@@ -683,7 +683,8 @@ pub fn reconcile_legacy_remotes(conn: &Connection) -> CoreResult<()> {
     let mut statement = conn.prepare(
         "SELECT id, clone_url FROM repository \
          WHERE provider = 'local' AND external_id IS NULL \
-           AND canonical_remote_url IS NULL AND clone_url IS NOT NULL",
+           AND canonical_remote_url IS NULL AND clone_url IS NOT NULL \
+         ORDER BY id",
     )?;
     let rows = statement
         .query_map([], |row| {
@@ -772,6 +773,50 @@ mod model_tests {
         assert_eq!(unknown.provider, "local");
         assert_eq!(unknown.host, "git.example.test");
         assert!(normalize_remote("not a remote").is_none());
+    }
+
+    #[test]
+    fn legacy_duplicate_primary_is_deterministic_by_repository_id() {
+        for order in [["legacy-b", "legacy-a"], ["legacy-a", "legacy-b"]] {
+            let dir = tempfile::tempdir().expect("tempdir");
+            let db = Database::open(dir.path().join("test.db")).expect("db");
+            let workspace = db
+                .with_conn(|conn| crate::db::repositories::workspace::create_initial(conn, "Repos"))
+                .expect("workspace");
+            db.with_conn(|conn| {
+                for id in order {
+                    conn.execute(
+                        "INSERT INTO repository
+                         (id, workspace_id, provider, host, external_id, owner, name, full_name,
+                          description, visibility, default_branch, html_url, clone_url,
+                          canonical_remote_url, is_archived, created_at, updated_at)
+                         VALUES (?1, ?2, 'local', 'local', NULL, NULL, ?1, ?1, NULL, NULL,
+                                 NULL, NULL, 'https://github.com/owner/repo.git', NULL, 0,
+                                 '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+                        rusqlite::params![id, workspace.id],
+                    )?;
+                }
+                Ok(())
+            })
+            .expect("legacy repositories");
+            db.with_conn(reconcile_legacy_remotes).expect("reconcile");
+            db.with_conn(|conn| {
+                let primary: String = conn.query_row(
+                    "SELECT id FROM repository WHERE canonical_remote_url IS NOT NULL",
+                    [],
+                    |row| row.get(0),
+                )?;
+                let conflict: String = conn.query_row(
+                    "SELECT id FROM repository WHERE identity_conflict IS NOT NULL",
+                    [],
+                    |row| row.get(0),
+                )?;
+                assert_eq!(primary, "legacy-a");
+                assert_eq!(conflict, "legacy-b");
+                Ok(())
+            })
+            .expect("deterministic choice");
+        }
     }
 
     #[test]

@@ -21,7 +21,7 @@
 
 ## Verification
 
-- `cargo test -p forgedesk-core` — 104 passed, 2 ignored.
+- `cargo test -p forgedesk-core` — 105 passed, 2 ignored.
 - `npm test` — 139 passed.
 - Visual gate — 59 captures.
 - Feature branch `fix/repository-project-associations`, final code commit `cca83db`.
