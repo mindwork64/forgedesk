@@ -1,0 +1,105 @@
+name: Windows Release Installer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/windows-release.yml"
+      - "src-tauri/**"
+      - "crates/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "index.html"
+      - "vite.config.*"
+      - "tsconfig*.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-msi:
+    name: Windows x64 Release MSI
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Visual Studio MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+
+      - name: Install MSVC Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable-x86_64-pc-windows-msvc
+          components: rustfmt, clippy
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Frontend typecheck
+        run: npm run typecheck
+
+      - name: Frontend unit tests
+        run: npm test
+
+      - name: Rust formatting
+        run: cargo fmt --all --check
+
+      - name: Core tests
+        run: cargo test -p forgedesk-core
+
+      - name: Build production Windows MSI
+        run: npm run tauri -- build --bundles msi
+
+      - name: Validate MSI and generate SHA-256
+        shell: pwsh
+        run: |
+          $bundleDir = "src-tauri/target/release/bundle/msi"
+          $packages = @(Get-ChildItem $bundleDir -Filter "*.msi" -File -ErrorAction SilentlyContinue)
+          if ($packages.Count -ne 1) {
+            throw "Expected exactly one MSI in $bundleDir, found $($packages.Count)."
+          }
+
+          $package = $packages[0]
+          if ($package.Length -lt 1MB) {
+            throw "MSI looks unexpectedly small ($($package.Length) bytes)."
+          }
+
+          $hash = Get-FileHash -LiteralPath $package.FullName -Algorithm SHA256
+          "$($hash.Hash)  $($package.Name)" |
+            Set-Content -LiteralPath "SHA256SUMS.txt" -Encoding ascii
+
+          Write-Host "MSI: $($package.FullName)"
+          Write-Host "Size: $($package.Length) bytes"
+          Write-Host "SHA256: $($hash.Hash)"
+          Write-Host "Signature status: $( (Get-AuthenticodeSignature -FilePath $package.FullName).Status )"
+
+      - name: Upload Windows Release installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ForgeDesk-Windows-x64-Release-${{ github.sha }}
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+            SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
