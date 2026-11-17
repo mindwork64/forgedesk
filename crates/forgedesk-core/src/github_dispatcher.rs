@@ -117,6 +117,8 @@ fn inferred_resource(path: &str) -> &'static str {
     }
 }
 
+type BudgetObservationRow = (Option<i64>, Option<i64>, Option<String>, String, Option<String>);
+
 pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
     let Some(database_path) = configured_path()? else {
         return Ok(());
@@ -141,7 +143,7 @@ pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
     }
 
     let resource = inferred_resource(path);
-    let observation: Option<(Option<i64>, Option<i64>, Option<String>, String, Option<String>)> =
+    let observation: Option<BudgetObservationRow> =
         connection.query_row(
             "SELECT remaining_value, limit_value, reset_at_utc, observed_at_utc, secondary_pause_until
              FROM api_budget_observation
@@ -197,6 +199,7 @@ pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn record_response(
     class: RequestClass,
     method: &str,

@@ -253,6 +253,7 @@ impl GitHubClient {
         Self::build(token, base, RequestClass::InteractiveRead, true)
     }
 
+    #[cfg(test)]
     fn with_base(token: impl Into<String>, base: impl Into<String>) -> CoreResult<Self> {
         Self::build(token, base, RequestClass::InteractiveRead, false)
     }
@@ -340,14 +341,7 @@ impl GitHubClient {
             Ok(text) => text,
             Err(error) => {
                 if self.dispatch_enabled {
-                    let _ = github_dispatcher::record_transport_failure(
-                        request_class,
-                        method.as_str(),
-                        path,
-                        body,
-                        started.elapsed(),
-                        &error.to_string(),
-                    );
+                    let _ = github_dispatcher::record_transport_failure(request_class, method.as_str(), path, body, started.elapsed(), &error.to_string());
                 }
                 return Err(CoreError::network(format!(
                     "GitHub response failed: {error}"
@@ -725,8 +719,7 @@ impl GitHubClient {
 
     fn get_json<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<T> {
         let (text, _, _) = self.execute(reqwest::Method::GET, path, None)?;
-        serde_json::from_str(&text)
-            .map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))
+        serde_json::from_str(&text).map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))
     }
 
     fn get_page<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<Page<T>> {
