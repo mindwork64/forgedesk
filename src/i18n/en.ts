@@ -1314,6 +1314,7 @@ export default {
     loadError: 'Workspace data could not be loaded',
     searchError: 'Search could not be completed',
     resultCount: '{count} results',
+    open: 'Open',
     projectStatus: '{status} project',
     issues: 'Issues',
     projects: 'Projects',
