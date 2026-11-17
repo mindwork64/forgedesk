@@ -191,7 +191,7 @@ export default {
       keyPrefixPlaceholder: 'FD',
       keyPrefixSave: 'Сохранить префикс',
       keyPrefixSaved: 'Глобальный префикс задач сохранён',
-      keyPrefixError: 'Не удалось сохранить глобальный префикс задач'
+      keyPrefixError: 'Не удалось сохранить глобальный префикс задач',
       workflow: 'Workflow',
       workflowHint:
         'Встроенный локальный набор статусов задач уже работает. Редактор переходов и профилей workflow пока не реализован.',
