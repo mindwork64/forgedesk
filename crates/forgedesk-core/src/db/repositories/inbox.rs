@@ -10,15 +10,39 @@ pub fn list(
     workspace_id: &str,
     filter: InboxFilter,
 ) -> CoreResult<Vec<InboxEvent>> {
-    let mut statement = conn.prepare(
+    list_events(conn, workspace_id, filter, false)
+}
+
+/// Full issue activity history. Inbox archiving is a notification preference and
+/// must not remove an event from the workspace activity timeline.
+pub fn list_activity(conn: &Connection, workspace_id: &str) -> CoreResult<Vec<InboxEvent>> {
+    list_events(conn, workspace_id, InboxFilter::All, true)
+}
+
+fn list_events(
+    conn: &Connection,
+    workspace_id: &str,
+    filter: InboxFilter,
+    include_archived: bool,
+) -> CoreResult<Vec<InboxEvent>> {
+    let sql = if include_archived {
+        "SELECT a.id, a.kind, a.data, a.created_at, i.id, i.key, i.title, i.source, \
+                s.read_at, s.archived_at \
+         FROM activity_event a \
+         JOIN issue i ON i.id = a.issue_id \
+         LEFT JOIN inbox_state s ON s.event_id = a.id \
+         WHERE i.workspace_id = ?1 AND i.deleted_at IS NULL \
+         ORDER BY a.created_at DESC, a.rowid DESC LIMIT 300"
+    } else {
         "SELECT a.id, a.kind, a.data, a.created_at, i.id, i.key, i.title, i.source, \
                 s.read_at, s.archived_at \
          FROM activity_event a \
          JOIN issue i ON i.id = a.issue_id \
          LEFT JOIN inbox_state s ON s.event_id = a.id \
          WHERE i.workspace_id = ?1 AND i.deleted_at IS NULL AND s.archived_at IS NULL \
-         ORDER BY a.created_at DESC, a.rowid DESC LIMIT 300",
-    )?;
+         ORDER BY a.created_at DESC, a.rowid DESC LIMIT 300"
+    };
+    let mut statement = conn.prepare(sql)?;
     let rows = statement.query_map([workspace_id], |row| {
         Ok((
             row.get::<_, String>(0)?,
@@ -36,15 +60,11 @@ pub fn list(
 
     let mut events = Vec::new();
     for row in rows {
-        let (id, kind, raw, created_at, issue_id, key, issue_title, source, read_at, archived_at) =
+        let (id, kind, raw, created_at, issue_id, key, issue_title, issue_source, read_at, archived_at) =
             row?;
         let data: Value = serde_json::from_str(&raw).unwrap_or(Value::Null);
         let (title, summary) = describe(&kind, &data, &issue_title);
-        let source = if source == "github" {
-            "github"
-        } else {
-            "local"
-        };
+        let source = event_source(&issue_source, &kind);
         let event = InboxEvent {
             id,
             source: source.into(),
@@ -69,6 +89,16 @@ pub fn list(
         }
     }
     Ok(events)
+}
+
+fn event_source(issue_source: &str, kind: &str) -> &'static str {
+    if kind.starts_with("sync_") {
+        "sync"
+    } else if issue_source == "github" || kind.starts_with("pr_") {
+        "github"
+    } else {
+        "local"
+    }
 }
 
 pub fn mark_read(
@@ -249,6 +279,22 @@ mod tests {
             .with_conn(|conn| list(conn, &workspace_id, InboxFilter::All))
             .expect("list");
         assert!(!all.iter().any(|event| event.id == events[0].id));
+        let activity = db
+            .with_conn(|conn| list_activity(conn, &workspace_id))
+            .expect("activity");
+        let archived_event = activity
+            .iter()
+            .find(|event| event.id == events[0].id)
+            .expect("archived event remains in activity");
+        assert!(archived_event.archived);
+    }
+
+    #[test]
+    fn source_classification_keeps_sync_and_pull_request_events_distinct() {
+        assert_eq!(event_source("local", "sync_completed"), "sync");
+        assert_eq!(event_source("local", "pr_merged"), "github");
+        assert_eq!(event_source("github", "issue_updated"), "github");
+        assert_eq!(event_source("local", "issue_updated"), "local");
     }
 
     #[test]
