@@ -415,7 +415,7 @@ export default {
     },
     activity: {
       title: 'Активность',
-      description: 'История пространства и активность провайдеров.',
+      description: 'Записанные изменения задач в этом пространстве.',
     },
     search: {
       title: 'Поиск',
@@ -1297,6 +1297,46 @@ export default {
     checks: 'Проверки',
     noChecks: 'Проверки не найдены',
     noChecksBody: 'GitHub не вернул check runs для этого коммита.',
+  },
+
+  searchPage: {
+    placeholder: 'Поиск по задачам, проектам, инициативам, документам и репозиториям',
+    minChars: 'Введите не менее двух символов для поиска.',
+    loading: 'Поиск по локальному пространству…',
+    loadError: 'Не удалось загрузить данные для поиска',
+    noResults: 'Ничего не найдено',
+    noResultsBody: 'Попробуйте изменить запрос или проверить написание.',
+    localScope: 'Поиск выполняется только по данным текущего локального пространства.',
+    issues: 'Задачи',
+    projects: 'Проекты',
+    initiatives: 'Инициативы',
+    documents: 'Документы',
+    repositories: 'Репозитории',
+    issueStatus: 'Статус: {status}',
+    openIssue: 'Открыть задачу',
+  },
+
+  activityPage: {
+    loading: 'Загрузка активности…',
+    loadError: 'Не удалось загрузить активность',
+    empty: 'Записанных событий пока нет',
+    emptyBody: 'Здесь будут отображаться изменения задач текущего пространства.',
+    noDetails: 'Дополнительных сведений нет',
+    refresh: 'Обновить',
+    openIssue: 'Открыть задачу',
+    statusChange: '{from} → {to}',
+    events: {
+      issue_created: 'Задача создана',
+      issue_updated: 'Задача изменена',
+      status_changed: 'Изменён статус',
+      labels_changed: 'Изменены метки',
+      archived: 'Задача архивирована',
+      unarchived: 'Задача восстановлена',
+      duplicated: 'Задача дублирована',
+      comment_added: 'Добавлен комментарий',
+      relation_added: 'Добавлена связь',
+      relation_removed: 'Удалена связь',
+    },
   },
 
   inboxPage: {

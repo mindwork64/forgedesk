@@ -416,7 +416,7 @@ export default {
     },
     activity: {
       title: 'Activity',
-      description: 'Workspace history and provider activity.',
+      description: 'Recorded issue changes in this workspace.',
     },
     search: {
       title: 'Search',
@@ -1303,6 +1303,46 @@ export default {
     checks: 'Checks',
     noChecks: 'No checks reported',
     noChecksBody: 'GitHub returned no check runs for this commit.',
+  },
+
+  searchPage: {
+    placeholder: 'Search issues, projects, initiatives, documents and repositories',
+    minChars: 'Enter at least 2 characters to search.',
+    loading: 'Searching your local workspace…',
+    loadError: 'Could not load local search data',
+    noResults: 'No matching items',
+    noResultsBody: 'Try another phrase or check the spelling.',
+    localScope: 'Search is limited to data stored in this workspace.',
+    issues: 'Issues',
+    projects: 'Projects',
+    initiatives: 'Initiatives',
+    documents: 'Documents',
+    repositories: 'Repositories',
+    issueStatus: 'Status: {status}',
+    openIssue: 'Open issue',
+  },
+
+  activityPage: {
+    loading: 'Loading activity…',
+    loadError: 'Could not load activity',
+    empty: 'No recorded activity yet',
+    emptyBody: 'Changes to issues in this workspace will appear here.',
+    noDetails: 'No additional details',
+    refresh: 'Refresh',
+    openIssue: 'Open issue',
+    statusChange: '{from} → {to}',
+    events: {
+      issue_created: 'Issue created',
+      issue_updated: 'Issue updated',
+      status_changed: 'Status changed',
+      labels_changed: 'Labels changed',
+      archived: 'Issue archived',
+      unarchived: 'Issue restored',
+      duplicated: 'Issue duplicated',
+      comment_added: 'Comment added',
+      relation_added: 'Relation added',
+      relation_removed: 'Relation removed',
+    },
   },
 
   inboxPage: {

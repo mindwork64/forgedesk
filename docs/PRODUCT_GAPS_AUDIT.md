@@ -14,8 +14,8 @@ The highest-risk mismatch is the old Sync settings placeholder: it says GitHub i
 
 | Route | Current behavior | Required product decision |
 |---|---|---|
-| `/search` | Uses generic `PlaceholderView`. The command palette searches local issues (up to six results) and offers navigation, but this is not a full Search page. | Implement full-page local search across the promised entities, or remove the nav entry until it is ready. |
-| `/activity` | Uses generic `PlaceholderView`. Inbox and issue detail contain subsets of activity, but there is no dedicated Activity page. | Implement a unified activity feed or remove the nav entry until it is ready. |
+| `/search` | Replaced with full-page local search across Issues (SQLite FTS), Projects, Initiatives, Documents and Repositories. Results open their owning screens. | Implemented in the current follow-up; GitHub-wide remote search is intentionally not implied. |
+| `/activity` | Replaced with a workspace-wide, read-only feed of recorded Issue events. It includes archived issues and does not inherit Inbox read/archive filtering. | Implemented in the current follow-up; it currently covers recorded Issue events only, not every provider/PR/system event. |
 | `/settings/sync` | Was a Stage 4 `SettingsPlaceholder` with copy claiming GitHub had not arrived. | Replaced in this change with actual connection, manual-sync, API-monitor and background-sync status. |
 
 ## Synchronization and API budget
@@ -62,12 +62,11 @@ The stage reports document these deliberately incomplete areas; they should rema
 
 ## Recommended order
 
-1. Finish and verify the current Sync settings correction.
-2. Replace or remove the exposed `/search` and `/activity` placeholders.
-3. Implement the shared request dispatcher and connect every GitHub HTTP path to budget accounting before enabling a background scheduler.
-4. Implement outbox worker, cursor-based manual/background sync, reconciliation and conflict UI as a single tested vertical slice.
-5. Resolve the Stage 2/3 and PR UI gaps according to release scope.
-6. Refresh current-state documentation and add dated post-stage updates without changing historical test evidence.
+1. Finish review/verification of the Sync settings correction and the Search/Activity pages.
+2. Implement the shared request dispatcher and connect every GitHub HTTP path to budget accounting before enabling a background scheduler.
+3. Implement the outbox worker, cursor-based manual/background sync, reconciliation and conflict UI as a single tested vertical slice.
+4. Resolve the remaining Stage 2/3 and PR UI gaps according to release scope.
+5. Refresh current-state documentation and add dated post-stage updates without changing historical test evidence.
 
 ## Verification boundary
 
