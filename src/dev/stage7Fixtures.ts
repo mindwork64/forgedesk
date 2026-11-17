@@ -162,6 +162,7 @@ export function handleStage7FixtureCommand<T>(
 ): { handled: boolean; value?: T } {
   switch (command) {
     case 'inbox_list':
+    case 'activity_list':
       return { handled: true, value: structuredClone(events) as T }
     case 'inbox_mark_read':
       return { handled: true, value: undefined as T }
