@@ -60,8 +60,18 @@ fn list_events(
 
     let mut events = Vec::new();
     for row in rows {
-        let (id, kind, raw, created_at, issue_id, key, issue_title, issue_source, read_at, archived_at) =
-            row?;
+        let (
+            id,
+            kind,
+            raw,
+            created_at,
+            issue_id,
+            key,
+            issue_title,
+            issue_source,
+            read_at,
+            archived_at,
+        ) = row?;
         let data: Value = serde_json::from_str(&raw).unwrap_or(Value::Null);
         let (title, summary) = describe(&kind, &data, &issue_title);
         let source = event_source(&issue_source, &kind);
