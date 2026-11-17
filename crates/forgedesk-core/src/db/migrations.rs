@@ -629,14 +629,14 @@ mod tests {
         let mut conn = connection();
         apply_through(&mut conn, 10);
         conn.execute(
-            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \\
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \
              VALUES ('ws-prefix', 'Prefix workspace', 'FD', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
             [],
         )
         .expect("workspace");
         conn.execute(
-            "INSERT INTO project (id, workspace_id, name, description, status, priority, created_at, updated_at) \\
-             VALUES ('project-prefix', 'ws-prefix', 'Existing project', '', 'active', 'none', \\
+            "INSERT INTO project (id, workspace_id, name, description, status, priority, created_at, updated_at) \
+             VALUES ('project-prefix', 'ws-prefix', 'Existing project', '', 'active', 'none', \
                      '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
             [],
         )
