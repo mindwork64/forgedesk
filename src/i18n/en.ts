@@ -855,8 +855,6 @@ export default {
     noRepositories: 'No repositories are linked to this project yet.',
     noActivity: 'Project activity appears when work changes.',
     archive: 'Archive project',
-    archiveTitle: 'Archive this project?',
-    archiveBody: 'The project is hidden from active lists; its issues stay intact.',
   },
   initiatives: {
     newInitiative: 'New initiative',
