@@ -146,7 +146,6 @@ export type CommandName =
   | 'get_git_log'
   | 'get_git_diff'
   | 'get_api_monitor'
-  | 'set_api_paused'
   | 'export_api_diagnostics'
   | 'github_start_device_flow'
   | 'github_poll_device_flow'
