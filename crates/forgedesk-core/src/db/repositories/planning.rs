@@ -1198,6 +1198,27 @@ mod tests {
     }
 
     #[test]
+    fn project_without_override_inherits_workspace_prefix() {
+        let (_dir, db, workspace_id) = fixture();
+        db.with_conn(|conn| {
+            let project = create_project(
+                conn,
+                &workspace_id,
+                &ProjectInput {
+                    name: "Inherited".into(),
+                    ..Default::default()
+                },
+            )?;
+            crate::db::repositories::workspace::update_key_prefix(conn, &workspace_id, "exhi")?;
+            let issue_id = issue(conn, &workspace_id, &project.id, "Inherited prefix");
+            let created = issues::get_summary(conn, &workspace_id, &issue_id)?;
+            assert_eq!(created.key, "EXHI-1");
+            Ok(())
+        })
+        .expect("workspace prefix inheritance");
+    }
+
+    #[test]
     fn project_prefix_applies_to_new_issues_without_rewriting_old_keys() {
         let (_dir, db, workspace_id) = fixture();
         db.with_conn(|conn| {
