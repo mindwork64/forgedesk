@@ -10,13 +10,12 @@ use forgedesk_core::domain::inbox::InboxEvent;
 use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
 use forgedesk_core::domain::{
-    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
-    CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
-    GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
-    IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput,
-    ProjectQuery, ProjectRef, RelationInputKind, Repository, RepositoryInput, SavedView,
-    SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput, WindowState, Workflow,
-    Workspace,
+    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail,
+    CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry, GitOverview,
+    Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery, IssueSummary, Label,
+    Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput, ProjectQuery, ProjectRef,
+    RelationInputKind, Repository, RepositoryInput, SavedView, SavedViewInput, SettingsPatch,
+    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
 };
 use forgedesk_core::github_actions::PullCapabilities;
 use forgedesk_core::github_activity::CiOverview;
