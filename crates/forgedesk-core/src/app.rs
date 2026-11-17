@@ -14,13 +14,13 @@ use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
-    ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
-    CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
-    GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
-    IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
-    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository,
-    RepositoryDiscoveryResult, RepositoryInput, SavedView, SavedViewInput, SettingsPatch,
-    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
+    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail,
+    CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry, GitOverview,
+    Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery, IssueRelation,
+    IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput,
+    ProjectQuery, ProjectRef, RelationInputKind, Repository, RepositoryDiscoveryResult,
+    RepositoryInput, SavedView, SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput,
+    WindowState, Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
 use crate::github_actions::PullCapabilities;
@@ -584,6 +584,12 @@ impl AppService {
         })
     }
 
+    pub fn activity(&self) -> CoreResult<Vec<InboxEvent>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| crate::db::repositories::inbox::list_activity(conn, &workspace.id))
+    }
+
     pub fn inbox_mark_read(&self, event_id: &str, read: bool) -> CoreResult<()> {
         let workspace = self.require_workspace()?;
         self.db.with_transaction(|conn| {
@@ -858,12 +864,6 @@ impl AppService {
                 last_observation: last,
             })
         })
-    }
-
-    pub fn set_api_paused(&self, paused: bool, reason: &str) -> CoreResult<ApiControl> {
-        let workspace = self.require_workspace()?;
-        self.db
-            .with_transaction(|tx| api_budget::set_paused(tx, &workspace.id, paused, reason))
     }
 
     pub fn export_api_diagnostics(&self) -> CoreResult<String> {

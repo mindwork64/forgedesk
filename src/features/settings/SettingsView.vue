@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RefreshCw } from '@lucide/vue'
 import type { Component } from 'vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -12,9 +11,9 @@ import SettingsAppearance from './SettingsAppearance.vue'
 import SettingsGeneral from './SettingsGeneral.vue'
 import SettingsGit from './SettingsGit.vue'
 import SettingsIntegrations from './SettingsIntegrations.vue'
-import SettingsPlaceholder from './SettingsPlaceholder.vue'
 import SettingsShortcuts from './SettingsShortcuts.vue'
 import SettingsStorage from './SettingsStorage.vue'
+import SettingsSync from './SettingsSync.vue'
 import SettingsWorkspace from './SettingsWorkspace.vue'
 
 const route = useRoute()
@@ -59,15 +58,11 @@ const componentMap: Partial<Record<SectionKey, Component>> = {
   storage: SettingsStorage,
   git: SettingsGit,
   integrations: SettingsIntegrations,
+  sync: SettingsSync,
   shortcuts: SettingsShortcuts,
   advanced: SettingsAdvanced,
 }
 
-const placeholders: Partial<
-  Record<SectionKey, { section: 'git' | 'integrations' | 'sync'; icon: Component; stage: number }>
-> = {
-  sync: { section: 'sync', icon: RefreshCw, stage: 4 },
-}
 </script>
 
 <template>
@@ -93,12 +88,6 @@ const placeholders: Partial<
 
       <div class="fd-settings-content" data-testid="settings-content">
         <component :is="componentMap[section]" v-if="componentMap[section]" />
-        <SettingsPlaceholder
-          v-else-if="placeholders[section]"
-          :section="placeholders[section]!.section"
-          :icon="placeholders[section]!.icon"
-          :stage="placeholders[section]!.stage"
-        />
       </div>
     </div>
   </div>

@@ -26,22 +26,6 @@ export const useApiMonitorStore = defineStore('apiMonitor', () => {
     }
   }
 
-  async function setPaused(paused: boolean): Promise<void> {
-    try {
-      const control = await api.setApiPaused(
-        paused,
-        paused ? t('apiMonitor.manualPause') : '',
-      )
-      if (state.value) {
-        state.value = { ...state.value, control }
-      }
-      toast.success(paused ? t('apiMonitor.paused') : t('apiMonitor.resumed'))
-    } catch (caught) {
-      const wire = toIpcError(caught)
-      toast.error(t('apiMonitor.pauseError'), wire.message, wire.detail)
-    }
-  }
-
   async function exportDiagnostics(): Promise<void> {
     try {
       const diagnostics = await api.exportApiDiagnostics()
@@ -57,5 +41,5 @@ export const useApiMonitorStore = defineStore('apiMonitor', () => {
     }
   }
 
-  return { state, loading, error, load, setPaused, exportDiagnostics }
+  return { state, loading, error, load, exportDiagnostics }
 })

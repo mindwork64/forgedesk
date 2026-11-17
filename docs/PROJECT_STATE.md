@@ -1,14 +1,37 @@
 # PROJECT_STATE
 
-**Updated:** 2026-11-16
+**Updated:** 2026-11-17
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
 **Verified CI revision:** `670b499` on `main`; post-merge CI run `43969772720` passed all jobs. The repository model feature was squash-merged via PR #1.
 
 ## Current objective
 
-Validate the repository/checkout/project model end-to-end and merge the feature
-branch after CI. Remaining PR polish, native packaging and Stage 5 sync writes stay
-tracked.
+Search/Activity and Sync-settings corrections are implemented in PR #2. The PR
+remains a Draft and is not merged. Next technical phase: shared GitHub request
+dispatcher, enforced API pause gate and sync worker.
+
+## Current implementation status — 2026-11-17 (PR #2, not merged)
+
+- **Search page:** `/search` is no longer a generic placeholder. It searches local Issues
+  through SQLite FTS5, Projects through the project query, Documents by title/body and
+  Repositories by identity/description/remote URL/checkout path. It returns bounded
+  result groups and navigates to the owning screen. It does not query remote GitHub
+  or unimported issues.
+- **Activity page:** `/activity` is no longer a generic placeholder. It shows the latest
+  300 stored issue activity events, including items archived from Inbox, and links
+  entries back to issues. Linked PR state changes are classified as GitHub events.
+  It is not yet a general workspace event bus or a webhook stream.
+- **Inbox source classification:** `sync_*` activity kinds are now retained as Sync
+  instead of being collapsed into Local; `pr_*` entries are classified as GitHub.
+- **Sync settings:** the current page truthfully reports manual-only GitHub access.
+  No periodic scheduler, shared HTTP dispatcher, queue worker or outbox reconciler
+  is currently wired.
+- **Verification:** GitHub Actions run #99
+  ([44004060587](https://github.com/mindwork64/forgedesk/actions/runs/44004060587))
+  passed all seven jobs at tested implementation revision `5d51b33`: 147 frontend
+  tests, UI Gate 0 with 61 captures, core tests/Clippy on Ubuntu and Windows,
+  Tauri compile checks on Linux and Windows, and optional AI crate checks. Native
+  interactive desktop flows and live GitHub credential flows remain unverified.
 
 ## Architecture (locked)
 
@@ -30,11 +53,16 @@ through `user_version`. See ADR-0001…0007.
 - **Repositories:** local attach/list/detail/remove, project link, Repositories
   table, add dialog, detail Overview/Branches/Recent commits, dirty guard UI.
 - **API Budget Manager:** formula `min(10%×limit, max(0, remaining−20%×limit))`,
-  persisted observations/requests/queue/control, pause/resume, sanitized diagnostics,
-  core tests include Stage 5 safety coverage.
-- **API Monitor:** connection/scheduler/dispatcher/observation/reset summary,
-  GraphQL/REST/resource budget panels, secondary state, background allowance/reserve,
-  queue, recent sanitized requests, export diagnostics.
+  persisted observations/requests/queue/control and sanitized diagnostics. The saved
+  pause flag is persistence only; it is not an enforced network gate and no pause
+  control is exposed until a shared request dispatcher exists.
+- **API Monitor:** shows persisted budget observations, request-log/queue rows and
+  diagnostics, but these are partial. It explicitly marks the background worker and
+  request dispatcher as not implemented and no longer exposes the non-functional
+  Pause/Resume action. REST rate-limit observations are currently recorded during
+  manual Issue import; other GitHub calls are not routed through a shared dispatcher.
+  Request logs/queue are not complete network telemetry, and the saved pause flag
+  does not gate direct client calls.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
@@ -98,8 +126,10 @@ through `user_version`. See ADR-0001…0007.
 - Inbox lists local issue activity (created, updated, status/labels, comments, archive,
   relations) with source badges, Today/Yesterday/Earlier groups, All/Unread/GitHub/
   Local/Sync filters, unread markers, mark read/unread, archive and mark-all-read.
-- Normalization currently covers local `activity_event` rows; GitHub sync events will
-  be added with the sync engine. No fake external events.
+- Inbox normalizes stored issue `activity_event` rows. Source classification retains
+  `sync_*` event kinds as Sync and linked PR events as GitHub; no fake external events.
+  The Sync filter now has a reachable classification, but background sync still does
+  not produce events because its worker is not implemented.
 - Detail pane shows event summary/entity and links to local issues.
 - **Insights:** local aggregates for created/completed/open/overdue, average cycle
   time, 12-bucket completion throughput, status and project distribution, with
@@ -134,6 +164,19 @@ through `user_version`. See ADR-0001…0007.
   obsolete Stage 4 placeholder.
 - Onboarding describes GitHub as optional and configurable in Integrations after
   setup; no disabled fake Connect action or Stage 4 badge.
+
+### Search, Activity and Sync settings (PR #2 — pending merge)
+
+- Search/Activity are implemented as route-level lazy-loaded pages with English and
+  Russian strings, component tests and visual harness fixtures/cases.
+- Search scope is intentionally limited to records already stored in this local
+  workspace. It searches up to 40 issue matches and up to 12 matches per other entity
+  group; no remote provider search or comment search is claimed.
+- Activity reads at most 300 issue-linked events and is independent of Inbox archive
+  state. Project/document/repository audit events and full provider/webhook history
+  are not implemented.
+- Settings → Sync describes manual-only behavior and explicitly warns that the shared
+  dispatcher, enforced pause gate, background scheduler and sync worker are missing.
 
 ### Repository model correction (schema v10)
 
