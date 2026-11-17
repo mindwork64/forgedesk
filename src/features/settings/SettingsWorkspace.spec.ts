@@ -1,7 +1,6 @@
-<script setup lang="ts">
-import { afterEach, describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { i18n } from '@/i18n'
 import { setDevTransport } from '@/lib/ipc'
@@ -53,6 +52,7 @@ describe('SettingsWorkspace', () => {
   afterEach(() => {
     wrapper?.unmount()
     wrapper = null
+    document.body.innerHTML = ''
     i18n.global.locale.value = 'en'
   })
 
