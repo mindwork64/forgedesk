@@ -6,17 +6,17 @@
 
 ## Summary
 
-ForgeDesk has substantial working local functionality and a real GitHub integration. It is not yet a complete end-to-end synchronization product. Several screens still expose generic placeholders, and some settings/status copy was not updated after later stages landed.
+ForgeDesk has substantial working local functionality and a real GitHub integration. The exposed Search and Activity routes and the stale Sync settings screen are now implemented on the current PR branch. ForgeDesk is still not a complete end-to-end synchronization product: the shared API dispatcher, background worker and bidirectional sync are not wired.
 
-The highest-risk mismatch is the old Sync settings placeholder: it says GitHub integration does not exist, even though GitHub authentication, repository discovery, manual issue import and PR workflows exist. The page is being replaced by an accurate status surface in the current change.
+The highest-risk mismatch was stale Sync settings copy claiming GitHub integration did not exist. The current branch replaces it with a status surface that accurately labels synchronization as manual-only and explains the instrumentation limitations.
 
 ## User-visible placeholder routes
 
-| Route | Current behavior | Required product decision |
+| Route | Current behavior on this branch | Remaining boundary |
 |---|---|---|
-| `/search` | Uses generic `PlaceholderView`. The command palette searches local issues (up to six results) and offers navigation, but this is not a full Search page. | Implement full-page local search across the promised entities, or remove the nav entry until it is ready. |
-| `/activity` | Uses generic `PlaceholderView`. Inbox and issue detail contain subsets of activity, but there is no dedicated Activity page. | Implement a unified activity feed or remove the nav entry until it is ready. |
-| `/settings/sync` | Was a Stage 4 `SettingsPlaceholder` with copy claiming GitHub had not arrived. | Replaced in this change with actual connection, manual-sync, API-monitor and background-sync status. |
+| `/search` | Full local workspace search: Issues through the SQLite FTS5 query path; Projects through the project query; Documents by title/body; Repositories by name, description, remote URL and checkout path. Results link to their owning screens. | Local records only. GitHub issues must first be imported. Search does not query remote GitHub, comments, cycles or initiatives. Result sets are bounded (up to 40 issues and 12 per other entity group). |
+| `/activity` | Dedicated read-only timeline of the latest 300 issue activity events, including notifications archived in Inbox. Local issue events and linked GitHub PR status events are classified separately. Entries open the relevant issue. | Not a universal event bus: it does not yet include project/document/repository changes, arbitrary provider webhook events or background sync events that are not stored in `activity_event`. |
+| `/settings/sync` | Replaced with actual GitHub connection, manual-only mode, API-monitor snapshot and explicit background-worker limitations. | The UI reports missing sync infrastructure; it does not implement the dispatcher or scheduler. |
 
 ## Synchronization and API budget
 
@@ -44,7 +44,7 @@ The highest-risk mismatch is the old Sync settings placeholder: it says GitHub i
 
 The stage reports document these deliberately incomplete areas; they should remain visible in the product backlog and must not be described as complete:
 
-- **Issues / Stage 2:** issue templates, watchers, attachments and milestone/cycle fields; workflow transition editor; Activity event edit/delete; Saved View column/density application; UI for `in`/`notIn` filters. The command palette performs local issue search, but the dedicated Search route is still a placeholder.
+- **Issues / Stage 2:** issue templates, watchers, attachments and milestone/cycle fields; workflow transition editor; Activity event edit/delete; Saved View column/density application; UI for `in`/`notIn` filters. The command palette remains a small quick-search/navigation surface; the new Search page is the full local entity search.
 - **Planning / Stage 3:** templates; document import, outline and in-document search; cycle board and burnup/velocity analytics; roadmap milestone level, drag editing and dependency overlays; project archive menu; project-scoped quick-create prefill. Cycle assignment and summary data do exist.
 - **Local Git / Stage 4:** process timeout, open-folder/terminal, branch deletion, rebase and remote sync.
 - **PR / Stage 6:** inline review-comment placement and review-thread resolution remain incomplete.
@@ -62,12 +62,11 @@ The stage reports document these deliberately incomplete areas; they should rema
 
 ## Recommended order
 
-1. Finish and verify the current Sync settings correction.
-2. Replace or remove the exposed `/search` and `/activity` placeholders.
-3. Implement the shared request dispatcher and connect every GitHub HTTP path to budget accounting before enabling a background scheduler.
-4. Implement outbox worker, cursor-based manual/background sync, reconciliation and conflict UI as a single tested vertical slice.
-5. Resolve the Stage 2/3 and PR UI gaps according to release scope.
-6. Refresh current-state documentation and add dated post-stage updates without changing historical test evidence.
+1. Finish CI, component tests and visual checks for the Search/Activity/Sync settings changes.
+2. Implement a shared GitHub HTTP dispatcher and route every network call through rate-limit accounting and an enforced pause gate.
+3. Implement the outbox worker, cursor-based sync, reconciliation and conflict UI as a tested vertical slice; only then enable scheduled background polling.
+4. Resolve the remaining Stage 2/3 and PR UI gaps according to release scope.
+5. Refresh current-state documentation and add dated post-stage updates without changing historical test evidence.
 
 ## Verification boundary
 
