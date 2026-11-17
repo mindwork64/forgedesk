@@ -148,7 +148,7 @@ describe('GitHubRepoDialog', () => {
   })
 
   it('selects owner/name for pull requests and navigates', async () => {
-    button('Use for pull requests').click()
+    button('View pull requests').click()
     await flushPromises()
     const auth = useGithubAuthStore()
     expect(auth.selectedRepo).toEqual({
