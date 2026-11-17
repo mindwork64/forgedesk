@@ -337,6 +337,7 @@ export const api = {
       confirmed,
     }),
   inboxList: (filter: string) => call<InboxEvent[]>('inbox_list', { filter }),
+  activityList: () => call<InboxEvent[]>('activity_list'),
   inboxMarkRead: (eventId: string, read: boolean) =>
     call<void>('inbox_mark_read', { eventId, read }),
   inboxArchive: (eventId: string) =>
