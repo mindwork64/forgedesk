@@ -1498,17 +1498,20 @@ async function main() {
         const budgets = await page.locator('.fd-budget-panel').count()
         const queue = await page.locator('.fd-monitor-section').first().locator('.fd-monitor-row').count()
         const unavailableStates = await page.getByText('Not implemented', { exact: true }).count()
+        const activeDispatcher = await page.getByText('Active', { exact: true }).count()
         const pauseControls = await page
-          .getByRole('button', { name: /Pause background sync|Resume background sync/ })
+          .getByRole('button', { name: /Pause GitHub requests|Resume GitHub requests/ })
           .count()
         caseReport.monitorBudgets = budgets
         caseReport.monitorQueue = queue
         caseReport.monitorUnavailableStates = unavailableStates
+        caseReport.activeDispatcher = activeDispatcher
         caseReport.pauseControls = pauseControls
         assert(budgets >= 2, `${testCase.name}: expected budget panels`, report.failures)
         assert(queue >= 2, `${testCase.name}: expected queue rows`, report.failures)
-        assert(unavailableStates === 2, `${testCase.name}: dispatcher and background sync must be marked unavailable`, report.failures)
-        assert(pauseControls === 0, `${testCase.name}: must not expose a non-functional pause control`, report.failures)
+        assert(unavailableStates === 1, `${testCase.name}: background sync must remain marked unavailable until its worker is implemented`, report.failures)
+        assert(activeDispatcher >= 1, `${testCase.name}: shared API dispatcher must be marked active`, report.failures)
+        assert(pauseControls === 1, `${testCase.name}: expected functional GitHub REST pause control`, report.failures)
       }
 
       if (testCase.route === '/roadmap') {
