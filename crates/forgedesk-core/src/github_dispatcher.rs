@@ -117,7 +117,13 @@ fn inferred_resource(path: &str) -> &'static str {
     }
 }
 
-type BudgetObservationRow = (Option<i64>, Option<i64>, Option<String>, String, Option<String>);
+type BudgetObservationRow = (
+    Option<i64>,
+    Option<i64>,
+    Option<String>,
+    String,
+    Option<String>,
+);
 
 pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
     let Some(database_path) = configured_path()? else {
