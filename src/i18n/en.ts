@@ -192,7 +192,7 @@ export default {
       keyPrefixPlaceholder: 'FD',
       keyPrefixSave: 'Save prefix',
       keyPrefixSaved: 'Workspace issue prefix saved',
-      keyPrefixError: 'Workspace issue prefix could not be saved'
+      keyPrefixError: 'Workspace issue prefix could not be saved',
       workflow: 'Workflow',
       workflowHint:
         'The built-in local issue statuses are active. Workflow transition rules and profile editing are not implemented yet.',
