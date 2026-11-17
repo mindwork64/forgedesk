@@ -11,12 +11,10 @@ import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import { api, toIpcError } from '@/lib/ipc'
 import { formatRelative } from '@/lib/format'
-import { useAppStore } from '@/stores/app'
 import type { ActivityFeedItem } from '@/types/ipc'
 
-const { t, te } = useI18n()
+const { t, te, locale } = useI18n()
 const router = useRouter()
-const app = useAppStore()
 const events = ref<ActivityFeedItem[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -114,7 +112,7 @@ onMounted(() => {
           </span>
           <span class="fd-activity-meta">
             <span>{{ event.source }}</span>
-            <time :datetime="event.createdAt">{{ formatRelative(event.createdAt, app.resolvedLocale) }}</time>
+            <time :datetime="event.createdAt">{{ formatRelative(event.createdAt, locale.value) }}</time>
           </span>
         </button>
       </div>

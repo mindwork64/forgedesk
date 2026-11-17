@@ -2,7 +2,6 @@ pub mod error;
 
 use forgedesk_core::app::{Bootstrap, RestoreResult};
 use forgedesk_core::backup::BackupInfo;
-use forgedesk_core::domain::ActivityFeedItem;
 use forgedesk_core::domain::automation::{
     AutomationEvent, AutomationInput, AutomationRule, AutomationRun,
 };
@@ -10,6 +9,7 @@ use forgedesk_core::domain::dashboard::Dashboard;
 use forgedesk_core::domain::inbox::InboxEvent;
 use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
+use forgedesk_core::domain::ActivityFeedItem;
 use forgedesk_core::domain::{
     ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
