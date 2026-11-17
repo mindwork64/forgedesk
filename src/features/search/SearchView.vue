@@ -97,12 +97,13 @@ const groups = computed((): SearchGroup[] => {
       description: repository.description ?? repository.checkouts[0]?.path ?? '',
     }))
 
-  return [
+  const resultGroups: SearchGroup[] = [
     { kind: 'issue', label: t('searchPage.issues'), icon: CircleDot, results: issueResults },
     { kind: 'project', label: t('searchPage.projects'), icon: Layers, results: projectResults },
     { kind: 'document', label: t('searchPage.documents'), icon: FileText, results: documentResults },
     { kind: 'repository', label: t('searchPage.repositories'), icon: FolderGit2, results: repositoryResults },
-  ].filter((group) => group.results.length > 0)
+  ]
+  return resultGroups.filter((group) => group.results.length > 0)
 })
 
 const resultCount = computed(() => groups.value.reduce((total, group) => total + group.results.length, 0))
