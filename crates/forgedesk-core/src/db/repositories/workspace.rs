@@ -67,8 +67,36 @@ pub fn create_initial(conn: &Connection, name: &str) -> CoreResult<Workspace> {
     Ok(workspace)
 }
 
+pub fn update_key_prefix(
+    conn: &Connection,
+    workspace_id: &str,
+    raw_prefix: &str,
+) -> CoreResult<Workspace> {
+    let prefix = Workspace::validate_key_prefix(raw_prefix)?;
+    let changed = conn.execute(
+        "UPDATE workspace SET key_prefix = ?1, updated_at = ?2 WHERE id = ?3",
+        rusqlite::params![prefix, now_rfc3339(), workspace_id],
+    )?;
+    if changed == 0 {
+        return Err(CoreError::not_found("Workspace"));
+    }
+    conn.query_row(
+        &format!("SELECT {COLUMNS} FROM workspace WHERE id = ?1"),
+        [workspace_id],
+        map_row,
+    )
+    .optional()?
+    .ok_or_else(|| CoreError::not_found("Workspace"))
+}
+
 /// Allocate the next human key inside the create-issue transaction.
-pub fn next_issue_key(conn: &Connection, workspace_id: &str) -> CoreResult<(i64, String)> {
+/// All issue numbers share one workspace counter, so changing a prefix never
+/// causes a key collision or rewrites a previously allocated key.
+pub fn next_issue_key(
+    conn: &Connection,
+    workspace_id: &str,
+    project_id: Option<&str>,
+) -> CoreResult<(i64, String)> {
     conn.execute(
         "INSERT OR IGNORE INTO workspace_key_counter (workspace_id, next_number) \
          SELECT id, 1 FROM workspace WHERE id = ?1",
@@ -77,9 +105,11 @@ pub fn next_issue_key(conn: &Connection, workspace_id: &str) -> CoreResult<(i64,
 
     let (prefix, number) = conn
         .query_row(
-            "SELECT w.key_prefix, c.next_number FROM workspace w \
-             JOIN workspace_key_counter c ON c.workspace_id = w.id WHERE w.id = ?1",
-            [workspace_id],
+            "SELECT COALESCE(p.issue_key_prefix, w.key_prefix), c.next_number FROM workspace w \
+             JOIN workspace_key_counter c ON c.workspace_id = w.id
+             LEFT JOIN project p ON p.id = ?2 AND p.workspace_id = w.id
+             WHERE w.id = ?1",
+            rusqlite::params![workspace_id, project_id],
             |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)),
         )
         .map_err(|error| match error {
@@ -145,7 +175,7 @@ mod tests {
         assert_eq!(statuses.len(), 5);
 
         let (number, key) = db
-            .with_conn(|conn| next_issue_key(conn, &workspace.id))
+            .with_conn(|conn| next_issue_key(conn, &workspace.id, None))
             .expect("first key");
         assert_eq!(number, 1);
         assert_eq!(key, "FD-1");
@@ -154,5 +184,28 @@ mod tests {
             .expect("second key");
         assert_eq!(number, 2);
         assert_eq!(key, "FD-2");
+    }
+
+    #[test]
+    fn changing_workspace_prefix_only_affects_future_keys() {
+        let (_dir, db) = db();
+        let workspace = db
+            .with_conn(|conn| create_initial(conn, "My Workspace"))
+            .expect("workspace");
+        let first = db
+            .with_conn(|conn| next_issue_key(conn, &workspace.id, None))
+            .expect("first key");
+        assert_eq!(first.1, "FD-1");
+
+        let updated = db
+            .with_transaction(|tx| update_key_prefix(tx, &workspace.id, "exhi"))
+            .expect("update prefix");
+        assert_eq!(updated.key_prefix, "EXHI");
+
+        let second = db
+            .with_conn(|conn| next_issue_key(conn, &workspace.id, None))
+            .expect("second key");
+        assert_eq!(second.1, "EXHI-2");
+        assert_eq!(first.1, "FD-1");
     }
 }

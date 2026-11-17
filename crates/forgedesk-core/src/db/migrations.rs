@@ -62,9 +62,14 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "repositories",
         sql: include_str!("migrations/0010_repository_model.sql"),
     },
+    Migration {
+        version: 11,
+        name: "project_issue_key_prefix",
+        sql: include_str!("migrations/0011_project_issue_key_prefix.sql"),
+    },
 ];
 
-pub const CURRENT_SCHEMA_VERSION: i64 = 10;
+pub const CURRENT_SCHEMA_VERSION: i64 = 11;
 
 pub fn current_schema_version(conn: &Connection) -> CoreResult<i64> {
     let version = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;

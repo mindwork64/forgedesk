@@ -114,6 +114,13 @@ impl AppService {
             .with_transaction(|tx| crate::db::repositories::workspace::create_initial(tx, name))
     }
 
+    pub fn update_workspace_key_prefix(&self, prefix: &str) -> CoreResult<Workspace> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            crate::db::repositories::workspace::update_key_prefix(tx, &workspace.id, prefix)
+        })
+    }
+
     pub fn complete_onboarding(&self) -> CoreResult<AppSettings> {
         self.update_settings(SettingsPatch {
             onboarding_completed: Some(true),
