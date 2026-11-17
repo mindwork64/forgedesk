@@ -168,6 +168,7 @@ export type CommandName =
   | 'github_close_pull'
   | 'github_submit_review'
   | 'inbox_list'
+  | 'activity_list'
   | 'inbox_mark_read'
   | 'inbox_archive'
   | 'inbox_mark_all_read'
