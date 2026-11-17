@@ -25,9 +25,12 @@ const githubStatus = computed(() => {
   if (auth.connectionCheckFailed) return t('status.githubCheckFailed')
   return t('status.githubDisconnected')
 })
-const githubStatusNote = computed(() => auth.connected
-  ? t('status.githubConnectedNote')
-  : t('status.githubDisconnectedNote'))
+const githubStatusNote = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.storageUnavailable) return t('githubAuth.storageUnavailableHint')
+  if (auth.connectionCheckFailed) return t('githubAuth.connectionCheckFailedHint')
+  return auth.connected ? t('status.githubConnectedNote') : t('status.githubDisconnectedNote')
+})
 
 async function copy(value: string): Promise<void> {
   const ok = await copyText(value)
