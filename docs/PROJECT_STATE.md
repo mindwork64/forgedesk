@@ -26,9 +26,9 @@ dispatcher, enforced API pause gate and sync worker.
 - **Sync settings:** the current page truthfully reports manual-only GitHub access.
   No periodic scheduler, shared HTTP dispatcher, queue worker or outbox reconciler
   is currently wired.
-- **Verification:** GitHub Actions run #84
-  ([44002363339](https://github.com/mindwork64/forgedesk/actions/runs/44002363339))
-  passed all seven jobs at tested implementation revision `8ef6c62`: 147 frontend
+- **Verification:** GitHub Actions run #99
+  ([44004060587](https://github.com/mindwork64/forgedesk/actions/runs/44004060587))
+  passed all seven jobs at tested implementation revision `5d51b33`: 147 frontend
   tests, UI Gate 0 with 61 captures, core tests/Clippy on Ubuntu and Windows,
   Tauri compile checks on Linux and Windows, and optional AI crate checks. Native
   interactive desktop flows and live GitHub credential flows remain unverified.
@@ -53,13 +53,16 @@ through `user_version`. See ADR-0001…0007.
 - **Repositories:** local attach/list/detail/remove, project link, Repositories
   table, add dialog, detail Overview/Branches/Recent commits, dirty guard UI.
 - **API Budget Manager:** formula `min(10%×limit, max(0, remaining−20%×limit))`,
-  persisted observations/requests/queue/control, pause/resume, sanitized diagnostics,
-  core tests include Stage 5 safety coverage.
-- **API Monitor:** shows persisted budget observations, request-log/queue rows, pause
-  control and diagnostics, but these are a partial foundation. REST rate-limit
-  observations are currently recorded during manual Issue import; other GitHub calls
-  are not routed through a shared dispatcher. Request logs/queue are not complete
-  network telemetry, and the pause flag does not gate direct client calls.
+  persisted observations/requests/queue/control and sanitized diagnostics. The saved
+  pause flag is persistence only; it is not an enforced network gate and no pause
+  control is exposed until a shared request dispatcher exists.
+- **API Monitor:** shows persisted budget observations, request-log/queue rows and
+  diagnostics, but these are partial. It explicitly marks the background worker and
+  request dispatcher as not implemented and no longer exposes the non-functional
+  Pause/Resume action. REST rate-limit observations are currently recorded during
+  manual Issue import; other GitHub calls are not routed through a shared dispatcher.
+  Request logs/queue are not complete network telemetry, and the saved pause flag
+  does not gate direct client calls.
 - **Integrations:** GitHub primary with real Device Flow auth, readable scopes and
   keyring/memory token state; Local Git real; GitLab/Gitea planned. No token/secret
   schema and no fake connect.
