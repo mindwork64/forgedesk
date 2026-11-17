@@ -33,7 +33,7 @@ describe('ActivityView', () => {
     setActivePinia(createPinia())
     i18n.global.locale.value = 'en'
     setDevTransport(async <T,>(command: string) => {
-      if (command === 'activity_list') return [activityEvent()] as T
+      if (command === 'activity_list') return [activityEvent()] as unknown as T
       throw { code: 'unsupported_capability', message: command }
     })
     router = createRouter({
