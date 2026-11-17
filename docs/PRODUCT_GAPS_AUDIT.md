@@ -1,18 +1,18 @@
 # ForgeDesk product gaps audit
 
 **Audit date:** 2026-11-17  
-**Audited revision:** `5b68247e292d4a7f81029aba9f208c745de10f3f` (main)  
+**Audited revision:** `4ea91ebf3410e8712f9772e3112efdeb38fc4f91` (main, PR #2 merge)  
 **Method:** static inspection of the source tree, routes, UI copy, core services, database repositories and stage reports, followed by CI verification of the implementation in PR #2. This is not a native desktop smoke test.
 
 ## Summary
 
-ForgeDesk has substantial working local functionality and a real GitHub integration. The exposed Search and Activity routes and the stale Sync settings screen are now implemented on the current PR branch. ForgeDesk is still not a complete end-to-end synchronization product: the shared API dispatcher, background worker and bidirectional sync are not wired.
+ForgeDesk has substantial working local functionality and a real GitHub integration. The Search and Activity routes and the corrected Sync settings screen are implemented on `main` via PR #2. ForgeDesk is still not a complete end-to-end synchronization product: the shared API dispatcher, background worker and bidirectional sync are not wired.
 
-The highest-risk mismatch was stale Sync settings copy claiming GitHub integration did not exist. The current branch replaces it with a status surface that accurately labels synchronization as manual-only and explains the instrumentation limitations.
+The highest-risk mismatch was stale Sync settings copy claiming GitHub integration did not exist. The merged status surface accurately labels synchronization as manual-only and explains the instrumentation limitations.
 
 ## User-visible placeholder routes
 
-| Route | Current behavior on this branch | Remaining boundary |
+| Route | Current behavior on main | Remaining boundary |
 |---|---|---|
 | `/search` | Full local workspace search: Issues through the SQLite FTS5 query path; Projects through the project query; Documents by title/body; Repositories by name, description, remote URL and checkout path. Results link to their owning screens. | Local records only. GitHub issues must first be imported. Search does not query remote GitHub, comments, cycles or initiatives. Result sets are bounded (up to 40 issues and 12 per other entity group). |
 | `/activity` | Dedicated read-only timeline of the latest 300 issue activity events, including notifications archived in Inbox. Local issue events and linked GitHub PR status events are classified separately. Entries open the relevant issue. | Not a universal event bus: it does not yet include project/document/repository changes, arbitrary provider webhook events or background sync events that are not stored in `activity_event`. |
@@ -55,14 +55,14 @@ The stage reports document these deliberately incomplete areas; they should rema
 ## Documentation drift
 
 - `src/i18n/ru.ts` and `src/i18n/en.ts` described issue keys and workflow as future Stage 2 work even though local Issues/Workflow are implemented.
-- The old Sync settings text said GitHub and API monitoring did not exist; it is corrected in this change.
+- The old Sync settings text said GitHub and API monitoring did not exist; it was corrected in PR #2.
 - `docs/stages/STAGE-4-report.md` and `docs/stages/STAGE-5-report.md` contain historical acceptance/next-step statements that predate the later discovery/import/PR implementation. They need a dated addendum rather than silent rewriting of historical results.
 - `docs/stages/STAGE-10-report.md` contains pre-merge feature-branch statements and old CI evidence. It needs a dated post-merge addendum.
 - `docs/PROJECT_STATE.md` should be the single current snapshot; historical stage reports should be explicitly labeled as snapshots.
 
 ## Recommended order
 
-1. Finish CI, component tests and visual checks for the Search/Activity/Sync settings changes.
+1. **Completed in PR #2:** implement Search and Activity, correct Sync status, remove the non-functional pause action, and pass CI/component/visual checks.
 2. Implement a shared GitHub HTTP dispatcher and route every network call through rate-limit accounting and an enforced pause gate.
 3. Implement the outbox worker, cursor-based sync, reconciliation and conflict UI as a tested vertical slice; only then enable scheduled background polling.
 4. Resolve the remaining Stage 2/3 and PR UI gaps according to release scope.
@@ -70,7 +70,7 @@ The stage reports document these deliberately incomplete areas; they should rema
 
 ## Verification boundary
 
-The implementation in PR #2 was verified by GitHub Actions run
+The implementation merged in PR #2 was verified by GitHub Actions run
 [44004060587](https://github.com/mindwork64/forgedesk/actions/runs/44004060587)
 at tested code revision `5d51b33`: all seven CI jobs passed, including 147 frontend
 tests, 61 deterministic visual captures, core tests/Clippy on Ubuntu and Windows,
