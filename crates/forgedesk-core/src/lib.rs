@@ -14,6 +14,7 @@ pub mod github_actions;
 pub mod github_activity;
 pub mod github_auth;
 pub mod github_client;
+pub mod github_dispatcher;
 pub mod github_pr;
 pub mod github_sync;
 pub mod provider;

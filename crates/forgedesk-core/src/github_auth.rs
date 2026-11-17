@@ -4,7 +4,6 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use keyring::Entry;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::error::{CoreError, CoreResult};
 
@@ -13,7 +12,6 @@ const KEYRING_SERVICE: &str = "dev.forgedesk.app";
 const KEYRING_USER: &str = "github-app-user";
 const TOKEN_URL: &str = "https://github.com/login/oauth/access_token";
 const DEVICE_URL: &str = "https://github.com/login/device/code";
-const USER_URL: &str = "https://api.github.com/user";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -387,31 +385,8 @@ impl GitHubAuth {
     }
 
     fn fetch_identity(&self, access_token: &str) -> CoreResult<(String, i64, String)> {
-        let response = self
-            .http
-            .get(USER_URL)
-            .header("Accept", "application/vnd.github+json")
-            .bearer_auth(access_token)
-            .send()
-            .map_err(|error| CoreError::network(format!("GitHub user request failed: {error}")))?;
-        let status = response.status();
-        let body: Value = response
-            .json()
-            .map_err(|error| CoreError::network(format!("GitHub user response failed: {error}")))?;
-        if !status.is_success() {
-            return Err(CoreError::auth(format!(
-                "GitHub user request returned HTTP {status}."
-            )));
-        }
-        let login = body
-            .get("login")
-            .and_then(Value::as_str)
-            .ok_or_else(|| CoreError::auth("GitHub user response has no login."))?
-            .to_owned();
-        let user_id = body
-            .get("id")
-            .and_then(Value::as_i64)
-            .ok_or_else(|| CoreError::auth("GitHub user response has no id."))?;
+        let (login, user_id) =
+            crate::github_client::GitHubClient::new(access_token)?.get_authenticated_user()?;
         Ok((login, user_id, String::new()))
     }
 

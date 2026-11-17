@@ -34,6 +34,12 @@ impl AppState {
             }
         };
 
+        if let Err(error) = forgedesk_core::github_dispatcher::configure_runtime_database(
+            data_dir.join(forgedesk_core::app::DB_FILE_NAME),
+        ) {
+            tracing::warn!(code = %error.category().code(), "GitHub API dispatcher could not attach to the workspace database");
+        }
+
         Self {
             inner: Mutex::new(Inner {
                 data_dir,

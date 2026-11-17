@@ -663,6 +663,16 @@ pub fn get_api_monitor(state: State<'_, AppState>) -> Result<ApiMonitorState, Co
 }
 
 #[tauri::command]
+pub fn set_api_paused(
+    state: State<'_, AppState>,
+    paused: bool,
+) -> Result<forgedesk_core::domain::ApiControl, CommandError> {
+    state
+        .with_service(|service| service.set_api_paused(paused))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub fn export_api_diagnostics(state: State<'_, AppState>) -> Result<String, CommandError> {
     state
         .with_service(|service| service.export_api_diagnostics())

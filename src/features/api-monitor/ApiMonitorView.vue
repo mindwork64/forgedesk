@@ -8,13 +8,16 @@ import FdButton from '@/components/ui/FdButton.vue'
 import FdEmptyState from '@/components/ui/FdEmptyState.vue'
 import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
+import { api as ipc, toIpcError } from '@/lib/ipc'
 import { formatDateTime } from '@/lib/format'
 import { useAppStore } from '@/stores/app'
 import { useApiMonitorStore } from '@/stores/apiMonitor'
 import { useGithubAuthStore } from '@/stores/githubAuth'
+import { useToastStore } from '@/stores/toasts'
 
 const api = useApiMonitorStore()
 const auth = useGithubAuthStore()
+const toast = useToastStore()
 const app = useAppStore()
 const { t } = useI18n()
 
@@ -50,6 +53,19 @@ const nextReset = computed(() => {
     .sort()
   return values[0] ?? null
 })
+
+async function toggleRequestPause(): Promise<void> {
+  if (!state.value) return
+  const paused = !state.value.control.paused
+  try {
+    await ipc.setApiPaused(paused)
+    await api.load()
+    toast.success(t(paused ? 'apiMonitor.requestsPaused' : 'apiMonitor.requestsResumed'))
+  } catch (caught) {
+    const wire = toIpcError(caught)
+    toast.error(t('apiMonitor.requestPauseFailed'), wire.message, wire.detail)
+  }
+}
 
 function value(value: number | null | undefined): string {
   return value === null || value === undefined ? '—' : String(value)
@@ -91,6 +107,14 @@ onMounted(() => {
       :description="t('pages.apiMonitor.description')"
     >
       <template #actions>
+        <FdButton
+          variant="secondary"
+          size="md"
+          :disabled="!state"
+          @click="toggleRequestPause"
+        >
+          {{ state?.control.paused ? t('apiMonitor.resumeRequests') : t('apiMonitor.pauseRequests') }}
+        </FdButton>
         <FdButton variant="secondary" size="md" @click="api.exportDiagnostics()">
           {{ t('apiMonitor.exportDiagnostics') }}
         </FdButton>
@@ -125,7 +149,7 @@ onMounted(() => {
           </div>
           <div class="fd-monitor-summary__item">
             <span>{{ t('apiMonitor.dispatcher') }}</span>
-            <strong>{{ t('apiMonitor.dispatcherUnavailable') }}</strong>
+            <strong>{{ t('apiMonitor.active') }}</strong>
           </div>
           <div class="fd-monitor-summary__item">
             <span>{{ t('apiMonitor.lastObservation') }}</span>
@@ -137,8 +161,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="fd-secondary-state" :class="{ 'fd-secondary-state--active': secondary }">
-          {{ secondary ? t('apiMonitor.secondaryActive') : t('apiMonitor.secondaryClear') }}
+        <div class="fd-secondary-state" :class="{ 'fd-secondary-state--active': secondary || state.control.paused }">
+          {{ state.control.paused ? t('apiMonitor.requestsPaused') : secondary ? t('apiMonitor.secondaryActive') : t('apiMonitor.secondaryClear') }}
         </div>
 
         <div v-if="state.budgets.length === 0" class="fd-monitor-empty">
