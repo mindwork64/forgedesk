@@ -12,7 +12,6 @@ import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdInput from '@/components/ui/FdInput.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import { api, toIpcError } from '@/lib/ipc'
-import { useAppStore } from '@/stores/app'
 import type { Document, IssueSummary, Project, Repository } from '@/types/ipc'
 
 type ResultKind = 'issue' | 'project' | 'document' | 'repository'
@@ -32,7 +31,6 @@ interface SearchGroup {
 
 const router = useRouter()
 const { t } = useI18n()
-const app = useAppStore()
 const query = ref('')
 const documents = ref<Document[]>([])
 const repositories = ref<Repository[]>([])
@@ -48,7 +46,7 @@ let requestId = 0
 const needle = computed(() => query.value.trim().toLocaleLowerCase())
 const hasQuery = computed(() => query.value.trim().length >= 2)
 
-const groups = computed<SearchGroup[]>(() => {
+const groups = computed((): SearchGroup[] => {
   const q = needle.value
   if (q.length < 2) return []
 
