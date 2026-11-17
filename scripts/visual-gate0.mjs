@@ -1498,9 +1498,9 @@ async function main() {
         const budgets = await page.locator('.fd-budget-panel').count()
         const queue = await page.locator('.fd-monitor-section').first().locator('.fd-monitor-row').count()
         const unavailableStates = await page.getByText('Not implemented', { exact: true }).count()
-        const activeDispatcher = await page.getByText('Active', { exact: true }).count()
+        const activeDispatcher = await page.getByText(/^(Active|Активен)$/, { exact: true }).count()
         const pauseControls = await page
-          .getByRole('button', { name: /Pause GitHub requests|Resume GitHub requests/ })
+          .getByRole('button', { name: /Pause GitHub requests|Resume GitHub requests|Приостановить запросы GitHub|Возобновить запросы GitHub/ })
           .count()
         caseReport.monitorBudgets = budgets
         caseReport.monitorQueue = queue
