@@ -1370,7 +1370,11 @@ impl AppService {
                 tx,
                 &workspace.id,
                 paused,
-                if paused { "Paused by user in API Monitor." } else { "" },
+                if paused {
+                    "Paused by user in API Monitor."
+                } else {
+                    ""
+                },
             )
         })
     }

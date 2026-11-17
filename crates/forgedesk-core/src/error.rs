@@ -154,11 +154,15 @@ impl CoreError {
     }
 
     pub fn rate_limit_primary(message: impl Into<String>) -> Self {
-        Self::RateLimitPrimary { message: message.into() }
+        Self::RateLimitPrimary {
+            message: message.into(),
+        }
     }
 
     pub fn rate_limit_secondary(message: impl Into<String>) -> Self {
-        Self::RateLimitSecondary { message: message.into() }
+        Self::RateLimitSecondary {
+            message: message.into(),
+        }
     }
 
     pub fn unsupported(message: impl Into<String>) -> Self {

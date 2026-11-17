@@ -38,7 +38,10 @@ impl RequestClass {
     }
 
     fn is_background(self) -> bool {
-        matches!(self, Self::BackgroundSync | Self::ManualFullSync | Self::Reconciliation)
+        matches!(
+            self,
+            Self::BackgroundSync | Self::ManualFullSync | Self::Reconciliation
+        )
     }
 }
 
@@ -54,17 +57,23 @@ struct RateHeaders<'a> {
 
 pub fn configure_runtime_database(path: impl Into<PathBuf>) -> CoreResult<()> {
     let lock = DATABASE_PATH.get_or_init(|| Mutex::new(None));
-    let mut current = lock.lock().map_err(|_| CoreError::internal("GitHub dispatcher configuration is unavailable."))?;
+    let mut current = lock
+        .lock()
+        .map_err(|_| CoreError::internal("GitHub dispatcher configuration is unavailable."))?;
     *current = Some(path.into());
     Ok(())
 }
 
 pub(crate) fn request_gate() -> MutexGuard<'static, ()> {
-    REQUEST_GATE.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+    REQUEST_GATE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
 pub(crate) fn pace_mutation() {
-    let mut last = LAST_MUTATION.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let mut last = LAST_MUTATION
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
     if let Some(previous) = *last {
         let remaining = Duration::from_secs(1).saturating_sub(previous.elapsed());
         if !remaining.is_zero() {
@@ -75,8 +84,12 @@ pub(crate) fn pace_mutation() {
 }
 
 fn configured_path() -> CoreResult<Option<PathBuf>> {
-    let Some(lock) = DATABASE_PATH.get() else { return Ok(None); };
-    let current = lock.lock().map_err(|_| CoreError::internal("GitHub dispatcher configuration is unavailable."))?;
+    let Some(lock) = DATABASE_PATH.get() else {
+        return Ok(None);
+    };
+    let current = lock
+        .lock()
+        .map_err(|_| CoreError::internal("GitHub dispatcher configuration is unavailable."))?;
     Ok(current.clone())
 }
 
@@ -87,25 +100,40 @@ fn open_runtime_database(path: &PathBuf) -> CoreResult<Connection> {
 }
 
 fn workspace_id(connection: &Connection) -> CoreResult<Option<String>> {
-    Ok(connection.query_row(
-        "SELECT id FROM workspace ORDER BY created_at LIMIT 1", [], |row| row.get(0)
-    ).optional()?)
+    Ok(connection
+        .query_row(
+            "SELECT id FROM workspace ORDER BY created_at LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?)
 }
 
 fn inferred_resource(path: &str) -> &'static str {
-    if path.starts_with("/search/") { "search" } else { "core" }
+    if path.starts_with("/search/") {
+        "search"
+    } else {
+        "core"
+    }
 }
 
 pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
-    let Some(database_path) = configured_path()? else { return Ok(()); };
+    let Some(database_path) = configured_path()? else {
+        return Ok(());
+    };
     let connection = open_runtime_database(&database_path)?;
-    let Some(workspace_id) = workspace_id(&connection)? else { return Ok(()); };
+    let Some(workspace_id) = workspace_id(&connection)? else {
+        return Ok(());
+    };
 
-    let paused: bool = connection.query_row(
-        "SELECT paused FROM api_control WHERE workspace_id = ?1",
-        [&workspace_id],
-        |row| row.get::<_, i64>(0).map(|value| value != 0),
-    ).optional()?.unwrap_or(false);
+    let paused: bool = connection
+        .query_row(
+            "SELECT paused FROM api_control WHERE workspace_id = ?1",
+            [&workspace_id],
+            |row| row.get::<_, i64>(0).map(|value| value != 0),
+        )
+        .optional()?
+        .unwrap_or(false);
     if paused {
         return Err(CoreError::rate_limit_secondary(
             "GitHub requests are paused in API Monitor. Resume requests to continue.",
@@ -123,20 +151,28 @@ pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
             |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)),
         ).optional()?;
 
-    let Some((remaining, _limit, reset_at, observed_at, secondary_pause_until)) = observation else {
+    let Some((remaining, _limit, reset_at, observed_at, secondary_pause_until)) = observation
+    else {
         return Ok(());
     };
 
     let now = Utc::now();
     if let Some(until) = secondary_pause_until.as_deref() {
-        if DateTime::parse_from_rfc3339(until).map(|value| value.with_timezone(&Utc) > now).unwrap_or(false) {
-            return Err(CoreError::rate_limit_secondary(format!("GitHub secondary rate limit is active until {until}.")));
+        if DateTime::parse_from_rfc3339(until)
+            .map(|value| value.with_timezone(&Utc) > now)
+            .unwrap_or(false)
+        {
+            return Err(CoreError::rate_limit_secondary(format!(
+                "GitHub secondary rate limit is active until {until}."
+            )));
         }
     }
 
-    let reset_in_future = reset_at.as_deref()
+    let reset_in_future = reset_at
+        .as_deref()
         .and_then(|value| DateTime::parse_from_rfc3339(value).ok())
-        .map(|value| value.with_timezone(&Utc) > now).unwrap_or(false);
+        .map(|value| value.with_timezone(&Utc) > now)
+        .unwrap_or(false);
     if reset_in_future {
         let available = remaining.unwrap_or(0);
         let consumed_since_observation: i64 = connection.query_row(
@@ -147,7 +183,11 @@ pub(crate) fn authorize(class: RequestClass, path: &str) -> CoreResult<()> {
             |row| row.get(0),
         )?;
         if available.saturating_sub(consumed_since_observation) <= 0 {
-            let label = if class.is_background() { "Background" } else { "Interactive" };
+            let label = if class.is_background() {
+                "Background"
+            } else {
+                "Interactive"
+            };
             return Err(CoreError::rate_limit_primary(format!(
                 "{label} GitHub requests are paused until the REST rate-limit reset."
             )));
@@ -169,25 +209,43 @@ pub(crate) fn record_response(
     response_bytes: usize,
     response_body: &str,
 ) -> CoreResult<()> {
-    let Some(database_path) = configured_path()? else { return Ok(()); };
+    let Some(database_path) = configured_path()? else {
+        return Ok(());
+    };
     let mut connection = open_runtime_database(&database_path)?;
-    let Some(workspace_id) = workspace_id(&connection)? else { return Ok(()); };
+    let Some(workspace_id) = workspace_id(&connection)? else {
+        return Ok(());
+    };
 
-    let resource = rate.resource.as_deref().filter(|value| !value.trim().is_empty())
+    let resource = rate
+        .resource
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
         .unwrap_or_else(|| inferred_resource(path));
     let body_lower = response_body.to_ascii_lowercase();
     let secondary_limited = status == 429
-        || (status == 403 && (body_lower.contains("secondary rate limit") || body_lower.contains("abuse detection")));
-    let reset_at = rate.reset.and_then(|value| DateTime::<Utc>::from_timestamp(value, 0))
+        || (status == 403
+            && (body_lower.contains("secondary rate limit")
+                || body_lower.contains("abuse detection")));
+    let reset_at = rate
+        .reset
+        .and_then(|value| DateTime::<Utc>::from_timestamp(value, 0))
         .map(|value| value.to_rfc3339());
     let secondary_pause_until = if secondary_limited {
         let seconds = retry_after_seconds.unwrap_or(60).clamp(1, 3600);
         Some((Utc::now() + chrono::Duration::seconds(seconds as i64)).to_rfc3339())
-    } else { None };
-    let result_state = if secondary_limited { "secondary_limited" }
-        else if status == 403 && rate.remaining == Some(0) { "rate_limited" }
-        else if (200..300).contains(&status) { "success" }
-        else { "failed" };
+    } else {
+        None
+    };
+    let result_state = if secondary_limited {
+        "secondary_limited"
+    } else if status == 403 && rate.remaining == Some(0) {
+        "rate_limited"
+    } else if (200..300).contains(&status) {
+        "success"
+    } else {
+        "failed"
+    };
     let error_category = match result_state {
         "secondary_limited" => Some("rate_limit_secondary"),
         "rate_limited" => Some("rate_limit_primary"),
@@ -198,15 +256,22 @@ pub(crate) fn record_response(
     let operation_code = format!("{}_{}", method.to_ascii_lowercase(), resource);
     let body_text = body.map(serde_json::Value::to_string).unwrap_or_default();
     let mut hasher = Sha256::new();
-    hasher.update(method.as_bytes()); hasher.update(b"\n");
-    hasher.update(path.as_bytes()); hasher.update(b"\n");
+    hasher.update(method.as_bytes());
+    hasher.update(b"\n");
+    hasher.update(path.as_bytes());
+    hasher.update(b"\n");
     hasher.update(body_text.as_bytes());
     let fingerprint = format!("{:x}", hasher.finalize());
     let now = now_rfc3339();
     let rate_headers = serde_json::to_string(&RateHeaders {
-        limit: rate.limit, remaining: rate.remaining, used: rate.used, reset: rate.reset,
-        resource: &rate.resource, retry_after_seconds,
-    }).unwrap_or_else(|_| "{}".into());
+        limit: rate.limit,
+        remaining: rate.remaining,
+        used: rate.used,
+        reset: rate.reset,
+        resource: &rate.resource,
+        retry_after_seconds,
+    })
+    .unwrap_or_else(|_| "{}".into());
 
     let tx = connection.transaction()?;
     if rate.limit.is_some() || rate.remaining.is_some() || secondary_pause_until.is_some() {
@@ -218,8 +283,16 @@ pub(crate) fn record_response(
              VALUES (?1, ?2, NULL, 'github_rest', ?3, ?4, ?5, ?6, ?7, ?8, ?9,
                      'response_headers', 0, ?10, ?11)",
             rusqlite::params![
-                uuid::Uuid::now_v7().to_string(), workspace_id, resource, rate.limit, rate.remaining,
-                rate.used, reset_at, now, status as i64, secondary_pause_until,
+                uuid::Uuid::now_v7().to_string(),
+                workspace_id,
+                resource,
+                rate.limit,
+                rate.remaining,
+                rate.used,
+                reset_at,
+                now,
+                status as i64,
+                secondary_pause_until,
                 format!("{} {}", method, path.split('?').next().unwrap_or(path)),
             ],
         )?;
@@ -233,11 +306,25 @@ pub(crate) fn record_response(
          VALUES (?1, ?2, NULL, ?3, ?4, 'github_rest', ?5, ?6, ?7, 1.0, ?8, ?9,
                  ?10, ?11, ?12, 0, ?13, ?14, ?15)",
         rusqlite::params![
-            uuid::Uuid::now_v7().to_string(), workspace_id, operation_name, operation_code,
-            resource, class.as_str(), fingerprint,
-            if (200..300).contains(&status) { 1.0 } else { 0.0 },
-            status as i64, error_category, elapsed.as_millis().min(i64::MAX as u128) as i64,
-            now, result_state, rate_headers, response_bytes as i64,
+            uuid::Uuid::now_v7().to_string(),
+            workspace_id,
+            operation_name,
+            operation_code,
+            resource,
+            class.as_str(),
+            fingerprint,
+            if (200..300).contains(&status) {
+                1.0
+            } else {
+                0.0
+            },
+            status as i64,
+            error_category,
+            elapsed.as_millis().min(i64::MAX as u128) as i64,
+            now,
+            result_state,
+            rate_headers,
+            response_bytes as i64,
         ],
     )?;
     tx.commit()?;
@@ -271,10 +358,15 @@ pub(crate) fn record_transport_failure(
          VALUES (?1, ?2, NULL, ?3, ?4, 'github_rest', ?5, ?6, ?7, 1.0, 0.0, NULL,
                  'network', ?8, ?9, 0, 'failed', '{}', NULL)",
         rusqlite::params![
-            uuid::Uuid::now_v7().to_string(), workspace_id,
+            uuid::Uuid::now_v7().to_string(),
+            workspace_id,
             format!("{} {}", method, path.split('?').next().unwrap_or(path)),
-            format!("{}_{}", method.to_ascii_lowercase(), resource), resource, class.as_str(),
-            fingerprint, elapsed.as_millis().min(i64::MAX as u128) as i64, now_rfc3339(),
+            format!("{}_{}", method.to_ascii_lowercase(), resource),
+            resource,
+            class.as_str(),
+            fingerprint,
+            elapsed.as_millis().min(i64::MAX as u128) as i64,
+            now_rfc3339(),
         ],
     )?;
     let _ = error;
@@ -288,14 +380,21 @@ mod tests {
     #[test]
     fn persisted_request_classes_match_schema() {
         for class in [
-            RequestClass::InteractiveRead, RequestClass::InteractiveWrite,
-            RequestClass::ForegroundRefresh, RequestClass::BackgroundSync,
-            RequestClass::ManualFullSync, RequestClass::Reconciliation,
+            RequestClass::InteractiveRead,
+            RequestClass::InteractiveWrite,
+            RequestClass::ForegroundRefresh,
+            RequestClass::BackgroundSync,
+            RequestClass::ManualFullSync,
+            RequestClass::Reconciliation,
         ] {
             assert!(matches!(
                 class.as_str(),
-                "interactive_read" | "interactive_write" | "foreground_refresh"
-                    | "background_sync" | "manual_full_sync" | "reconciliation"
+                "interactive_read"
+                    | "interactive_write"
+                    | "foreground_refresh"
+                    | "background_sync"
+                    | "manual_full_sync"
+                    | "reconciliation"
             ));
         }
     }

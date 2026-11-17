@@ -257,53 +257,113 @@ impl GitHubClient {
         Self::build(token, base, RequestClass::InteractiveRead, false)
     }
 
-    fn build(token: impl Into<String>, base: impl Into<String>, request_class: RequestClass, dispatch_enabled: bool) -> CoreResult<Self> {
+    fn build(
+        token: impl Into<String>,
+        base: impl Into<String>,
+        request_class: RequestClass,
+        dispatch_enabled: bool,
+    ) -> CoreResult<Self> {
         let http = Client::builder()
             .user_agent("ForgeDesk/0.1 (+https://github.com/mindwork64/forgedesk)")
             .timeout(Duration::from_secs(30))
             .build()
             .map_err(|error| CoreError::network(format!("HTTP client failed: {error}")))?;
-        Ok(Self { http, token: token.into(), base: base.into().trim_end_matches('/').to_owned(), request_class, dispatch_enabled })
+        Ok(Self {
+            http,
+            token: token.into(),
+            base: base.into().trim_end_matches('/').to_owned(),
+            request_class,
+            dispatch_enabled,
+        })
     }
 
-    fn execute(&self, method: reqwest::Method, path: &str, body: Option<&Value>) -> CoreResult<(String, RateSnapshot, Option<String>)> {
+    fn execute(
+        &self,
+        method: reqwest::Method,
+        path: &str,
+        body: Option<&Value>,
+    ) -> CoreResult<(String, RateSnapshot, Option<String>)> {
         let _gate = github_dispatcher::request_gate();
-        let request_class = if method == reqwest::Method::GET { self.request_class } else { RequestClass::InteractiveWrite };
-        if self.dispatch_enabled { github_dispatcher::authorize(request_class, path)?; }
-        if method != reqwest::Method::GET { github_dispatcher::pace_mutation(); }
+        let request_class = if method == reqwest::Method::GET {
+            self.request_class
+        } else {
+            RequestClass::InteractiveWrite
+        };
+        if self.dispatch_enabled {
+            github_dispatcher::authorize(request_class, path)?;
+        }
+        if method != reqwest::Method::GET {
+            github_dispatcher::pace_mutation();
+        }
 
         let started = Instant::now();
-        let mut request = self.http.request(method.clone(), format!("{}{}", self.base, path))
+        let mut request = self
+            .http
+            .request(method.clone(), format!("{}{}", self.base, path))
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .bearer_auth(&self.token);
-        if let Some(body) = body { request = request.json(body); }
+        if let Some(body) = body {
+            request = request.json(body);
+        }
         let response = match request.send() {
             Ok(response) => response,
             Err(error) => {
                 if self.dispatch_enabled {
-                    let _ = github_dispatcher::record_transport_failure(request_class, method.as_str(), path, body, started.elapsed(), &error.to_string());
+                    let _ = github_dispatcher::record_transport_failure(
+                        request_class,
+                        method.as_str(),
+                        path,
+                        body,
+                        started.elapsed(),
+                        &error.to_string(),
+                    );
                 }
-                return Err(CoreError::network(format!("GitHub request failed: {error}")));
+                return Err(CoreError::network(format!(
+                    "GitHub request failed: {error}"
+                )));
             }
         };
         let status = response.status();
         let rate = rate_from_headers(&response);
-        let link = response.headers().get("link").and_then(|value| value.to_str().ok()).map(str::to_owned);
-        let retry_after_seconds = response.headers().get("retry-after").and_then(|value| value.to_str().ok()).and_then(|value| value.parse::<u64>().ok());
+        let link = response
+            .headers()
+            .get("link")
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned);
+        let retry_after_seconds = response
+            .headers()
+            .get("retry-after")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.parse::<u64>().ok());
         let text = match response.text() {
             Ok(text) => text,
             Err(error) => {
                 if self.dispatch_enabled {
                     let _ = github_dispatcher::record_transport_failure(request_class, method.as_str(), path, body, started.elapsed(), &error.to_string());
                 }
-                return Err(CoreError::network(format!("GitHub response failed: {error}")));
+                return Err(CoreError::network(format!(
+                    "GitHub response failed: {error}"
+                )));
             }
         };
         if self.dispatch_enabled {
-            let _ = github_dispatcher::record_response(request_class, method.as_str(), path, body, status.as_u16(), &rate, retry_after_seconds, started.elapsed(), text.len(), &text);
+            let _ = github_dispatcher::record_response(
+                request_class,
+                method.as_str(),
+                path,
+                body,
+                status.as_u16(),
+                &rate,
+                retry_after_seconds,
+                started.elapsed(),
+                text.len(),
+                &text,
+            );
         }
-        if !status.is_success() { return Err(map_status(status, &text, rate.remaining)); }
+        if !status.is_success() {
+            return Err(map_status(status, &text, rate.remaining));
+        }
         Ok((text, rate, link))
     }
 
@@ -637,14 +697,23 @@ impl GitHubClient {
 
     pub fn get_authenticated_user(&self) -> CoreResult<(String, i64)> {
         #[derive(Deserialize)]
-        struct AuthenticatedUser { login: String, id: i64 }
+        struct AuthenticatedUser {
+            login: String,
+            id: i64,
+        }
         let user: AuthenticatedUser = self.get_json("/user")?;
         Ok((user.login, user.id))
     }
 
-    fn send_json<T: for<'de> Deserialize<'de>>(&self, method: reqwest::Method, path: &str, body: &Value) -> CoreResult<T> {
+    fn send_json<T: for<'de> Deserialize<'de>>(
+        &self,
+        method: reqwest::Method,
+        path: &str,
+        body: &Value,
+    ) -> CoreResult<T> {
         let (text, _, _) = self.execute(method, path, Some(body))?;
-        serde_json::from_str(&text).map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))
+        serde_json::from_str(&text)
+            .map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))
     }
 
     fn get_json<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<T> {
@@ -654,8 +723,13 @@ impl GitHubClient {
 
     fn get_page<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<Page<T>> {
         let (text, rate, link) = self.execute(reqwest::Method::GET, path, None)?;
-        let items: Vec<T> = serde_json::from_str(&text).map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))?;
-        Ok(Page { items, next_page: link.as_deref().and_then(parse_next_page), rate })
+        let items: Vec<T> = serde_json::from_str(&text)
+            .map_err(|error| CoreError::network(format!("GitHub JSON parsing failed: {error}")))?;
+        Ok(Page {
+            items,
+            next_page: link.as_deref().and_then(parse_next_page),
+            rate,
+        })
     }
 }
 
@@ -717,7 +791,10 @@ fn map_status(status: StatusCode, body: &str, remaining: Option<i64>) -> CoreErr
         })
         .unwrap_or_else(|| format!("HTTP {}", status.as_u16()));
     let normalized = message.to_ascii_lowercase();
-    if status == StatusCode::TOO_MANY_REQUESTS || normalized.contains("secondary rate limit") || normalized.contains("abuse detection") {
+    if status == StatusCode::TOO_MANY_REQUESTS
+        || normalized.contains("secondary rate limit")
+        || normalized.contains("abuse detection")
+    {
         return CoreError::rate_limit_secondary(format!("GitHub secondary rate limit: {message}"));
     }
     if status == StatusCode::UNAUTHORIZED {
@@ -1093,6 +1170,9 @@ mod tests {
             r#"{"message":"API rate limit exceeded"}"#,
             Some(0),
         );
-        assert_eq!(error.category(), crate::error::ErrorCategory::RateLimitPrimary);
+        assert_eq!(
+            error.category(),
+            crate::error::ErrorCategory::RateLimitPrimary
+        );
     }
 }
