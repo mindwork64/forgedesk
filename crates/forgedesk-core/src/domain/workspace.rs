@@ -22,12 +22,11 @@ impl Workspace {
     /// Existing issue keys are immutable and are never rewritten.
     pub fn validate_key_prefix(raw: &str) -> CoreResult<String> {
         let prefix = raw.trim().to_ascii_uppercase();
-        let valid = (1..=ISSUE_KEY_PREFIX_MAX).contains(&prefix.len())
-            && {
-                let mut chars = prefix.chars();
-                matches!(chars.next(), Some(first) if first.is_ascii_alphabetic())
-                    && chars.all(|ch| ch.is_ascii_alphanumeric())
-            };
+        let valid = (1..=ISSUE_KEY_PREFIX_MAX).contains(&prefix.len()) && {
+            let mut chars = prefix.chars();
+            matches!(chars.next(), Some(first) if first.is_ascii_alphabetic())
+                && chars.all(|ch| ch.is_ascii_alphanumeric())
+        };
         if !valid {
             return Err(CoreError::validation(
                 "keyPrefix",
@@ -58,7 +57,6 @@ impl Workspace {
         }
         Ok(name.to_owned())
     }
-
 }
 
 #[cfg(test)]
@@ -67,9 +65,15 @@ mod tests {
 
     #[test]
     fn validates_and_normalizes_key_prefixes() {
-        assert_eq!(Workspace::validate_key_prefix(" exhi42 ").unwrap(), "EXHI42");
+        assert_eq!(
+            Workspace::validate_key_prefix(" exhi42 ").unwrap(),
+            "EXHI42"
+        );
         for invalid in ["", "1FD", "A-B", "TOO-LONG-PREFIX", "éx"] {
-            assert!(Workspace::validate_key_prefix(invalid).is_err(), "{invalid}");
+            assert!(
+                Workspace::validate_key_prefix(invalid).is_err(),
+                "{invalid}"
+            );
         }
     }
 }
