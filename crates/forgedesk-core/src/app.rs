@@ -584,6 +584,13 @@ impl AppService {
         })
     }
 
+    pub fn activity(&self) -> CoreResult<Vec<InboxEvent>> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::inbox::list_activity(conn, &workspace.id)
+        })
+    }
+
     pub fn inbox_mark_read(&self, event_id: &str, read: bool) -> CoreResult<()> {
         let workspace = self.require_workspace()?;
         self.db.with_transaction(|conn| {
