@@ -109,7 +109,24 @@ function commitDate(commit: GitHubCommit): string {
       </template>
     </PageHeader>
 
-    <div v-if="!auth.connected" class="fd-ci-state">
+    <div v-if="auth.connectionLoading || !auth.connectionChecked" class="fd-ci-state">
+      <FdLoadingSkeleton :rows="5" :height="42" />
+    </div>
+    <div v-else-if="auth.storageUnavailable || auth.connectionCheckFailed" class="fd-ci-state">
+      <FdEmptyState
+        :icon="Activity"
+        :title="auth.storageUnavailable ? t('githubAuth.storageUnavailable') : t('githubAuth.connectionCheckFailed')"
+        :body="auth.error?.message ?? t('githubAuth.connectionCheckFailedHint')"
+      >
+        <FdButton variant="secondary" @click="auth.loadConnection(true)">
+          {{ t('githubAuth.retryCheck') }}
+        </FdButton>
+        <FdButton variant="ghost" @click="router.push('/integrations')">
+          {{ t('nav.integrations') }}
+        </FdButton>
+      </FdEmptyState>
+    </div>
+    <div v-else-if="!auth.connected" class="fd-ci-state">
       <FdEmptyState :icon="Activity" :title="t('ciPage.connectTitle')" :body="t('ciPage.connectBody')">
         <FdButton variant="primary" @click="router.push('/integrations')">
           {{ t('ciPage.connectTitle') }}

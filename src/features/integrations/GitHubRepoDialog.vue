@@ -159,6 +159,7 @@ function openProject(repo: Repository): void {
             <FdButton
               variant="ghost"
               size="sm"
+              :title="t('githubRepos.useForPrsHint')"
               @click="useForPullRequests(repo)"
             >
               {{ t('githubRepos.useForPrs') }}
