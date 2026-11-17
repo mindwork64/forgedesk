@@ -103,7 +103,7 @@ onMounted(async () => {
 })
 
 watch(state, load)
-watch(selectedRepo, async () => {
+watch(() => selectedRepo.value?.repositoryId ?? null, async () => {
   prs.close()
   await load()
   openRequested()
