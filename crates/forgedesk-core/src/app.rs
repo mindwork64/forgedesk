@@ -14,13 +14,13 @@ use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
-    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
-    CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
-    GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
-    IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
-    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository,
-    RepositoryDiscoveryResult, RepositoryInput, SavedView, SavedViewInput, SettingsPatch,
-    StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
+    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail,
+    CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry, GitOverview,
+    Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery, IssueRelation,
+    IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput,
+    ProjectQuery, ProjectRef, RelationInputKind, Repository, RepositoryDiscoveryResult,
+    RepositoryInput, SavedView, SavedViewInput, SettingsPatch, StatusSummary, UpdateIssueInput,
+    WindowState, Workflow, Workspace,
 };
 use crate::error::{CoreError, CoreResult};
 use crate::github_actions::PullCapabilities;
