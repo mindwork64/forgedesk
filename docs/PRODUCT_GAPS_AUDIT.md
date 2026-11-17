@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-11-17  
 **Audited revision:** `5b68247e292d4a7f81029aba9f208c745de10f3f` (main)  
-**Method:** static inspection of the current source tree, routes, UI copy, core services, database repositories and stage reports. This is not a native desktop smoke test.
+**Method:** static inspection of the source tree, routes, UI copy, core services, database repositories and stage reports, followed by CI verification of the implementation in PR #2. This is not a native desktop smoke test.
 
 ## Summary
 
@@ -70,4 +70,12 @@ The stage reports document these deliberately incomplete areas; they should rema
 
 ## Verification boundary
 
-This audit inspected source and documentation at the audited revision. It did not run a native desktop session or execute the repository's test suite. CI on the pull request must provide the code-change verification; interactive Windows/Linux smoke tests remain separate release checks.
+The implementation in PR #2 was verified by GitHub Actions run
+[44002363339](https://github.com/mindwork64/forgedesk/actions/runs/44002363339)
+at tested code revision `8ef6c62`: all seven CI jobs passed, including 147 frontend
+tests, 61 deterministic visual captures, core tests/Clippy on Ubuntu and Windows,
+Tauri compile checks on Linux and Windows and the optional AI crate checks.
+
+This remains CI/fixture verification, not a native desktop smoke test. Interactive
+Windows/Linux runtime flows and live GitHub credential operations must still be
+checked separately.
