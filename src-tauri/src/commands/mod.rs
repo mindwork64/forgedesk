@@ -10,7 +10,7 @@ use forgedesk_core::domain::inbox::InboxEvent;
 use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
 use forgedesk_core::domain::{
-    ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
+    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
     GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
     IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail, ProjectInput,
@@ -650,17 +650,6 @@ pub fn get_git_diff(state: State<'_, AppState>, id: String) -> Result<GitDiffSta
 pub fn get_api_monitor(state: State<'_, AppState>) -> Result<ApiMonitorState, CommandError> {
     state
         .with_service(|service| service.api_monitor())
-        .map_err(CommandError::from)
-}
-
-#[tauri::command]
-pub fn set_api_paused(
-    state: State<'_, AppState>,
-    paused: bool,
-    reason: String,
-) -> Result<ApiControl, CommandError> {
-    state
-        .with_service(|service| service.set_api_paused(paused, &reason))
         .map_err(CommandError::from)
 }
 
