@@ -1,5 +1,20 @@
 # ForgeDesk product gaps audit
 
+# Current-state addendum — 2026-11-17 (after PR #8 and PR #10)
+
+This addendum supersedes any older statements below that describe PR #8 as pending or say that bidirectional GitHub Issue sync is not implemented. The historical audit body records the earlier PR #2 snapshot and is retained for context.
+
+- **PR #8 is merged** (merge commit `e9c1e4e64b421716d45e74b4cc3bf9ac050e79f4`). Issues #5, #6 and #7 are closed. Project archive/restore, workspace and per-project issue-key prefixes, and the associated search improvements are on `main`. The database schema is v11.
+- **PR #10 is merged** (main commit `bd80833002cee660b8f2ef9e262c0556ab4f725a`). Manual bidirectional sync is implemented for already linked GitHub Issues: title, description/body, open/closed status and labels. Outgoing changes use the Outbox; ambiguous writes are reconciled conservatively; field conflicts can be resolved from Settings → Sync.
+- **Still not implemented:** background polling/scheduling, a shared dispatcher for all GitHub API requests, a fully enforced API pause/rate-limit gate, automatic creation of GitHub Issues from local-only tasks, comment synchronization and a complete incremental watermark/cursor workflow. Issue import is manually paginated.
+- **Still limited:** GitLab/Gitea are fixture-backed/read-only rather than live connections; PR inline review-comment placement and review-thread resolution are missing; local Git has no remote synchronization/rebase/branch deletion or process timeout; workspace export/import beyond SQLite backup/restore and signed installers are not implemented.
+- **Verification boundary:** CI and deterministic UI tests do not replace interactive Windows/Linux smoke tests. The PR #11 UX/status corrections are in a draft PR and are not part of `main` yet.
+
+The rest of this file is a historical snapshot produced before those merges; use the addendum above for current status.
+
+---
+
+
 **Audit date:** 2026-11-17  
 **Audited revision:** `4ea91ebf3410e8712f9772e3112efdeb38fc4f91` (main, PR #2 merge)  
 **Method:** static inspection of the source tree, routes, UI copy, core services, database repositories and stage reports, followed by CI verification of the implementation in PR #2. This is not a native desktop smoke test.

@@ -1141,6 +1141,9 @@ export default {
     connectionCheckFailed: 'GitHub connection check failed',
     connectionCheckFailedHint:
       'ForgeDesk could not verify the saved GitHub connection. Retry the check or reconnect; this is not a confirmed disconnected state.',
+    reconcileNeeded: 'The result of {count} updates could not be confirmed. Check the issues on GitHub before trying again.',
+    dispatchWarning: 'Could not send updates to GitHub: {message}',
+    conflictReviewNeeded: '{count} updates need conflict review. Open Sync settings to review them.',
     refreshed: 'GitHub token refreshed',
     refreshError: 'Could not refresh GitHub token',
     disconnected: 'GitHub disconnected',
@@ -1168,13 +1171,14 @@ export default {
 
     importing: 'Importing…',
     imported: 'Imported {imported}, skipped {skipped}',
+    importDetails: 'Project: {project} · Updated: {updated} · Conflicts: {conflicts} · Sent: {sent}',
     importError: 'Issue import failed',
     private: 'Private',
     public: 'Public',
     noResults: 'No repositories available',
     noIssues: 'No issues to import in this repository.',
     limitHint:
-      'Imports up to 250 recently updated issues and creates/uses a local project named owner/repository. Remote comments and GitHub writes are not included.',
+      'Imports up to 250 recently updated issues into a local project named after the repository. ForgeDesk can send changes to already linked issues; creating new GitHub issues and syncing comments are not supported yet.',
     open: 'View imported project',
     useForPrs: 'View pull requests',
     useForPrsHint: 'Select this repository and open its pull requests. This does not create anything on GitHub.',

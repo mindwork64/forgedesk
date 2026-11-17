@@ -238,20 +238,23 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
         const outbound = await api.githubDispatchIssueOutbox(owner, repo)
         outboundSent = outbound.sent + outbound.reconciled
         if (outbound.outcomeUnknown > 0) {
-          toast.warning(
-            `GitHub sync: ${outbound.outcomeUnknown} update(s) need remote reconciliation before retry.`,
-          )
+          toast.warning(t('githubAuth.reconcileNeeded', { count: outbound.outcomeUnknown }))
         }
       } catch (caught) {
         const wire = toIpcError(caught)
-        toast.warning(`GitHub sync: ${wire.message}`)
+        toast.warning(t('githubAuth.dispatchWarning', { message: wire.message }))
       }
       toast.success(
         t('githubRepos.imported', {
           imported: result.imported,
           skipped: result.skipped,
         }),
-        `${result.projectName} · ${result.updated} updated · ${result.conflicted} conflicts · ${outboundSent} sent`,
+        t('githubRepos.importDetails', {
+          project: result.projectName,
+          updated: result.updated,
+          conflicts: result.conflicted,
+          sent: outboundSent,
+        }),
       )
       return result
     } catch (caught) {
@@ -276,9 +279,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
         `${owner}/${repo}`,
       )
       if (result.outcomeUnknown > 0) {
-        toast.warning(
-          `GitHub sync: ${result.outcomeUnknown} update(s) need conflict review.`,
-        )
+        toast.warning(t('githubAuth.conflictReviewNeeded', { count: result.outcomeUnknown }))
       }
     } catch (caught) {
       const wire = toIpcError(caught)
