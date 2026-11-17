@@ -291,7 +291,7 @@ export default {
         'The periodic scheduler, adaptive interval management and sync-queue worker are not wired yet. ForgeDesk does not poll GitHub automatically in the background.',
       availableNow: 'Available now',
       currentCapabilities:
-        'GitHub connection, repository discovery and manual issue import are available. Pull request, check and review data are fetched when the corresponding screens are opened or refreshed. Mutating actions require explicit confirmation.',
+        'GitHub connection, repository discovery and manual issue sync are available: refresh linked Issues, push queued local edits and resolve conflicts. Pull request, check and review data are fetched when their screens are opened or refreshed. Mutating actions remain explicit.',
       apiSnapshot: 'API monitor data',
       apiSummary:
         'Observed buckets: {buckets} · Request log entries: {requests} · Queued jobs: {queued}',
@@ -302,6 +302,16 @@ export default {
       openIntegrations: 'Open integrations',
       openApiMonitor: 'Open API monitor',
       refresh: 'Refresh status',
+      pushPending: 'Push queued changes',
+      outboxResult: 'Sent: {sent} · Reconciled: {reconciled} · Skipped: {skipped}',
+      outboxFailed: 'Could not send queued GitHub changes',
+      conflicts: 'Unresolved conflicts',
+      localValue: 'Local',
+      remoteValue: 'GitHub',
+      keepLocal: 'Keep local',
+      useGitHub: 'Use GitHub',
+      conflictResolved: 'Conflict resolved. Run repository sync to publish local choices.',
+      conflictResolveFailed: 'Could not resolve sync conflict',
     },
     shortcuts: {
       title: 'Keyboard shortcuts',

@@ -611,12 +611,31 @@ export function handleStage4FixtureCommand<T>(
           nextPage: null,
         } as T,
       }
+    case 'github_sync_conflicts':
+      return { handled: true, value: [] as T }
+    case 'github_resolve_sync_conflict':
+      return {
+        handled: true,
+        value: {
+          id: 'sync-conflict-fixture',
+          localIssueId: 'issue-fixture',
+          field: 'title',
+          localValue: '"Local title"',
+          remoteValue: '"GitHub title"',
+          remoteUpdatedAt: null,
+          resolution: 'local',
+          resolvedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        } as T,
+      }
     case 'github_import_issues':
       return {
         handled: true,
         value: {
           imported: 5,
           skipped: 2,
+          updated: 0,
+          conflicted: 0,
           projectId: 'project-forge',
           projectName: 'mindwork64/forgedesk',
           repositoryId: 'repo-forge',

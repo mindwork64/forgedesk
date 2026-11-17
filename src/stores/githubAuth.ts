@@ -34,6 +34,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   const discoveryNextPage = ref<number | null>(null)
   const discovering = ref(false)
   const importing = ref(false)
+  const syncingOutbox = ref(false)
   let timer: ReturnType<typeof setTimeout> | null = null
 
   const connected = computed(() => connection.value?.connected === true)
@@ -208,12 +209,25 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     importing.value = true
     try {
       const result = await api.githubImportIssues(owner, repo, targetProjectId, startPage)
+      let outboundSent = 0
+      try {
+        const outbound = await api.githubDispatchIssueOutbox(owner, repo)
+        outboundSent = outbound.sent + outbound.reconciled
+        if (outbound.outcomeUnknown > 0) {
+          toast.warning(
+            `GitHub sync: ${outbound.outcomeUnknown} update(s) need remote reconciliation before retry.`,
+          )
+        }
+      } catch (caught) {
+        const wire = toIpcError(caught)
+        toast.warning(`GitHub sync: ${wire.message}`)
+      }
       toast.success(
         t('githubRepos.imported', {
           imported: result.imported,
           skipped: result.skipped,
         }),
-        result.projectName,
+        `${result.projectName} · ${result.updated} updated · ${result.conflicted} conflicts · ${outboundSent} sent`,
       )
       return result
     } catch (caught) {
@@ -222,6 +236,31 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
       return null
     } finally {
       importing.value = false
+    }
+  }
+
+  async function dispatchIssueOutbox(owner: string, repo: string): Promise<void> {
+    syncingOutbox.value = true
+    try {
+      const result = await api.githubDispatchIssueOutbox(owner, repo)
+      toast.success(
+        t('settings.sync.outboxResult', {
+          sent: result.sent,
+          reconciled: result.reconciled,
+          skipped: result.skipped,
+        }),
+        `${owner}/${repo}`,
+      )
+      if (result.outcomeUnknown > 0) {
+        toast.warning(
+          `GitHub sync: ${result.outcomeUnknown} update(s) need conflict review.`,
+        )
+      }
+    } catch (caught) {
+      const wire = toIpcError(caught)
+      toast.error(t('settings.sync.outboxFailed'), wire.message, wire.detail)
+    } finally {
+      syncingOutbox.value = false
     }
   }
 
@@ -255,6 +294,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     discoveryNextPage,
     discovering,
     importing,
+    syncingOutbox,
     loadConnection,
     start,
     poll,
@@ -263,6 +303,7 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     discoverRepositories,
     restoreSelectedRepository,
     importIssues,
+    dispatchIssueOutbox,
     selectRepository,
     disconnect,
   }

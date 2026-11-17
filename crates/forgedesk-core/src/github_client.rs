@@ -9,6 +9,10 @@ use crate::error::{CoreError, CoreResult};
 
 const DEFAULT_API: &str = "https://api.github.com";
 
+// One process-wide gate keeps all REST clients single-flight and paces mutations.
+static GITHUB_REQUEST_GATE: std::sync::Mutex<Option<std::time::Instant>> =
+    std::sync::Mutex::new(None);
+
 #[derive(Debug, Clone, Default)]
 pub struct RateSnapshot {
     pub limit: Option<i64>,
@@ -88,6 +92,14 @@ pub struct GitHubIssue {
     pub updated_at: Option<String>,
     pub user: Option<GitHubOwner>,
     pub pull_request: Option<Value>,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct GitHubIssueUpdate<'a> {
+    pub title: Option<&'a str>,
+    pub body: Option<&'a str>,
+    pub state: Option<&'a str>,
+    pub labels: Option<&'a [String]>,
 }
 
 #[derive(Debug, Clone)]
@@ -290,6 +302,75 @@ impl GitHubClient {
         }
     }
 
+    /// Fetch one issue by its stable repository-local number.
+    pub fn get_issue(&self, owner: &str, repo: &str, number: i64) -> CoreResult<GitHubIssue> {
+        self.get_json(&format!(
+            "/repos/{}/{}/issues/{number}",
+            encode(owner),
+            encode(repo)
+        ))
+    }
+
+    /// Create an issue. Callers must route this through sync pacing policy.
+    pub fn create_issue(
+        &self,
+        owner: &str,
+        repo: &str,
+        title: &str,
+        body: &str,
+        labels: &[String],
+    ) -> CoreResult<GitHubIssue> {
+        self.send_json(
+            reqwest::Method::POST,
+            &format!("/repos/{}/{}/issues", encode(owner), encode(repo)),
+            &serde_json::json!({
+                "title": title,
+                "body": body,
+                "labels": labels,
+            }),
+        )
+    }
+
+    /// Update explicitly supplied fields only. An empty labels vector clears labels.
+    pub fn update_issue(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i64,
+        update: &GitHubIssueUpdate<'_>,
+    ) -> CoreResult<GitHubIssue> {
+        let mut payload = serde_json::Map::new();
+        if let Some(title) = update.title {
+            payload.insert("title".into(), title.into());
+        }
+        if let Some(body) = update.body {
+            payload.insert("body".into(), body.into());
+        }
+        if let Some(state) = update.state {
+            let normalized = match state {
+                "open" | "closed" => state,
+                _ => {
+                    return Err(CoreError::validation(
+                        "state",
+                        "GitHub issue state must be open or closed.",
+                    ))
+                }
+            };
+            payload.insert("state".into(), normalized.into());
+        }
+        if let Some(labels) = update.labels {
+            payload.insert("labels".into(), serde_json::json!(labels));
+        }
+        if payload.is_empty() {
+            return self.get_issue(owner, repo, number);
+        }
+        self.send_json(
+            reqwest::Method::PATCH,
+            &format!("/repos/{}/{}/issues/{number}", encode(owner), encode(repo)),
+            &serde_json::Value::Object(payload),
+        )
+    }
+
     pub fn list_issues(
         &self,
         owner: &str,
@@ -300,7 +381,7 @@ impl GitHubClient {
         let owner = encode(owner);
         let repo = encode(repo);
         self.get_page(&format!(
-            "/repos/{owner}/{repo}/issues?state=all&per_page={}&page={}",
+            "/repos/{owner}/{repo}/issues?state=all&sort=updated&direction=desc&per_page={}&page={}",
             per_page.clamp(1, 100),
             page.max(1)
         ))
@@ -519,6 +600,17 @@ impl GitHubClient {
         path: &str,
         body: &serde_json::Value,
     ) -> CoreResult<T> {
+        let mut gate = GITHUB_REQUEST_GATE
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some(last_mutation) = *gate {
+            let remaining =
+                std::time::Duration::from_secs(1).saturating_sub(last_mutation.elapsed());
+            if !remaining.is_zero() {
+                std::thread::sleep(remaining);
+            }
+        }
+        *gate = Some(std::time::Instant::now());
         let response = self
             .http
             .request(method, format!("{}{}", self.base, path))
@@ -541,6 +633,9 @@ impl GitHubClient {
     }
 
     fn get_json<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<T> {
+        let _gate = GITHUB_REQUEST_GATE
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         let url = format!("{}{}", self.base, path);
         let response = self
             .http
@@ -563,6 +658,9 @@ impl GitHubClient {
     }
 
     fn get_page<T: for<'de> Deserialize<'de>>(&self, path: &str) -> CoreResult<Page<T>> {
+        let _gate = GITHUB_REQUEST_GATE
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         let url = format!("{}{}", self.base, path);
         let response = self
             .http

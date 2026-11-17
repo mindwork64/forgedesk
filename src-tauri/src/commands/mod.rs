@@ -752,6 +752,38 @@ pub fn github_import_issues(
 }
 
 #[tauri::command]
+pub fn github_dispatch_issue_outbox(
+    state: State<'_, AppState>,
+    owner: String,
+    repo: String,
+) -> Result<forgedesk_core::github_sync::OutboxDispatchResult, CommandError> {
+    let token = state.with_github(|github| github.access_token())?;
+    state
+        .with_service(|service| service.dispatch_github_issue_outbox(&token, &owner, &repo))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_sync_conflicts(
+    state: State<'_, AppState>,
+) -> Result<Vec<forgedesk_core::domain::sync::SyncConflict>, CommandError> {
+    state
+        .with_service(|service| service.list_github_sync_conflicts())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn github_resolve_sync_conflict(
+    state: State<'_, AppState>,
+    conflict_id: String,
+    resolution: String,
+) -> Result<forgedesk_core::domain::sync::SyncConflict, CommandError> {
+    state
+        .with_service(|service| service.resolve_github_sync_conflict(&conflict_id, &resolution))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub fn github_list_pulls(
     state: State<'_, AppState>,
     owner: String,

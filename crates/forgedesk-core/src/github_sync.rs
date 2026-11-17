@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use crate::db::repositories::{api_budget, issues, planning, repo_registry, sync, workflow};
 use crate::domain::api_budget::ApiObservationInput;
-use crate::domain::issue::{CreateIssueInput, IssueType, Priority};
+use crate::domain::issue::{CreateIssueInput, IssueType, Priority, UpdateIssueInput};
 use crate::domain::planning::{PlanningStatus, ProjectInput, ProjectQuery};
 use crate::domain::sync::RemoteIssueLink;
 use crate::error::{CoreError, CoreResult};
@@ -15,12 +15,24 @@ use crate::github_client::{GitHubClient, GitHubIssue, GitHubRepo, RateSnapshot};
 pub struct ImportResult {
     pub imported: i64,
     pub skipped: i64,
+    pub updated: i64,
+    pub conflicted: i64,
     pub project_id: String,
     pub project_name: String,
     pub repository_id: String,
     pub has_more: bool,
     pub pages: u32,
     pub next_page: Option<u32>,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OutboxDispatchResult {
+    pub sent: i64,
+    pub reconciled: i64,
+    pub retry_pending: i64,
+    pub outcome_unknown: i64,
+    pub skipped: i64,
 }
 
 pub struct FetchedImport {
@@ -136,14 +148,138 @@ pub fn apply_import(
     let account_id = format!("github:{user_id}");
     let mut imported = 0i64;
     let mut skipped = 0i64;
+    let mut updated = 0i64;
+    let mut conflicted = 0i64;
 
     for remote_issue in &fetched.issues {
         if remote_issue.pull_request.is_some() {
             continue;
         }
         let remote_id = remote_issue.id.to_string();
-        if sync::find_by_remote(conn, workspace_id, "github", &account_id, &remote_id)?.is_some() {
-            skipped += 1;
+        if let Some(link) =
+            sync::find_by_remote(conn, workspace_id, "github", &account_id, &remote_id)?
+        {
+            let Some(remote_updated_at) = remote_issue.updated_at.as_deref() else {
+                skipped += 1;
+                continue;
+            };
+            if link.remote_updated_at.as_deref() == Some(remote_updated_at) {
+                skipped += 1;
+                continue;
+            }
+
+            let local = issues::get_detail(conn, workspace_id, &link.local_issue_id)?;
+            let local_changed_since_sync: bool = conn.query_row(
+                "SELECT EXISTS(SELECT 1 FROM sync_outbox WHERE local_issue_id = ?1 \
+                 AND operation = 'update_issue' AND state IN \
+                 ('pending', 'dispatching', 'outcome_unknown', 'reconciling', 'retry_safe', 'failed_definite', 'needs_user_action')
+                 OR EXISTS(SELECT 1 FROM sync_conflict WHERE local_issue_id = ?1 AND resolved_at IS NULL))",
+                [&link.local_issue_id],
+                |row| row.get(0),
+            )?;
+
+            let remote_labels = remote_issue
+                .labels
+                .iter()
+                .map(|label| label.name.clone())
+                .collect::<Vec<_>>();
+            let remote_status = if remote_issue.state == "closed" {
+                "closed"
+            } else {
+                "open"
+            };
+            let local_status = if local.summary.status.category.is_closed() {
+                "closed"
+            } else {
+                "open"
+            };
+            let local_labels = local
+                .summary
+                .labels
+                .iter()
+                .map(|label| label.name.clone())
+                .collect::<Vec<_>>();
+            let remote_body = remote_issue.body.clone().unwrap_or_default();
+
+            if local_changed_since_sync {
+                let mut fields = Vec::new();
+                if local.summary.title != remote_issue.title {
+                    fields.push((
+                        "title",
+                        serde_json::to_string(&local.summary.title).unwrap_or_default(),
+                        serde_json::to_string(&remote_issue.title).unwrap_or_default(),
+                    ));
+                }
+                if local.description != remote_body {
+                    fields.push((
+                        "body",
+                        serde_json::to_string(&local.description).unwrap_or_default(),
+                        serde_json::to_string(&remote_body).unwrap_or_default(),
+                    ));
+                }
+                if local_status != remote_status {
+                    fields.push((
+                        "status",
+                        serde_json::to_string(local_status).unwrap_or_default(),
+                        serde_json::to_string(remote_status).unwrap_or_default(),
+                    ));
+                }
+                if local_labels != remote_labels {
+                    fields.push((
+                        "labels",
+                        serde_json::to_string(&local_labels).unwrap_or_default(),
+                        serde_json::to_string(&remote_labels).unwrap_or_default(),
+                    ));
+                }
+                let existing = sync::list_conflicts(conn, workspace_id)?;
+                for (field, local_value, remote_value) in fields {
+                    let already_open = existing.iter().any(|conflict| {
+                        conflict.local_issue_id == link.local_issue_id && conflict.field == field
+                    });
+                    if !already_open {
+                        sync::create_conflict(
+                            conn,
+                            workspace_id,
+                            &link.local_issue_id,
+                            field,
+                            Some(&local_value),
+                            Some(&remote_value),
+                            Some(remote_updated_at),
+                        )?;
+                        conflicted += 1;
+                    }
+                }
+                // Keep the previous remote watermark until the user resolves the
+                // conflict. Advancing it here would silently discard the change.
+                skipped += 1;
+                continue;
+            }
+
+            let next_status_id = if remote_status == "closed" {
+                completed_status
+                    .clone()
+                    .unwrap_or_else(|| default_status.clone())
+            } else {
+                default_status.clone()
+            };
+            issues::update_from_remote(
+                conn,
+                workspace_id,
+                &link.local_issue_id,
+                &UpdateIssueInput {
+                    title: Some(remote_issue.title.clone()),
+                    description: Some(remote_body),
+                    status_id: Some(next_status_id),
+                    label_names: Some(remote_labels),
+                    ..Default::default()
+                },
+            )?;
+            let mut refreshed = link;
+            refreshed.remote_url = remote_issue.html_url.clone();
+            refreshed.remote_updated_at = Some(remote_updated_at.to_owned());
+            refreshed.last_synced_at = Some(crate::domain::time::now_rfc3339());
+            sync::upsert_link(conn, workspace_id, &refreshed)?;
+            updated += 1;
             continue;
         }
         let status_id = if remote_issue.state == "closed" {
@@ -190,7 +326,7 @@ pub fn apply_import(
             remote_url: remote_issue.html_url.clone(),
             remote_updated_at: remote_issue.updated_at.clone(),
             last_synced_at: Some(crate::domain::time::now_rfc3339()),
-            field_ownership: "{\"title\":\"remote\",\"body\":\"remote\",\"status\":\"remote\"}"
+            field_ownership: "{\"title\":\"remote\",\"body\":\"remote\",\"status\":\"remote\",\"labels\":\"remote\"}"
                 .into(),
             state: "linked".into(),
             created_at: String::new(),
@@ -206,6 +342,8 @@ pub fn apply_import(
     Ok(ImportResult {
         imported,
         skipped,
+        updated,
+        conflicted,
         project_id: project.0,
         project_name: project.1,
         repository_id: repository.id,
@@ -339,6 +477,8 @@ mod tests {
         let result = ImportResult {
             imported: 2,
             skipped: 1,
+            updated: 0,
+            conflicted: 0,
             project_id: "p".into(),
             project_name: "o/r".into(),
             repository_id: "r".into(),
@@ -463,6 +603,126 @@ mod integration_tests {
             .expect("second import");
         assert_eq!(second.imported, 0);
         assert_eq!(second.skipped, 2);
+    }
+
+    #[test]
+    fn repeated_import_updates_a_clean_linked_issue() {
+        let (_dir, db, workspace_id) = db();
+        let mut original = issue(1, 1);
+        original.updated_at = Some("2026-11-17T10:00:00Z".into());
+        let first = db
+            .with_transaction(|tx| {
+                apply_import(
+                    tx,
+                    &workspace_id,
+                    "login",
+                    7,
+                    &fetched(vec![original], false),
+                    None,
+                )
+            })
+            .expect("initial import");
+
+        let mut remote = issue(1, 1);
+        remote.title = "Updated remotely".into();
+        remote.body = Some("remote body".into());
+        remote.updated_at = Some("2026-11-17T11:00:00Z".into());
+        let refreshed = db
+            .with_transaction(|tx| {
+                apply_import(
+                    tx,
+                    &workspace_id,
+                    "login",
+                    7,
+                    &fetched(vec![remote], false),
+                    None,
+                )
+            })
+            .expect("refresh import");
+
+        assert_eq!(refreshed.updated, 1);
+        assert_eq!(refreshed.conflicted, 0);
+        db.with_conn(|conn| {
+            let detail = issues::get_detail(
+                conn,
+                &workspace_id,
+                &sync::find_by_remote(conn, &workspace_id, "github", "github:7", "1")?
+                    .expect("remote link")
+                    .local_issue_id,
+            )?;
+            assert_eq!(detail.summary.title, "Updated remotely");
+            assert_eq!(detail.description, "remote body");
+            assert_eq!(first.project_id, refreshed.project_id);
+            Ok(())
+        })
+        .expect("updated local issue");
+    }
+
+    #[test]
+    fn repeated_import_creates_conflict_when_local_remote_field_is_queued() {
+        let (_dir, db, workspace_id) = db();
+        let mut original = issue(1, 1);
+        original.updated_at = Some("2026-11-17T10:00:00Z".into());
+        db.with_transaction(|tx| {
+            apply_import(
+                tx,
+                &workspace_id,
+                "login",
+                7,
+                &fetched(vec![original], false),
+                None,
+            )
+        })
+        .expect("initial import");
+
+        let local_id = db
+            .with_conn(|conn| {
+                Ok(
+                    sync::find_by_remote(conn, &workspace_id, "github", "github:7", "1")?
+                        .expect("link")
+                        .local_issue_id,
+                )
+            })
+            .expect("local link");
+        db.with_transaction(|tx| {
+            issues::update(
+                tx,
+                &workspace_id,
+                &local_id,
+                &UpdateIssueInput {
+                    title: Some("Changed locally".into()),
+                    ..Default::default()
+                },
+            )?;
+            Ok(())
+        })
+        .expect("local update");
+
+        let mut remote = issue(1, 1);
+        remote.title = "Changed on GitHub".into();
+        remote.updated_at = Some("2026-11-17T11:00:00Z".into());
+        let refreshed = db
+            .with_transaction(|tx| {
+                apply_import(
+                    tx,
+                    &workspace_id,
+                    "login",
+                    7,
+                    &fetched(vec![remote], false),
+                    None,
+                )
+            })
+            .expect("refresh import");
+
+        assert_eq!(refreshed.updated, 0);
+        assert_eq!(refreshed.conflicted, 1);
+        db.with_conn(|conn| {
+            let conflicts = sync::list_conflicts(conn, &workspace_id)?;
+            assert_eq!(conflicts.len(), 1);
+            assert_eq!(conflicts[0].field, "title");
+            Ok(())
+        })
+        .expect("conflict persisted");
     }
 
     #[test]
