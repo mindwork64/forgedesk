@@ -34,7 +34,7 @@ The highest-risk mismatch was stale Sync settings copy claiming GitHub integrati
 - No periodic background poller or adaptive synchronization scheduler.
 - No shared GitHub request dispatcher. Current client modules issue HTTP requests directly.
 - API request log and API queue are read by the monitor, but the current production request path does not populate/execute them as a general dispatcher would.
-- The persisted pause flag is not enforced by a shared request gate.
+- The persisted pause flag is not enforced by a shared request gate; the UI control has been removed until that gate exists.
 - The outbox state machine and cursors are a persistence/safety foundation; no worker consumes the outbox and reconciles remote writes.
 - No bidirectional Issue create/update/comment synchronization, full conflict-resolution workflow or user-facing sync status controls.
 
@@ -71,8 +71,8 @@ The stage reports document these deliberately incomplete areas; they should rema
 ## Verification boundary
 
 The implementation in PR #2 was verified by GitHub Actions run
-[44002363339](https://github.com/mindwork64/forgedesk/actions/runs/44002363339)
-at tested code revision `8ef6c62`: all seven CI jobs passed, including 147 frontend
+[44004060587](https://github.com/mindwork64/forgedesk/actions/runs/44004060587)
+at tested code revision `5d51b33`: all seven CI jobs passed, including 147 frontend
 tests, 61 deterministic visual captures, core tests/Clippy on Ubuntu and Windows,
 Tauri compile checks on Linux and Windows and the optional AI crate checks.
 
