@@ -627,13 +627,6 @@ export function handleStage4FixtureCommand<T>(
       }
     case 'get_api_monitor':
       return { handled: true, value: monitor() as T }
-    case 'set_api_paused':
-      control = {
-        paused: Boolean(args?.paused),
-        reason: String(args?.reason ?? ''),
-        updatedAt: iso(0),
-      }
-      return { handled: true, value: { ...control } as T }
     case 'export_api_diagnostics':
       return { handled: true, value: JSON.stringify(monitor(), null, 2) as T }
     default:
