@@ -14,7 +14,7 @@ use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
-    ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
+    ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
     GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
     IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
@@ -864,12 +864,6 @@ impl AppService {
                 last_observation: last,
             })
         })
-    }
-
-    pub fn set_api_paused(&self, paused: bool, reason: &str) -> CoreResult<ApiControl> {
-        let workspace = self.require_workspace()?;
-        self.db
-            .with_transaction(|tx| api_budget::set_paused(tx, &workspace.id, paused, reason))
     }
 
     pub fn export_api_diagnostics(&self) -> CoreResult<String> {
