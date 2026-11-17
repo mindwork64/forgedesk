@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Search as SearchIcon } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -173,10 +174,11 @@ function openIssue(issue: IssueSummary): void {
         />
       </div>
       <div v-else-if="needle.length < 2" class="fd-search-state">
-        <FdEmptyState :title="t('searchPage.minChars')" />
+        <FdEmptyState :icon="SearchIcon" :title="t('searchPage.minChars')" />
       </div>
       <div v-else-if="resultCount === 0" class="fd-search-state">
         <FdEmptyState
+          :icon="SearchIcon"
           :title="t('searchPage.noResults')"
           :body="t('searchPage.noResultsBody')"
         />

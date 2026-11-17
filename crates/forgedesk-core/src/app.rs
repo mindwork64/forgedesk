@@ -14,11 +14,11 @@ use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
-    ActivityFeedItem, ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
-    CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
-    GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
-    IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
-    ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository,
+    ActivityFeedItem, ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput,
+    Cycle, CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat,
+    GitLogEntry, GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail,
+    IssueQuery, IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project,
+    ProjectDetail, ProjectInput, ProjectQuery, ProjectRef, RelationInputKind, Repository,
     RepositoryDiscoveryResult, RepositoryInput, SavedView, SavedViewInput, SettingsPatch,
     StatusSummary, UpdateIssueInput, WindowState, Workflow, Workspace,
 };
@@ -1225,10 +1225,13 @@ mod tests {
         assert!(service.restore_backup("does-not-exist").is_err());
         assert!(service.restore_backup("../forgedesk.db").is_err());
     }
+
     #[test]
     fn activity_feed_is_independent_of_inbox_archive_state() {
         let (_dir, service) = service();
-        service.create_workspace("Activity workspace").expect("workspace");
+        service
+            .create_workspace("Activity workspace")
+            .expect("workspace");
         let issue = service
             .create_issue(CreateIssueInput {
                 title: "Feed event".to_owned(),
@@ -1251,10 +1254,11 @@ mod tests {
         assert_eq!(events[0].issue_title, "Feed event");
         assert_eq!(events[0].kind, "issue_created");
 
-        service.inbox_archive(&events[0].id).expect("archive inbox item");
+        service
+            .inbox_archive(&events[0].id)
+            .expect("archive inbox item");
         let events_after_archive = service.activity_feed(20).expect("activity feed");
         assert_eq!(events_after_archive.len(), 1);
         assert_eq!(events_after_archive[0].id, events[0].id);
     }
-
 }

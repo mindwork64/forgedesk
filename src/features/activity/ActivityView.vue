@@ -10,10 +10,13 @@ import FdEmptyState from '@/components/ui/FdEmptyState.vue'
 import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import { api, toIpcError } from '@/lib/ipc'
+import { formatRelative } from '@/lib/format'
+import { useAppStore } from '@/stores/app'
 import type { ActivityFeedItem } from '@/types/ipc'
 
 const { t, te } = useI18n()
 const router = useRouter()
+const app = useAppStore()
 const events = ref<ActivityFeedItem[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -32,7 +35,7 @@ async function load(): Promise<void> {
 
 function eventLabel(event: ActivityFeedItem): string {
   const key = `activityPage.events.${event.kind}`
-  return te(key) ? t(key) : event.kind.replaceAll('_', ' ')
+  return te(key) ? t(key) : event.kind.replace(/_/g, ' ')
 }
 
 function eventDetails(event: ActivityFeedItem): string {
@@ -111,7 +114,7 @@ onMounted(() => {
           </span>
           <span class="fd-activity-meta">
             <span>{{ event.source }}</span>
-            <time :datetime="event.createdAt">{{ new Date(event.createdAt).toLocaleString() }}</time>
+            <time :datetime="event.createdAt">{{ formatRelative(event.createdAt, app.resolvedLocale) }}</time>
           </span>
         </button>
       </div>
