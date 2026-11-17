@@ -1,13 +1,14 @@
 # PROJECT_STATE
 
 **Updated:** 2026-11-17
+**Main schema:** v10. **Proposed branch schema:** v11 in PR #8 (pending CI/review; not yet merged).
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
 **Verified feature revision:** `5d51b33` (PR #2 code tested by CI run `44004060587`, 7/7 jobs passed). Merged to `main` via PR #2 as `4ea91ebf3410e8712f9772e3112efdeb38fc4f91`.
 
 ## Current objective
 
 Search/Activity and Sync-settings corrections are merged to `main` via PR #2.
-Next technical phase: shared GitHub request dispatcher, enforced API pause gate
+After PR #8 is reviewed and merged: shared GitHub request dispatcher, enforced API pause gate
 and sync worker.
 
 ## Current implementation status — 2026-11-17 (PR #2 merged to main)
@@ -32,6 +33,30 @@ and sync worker.
   tests, UI Gate 0 with 61 captures, core tests/Clippy on Ubuntu and Windows,
   Tauri compile checks on Linux and Windows, and optional AI crate checks. Native
   interactive desktop flows and live GitHub credential flows remain unverified.
+
+## Pending implementation — PR #8
+
+Branch: `feat/project-controls-and-key-prefixes`  
+PR: https://github.com/mindwork64/forgedesk/pull/8  
+Current branch head at this snapshot: `159c19d` (the PR is open; CI is running).
+
+- **Issue #5:** project detail now exposes Archive/Restore. This is a soft archive;
+  issues, documents and repository associations remain in place. Archived projects
+  can be found via Projects → Show archived and restored. No hard-delete is added.
+- **Issue #7:** Settings → Workspace has an editable global issue-key prefix.
+  Project create/edit has an optional override; blank inherits the workspace prefix.
+  Prefixes are normalized to uppercase ASCII letters/digits, 1–10 characters, starting
+  with a letter. One workspace-wide monotonic counter is shared across projects, so
+  changing prefixes never rewrites old keys or causes a collision.
+- SQLite migration v11 appends nullable `project.issue_key_prefix`; existing projects
+  inherit the workspace prefix after migration.
+- Search adds local Initiative name/description search and Project description search.
+  Main's richer Activity view is unchanged.
+- Tests added for prefix normalization/allocation, immutable old keys, v10→v11 upgrade,
+  Search initiatives/navigation, Settings prefix save and archive/restore store behavior.
+- These changes are **not in main until PR #8 is merged**. The pending Actions result
+  must be checked before calling the branch verified; native interactive runtime tests
+  remain a separate check.
 
 ## Architecture (locked)
 
@@ -165,7 +190,7 @@ through `user_version`. See ADR-0001…0007.
 - Onboarding describes GitHub as optional and configurable in Integrations after
   setup; no disabled fake Connect action or Stage 4 badge.
 
-### Search, Activity and Sync settings (PR #2 — pending merge)
+### Search, Activity and Sync settings (PR #2 — merged to main)
 
 - Search/Activity are implemented as route-level lazy-loaded pages with English and
   Russian strings, component tests and visual harness fixtures/cases.
