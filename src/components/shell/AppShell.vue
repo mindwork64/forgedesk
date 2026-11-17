@@ -14,11 +14,13 @@ import { useGlobalShortcuts } from '@/composables/useShortcuts'
 import { toIpcError } from '@/lib/ipc'
 import { normaliseRoute } from '@/lib/routes'
 import { useAppStore } from '@/stores/app'
+import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useIssueStore } from '@/stores/issues'
 import { useUiStore } from '@/stores/ui'
 import { useToastStore } from '@/stores/toasts'
 
 const app = useAppStore()
+const githubAuth = useGithubAuthStore()
 const ui = useUiStore()
 const issueStore = useIssueStore()
 const toast = useToastStore()
@@ -66,6 +68,7 @@ function focusMain(event: Event): void {
 
 onMounted(() => {
   stopViewportTracking = ui.startViewportTracking()
+  void githubAuth.loadConnection()
   const restored = normaliseRoute(app.settings?.lastRoute ?? '/my-issues')
   if (
     restored !== route.path &&

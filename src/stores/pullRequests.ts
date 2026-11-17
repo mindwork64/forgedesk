@@ -60,14 +60,16 @@ export const usePullRequestStore = defineStore('pullRequests', () => {
       if (request === detailRequest) {
         detail.value = result
         try {
-          linkedIssue.value = await api.githubPullLink(owner, repo, number)
+          const link = await api.githubPullLink(owner, repo, number)
+          if (request === detailRequest) linkedIssue.value = link
         } catch {
-          linkedIssue.value = null
+          if (request === detailRequest) linkedIssue.value = null
         }
         try {
-          capabilities.value = await api.githubPullCapabilities(owner, repo)
+          const nextCapabilities = await api.githubPullCapabilities(owner, repo)
+          if (request === detailRequest) capabilities.value = nextCapabilities
         } catch {
-          capabilities.value = null
+          if (request === detailRequest) capabilities.value = null
         }
       }
     } catch (caught) {
@@ -82,10 +84,14 @@ export const usePullRequestStore = defineStore('pullRequests', () => {
   }
 
   function close(): void {
+    // Invalidate an in-flight detail request so a late response cannot revive
+    // the pane after it has been closed or its repository has changed.
+    detailRequest += 1
     selectedNumber.value = null
     detail.value = null
     linkedIssue.value = null
     capabilities.value = null
+    detailLoading.value = false
   }
 
   async function linkIssue(

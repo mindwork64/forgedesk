@@ -38,8 +38,11 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
   let timer: ReturnType<typeof setTimeout> | null = null
 
   const connected = computed(() => connection.value?.connected === true)
+  const connectionLoading = ref(false)
+  const connectionChecked = ref(false)
   const storageUnavailable = ref(false)
   const connectionCheckFailed = ref(false)
+  let connectionPromise: Promise<void> | null = null
 
   function readSelectedRepo(): SelectedRepository | null {
     try {
@@ -97,18 +100,37 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     }
   }
 
-  async function loadConnection(): Promise<void> {
+  async function loadConnection(force = false): Promise<void> {
+    if (connectionPromise) {
+      await connectionPromise
+      return
+    }
+    if (connectionChecked.value && !force) return
+
+    connectionLoading.value = true
+    const task = (async () => {
+      try {
+        connection.value = await api.githubConnection()
+        await restoreSelectedRepository()
+        error.value = null
+        storageUnavailable.value = false
+        connectionCheckFailed.value = false
+      } catch (caught) {
+        const wire = toIpcError(caught)
+        connection.value = null
+        error.value = wire
+        storageUnavailable.value = wire.code === 'credential_storage'
+        connectionCheckFailed.value = !storageUnavailable.value
+      } finally {
+        connectionChecked.value = true
+        connectionLoading.value = false
+      }
+    })()
+    connectionPromise = task
     try {
-      connection.value = await api.githubConnection()
-      await restoreSelectedRepository()
-      error.value = null
-      storageUnavailable.value = false
-      connectionCheckFailed.value = false
-    } catch (caught) {
-      const wire = toIpcError(caught)
-      error.value = wire
-      storageUnavailable.value = wire.code === 'credential_storage'
-      connectionCheckFailed.value = !storageUnavailable.value
+      await task
+    } finally {
+      if (connectionPromise === task) connectionPromise = null
     }
   }
 
@@ -141,6 +163,8 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
       const result = await api.githubPollDeviceFlow()
       if (result.connection) {
         connection.value = result.connection
+        connectionChecked.value = true
+        connectionLoading.value = false
         error.value = null
         storageUnavailable.value = false
         connectionCheckFailed.value = false
@@ -268,6 +292,8 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     try {
       await api.githubDisconnect()
       connection.value = null
+      connectionChecked.value = true
+      connectionLoading.value = false
       error.value = null
       storageUnavailable.value = false
       connectionCheckFailed.value = false
@@ -285,6 +311,8 @@ export const useGithubAuthStore = defineStore('githubAuth', () => {
     starting,
     error,
     connected,
+    connectionLoading,
+    connectionChecked,
     storageUnavailable,
     connectionCheckFailed,
     repositories,
