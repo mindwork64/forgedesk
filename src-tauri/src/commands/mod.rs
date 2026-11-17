@@ -975,6 +975,13 @@ pub fn inbox_list(
 }
 
 #[tauri::command]
+pub fn activity_list(state: State<'_, AppState>) -> Result<Vec<InboxEvent>, CommandError> {
+    state
+        .with_service(|service| service.activity())
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub fn inbox_mark_read(
     state: State<'_, AppState>,
     event_id: String,
