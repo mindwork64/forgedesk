@@ -1308,6 +1308,7 @@ export default {
     loadError: 'Не удалось загрузить данные рабочего пространства',
     searchError: 'Не удалось выполнить поиск',
     resultCount: 'Результатов: {count}',
+    open: 'Открыть',
     projectStatus: 'Проект: {status}',
     issues: 'Задачи',
     projects: 'Проекты',
