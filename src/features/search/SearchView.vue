@@ -152,6 +152,7 @@ async function runSearch(raw: string): Promise<void> {
 }
 
 watch(query, (value) => {
+  searchLoading.value = value.trim().length >= 2
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     searchTimer = null
@@ -263,7 +264,7 @@ onBeforeUnmount(() => {
               <span v-if="result.subtitle">{{ result.subtitle }}</span>
               <small v-if="result.description">{{ result.description }}</small>
             </span>
-            <span class="fd-search-result__open">{{ t('common.open') }}</span>
+            <span class="fd-search-result__open">{{ t('searchPage.open') }}</span>
           </button>
         </section>
       </div>
