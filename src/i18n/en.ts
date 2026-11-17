@@ -321,7 +321,7 @@ export default {
       title: 'Keyboard shortcuts',
       description: 'Global navigation and interaction keys.',
       implemented: 'Available now',
-      planned: 'Later stage',
+      planned: 'Not available yet',
       commandPalette: 'Open command palette or global search',
       createIssue: 'Create an issue',
       goInbox: 'Go to Inbox',
