@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CircleDot, FileText, FolderGit2, Layers } from '@lucide/vue'
+import type { Component } from 'vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -25,7 +26,7 @@ interface SearchResult {
 interface SearchGroup {
   kind: ResultKind
   label: string
-  icon: typeof CircleDot
+  icon: Component
   results: SearchResult[]
 }
 
@@ -229,6 +230,7 @@ onBeforeUnmount(() => {
       <div v-else-if="!hasQuery" class="fd-search-state">
         <FdEmptyState :icon="CircleDot" :title="t('searchPage.startTitle')" :body="t('searchPage.startBody')" />
       </div>
+      <p v-if="catalogsError && hasQuery" class="fd-search-warning" role="status">{{ t('searchPage.partialCatalogError') }}</p>
       <div v-else-if="searchLoading" class="fd-search-state">
         <FdLoadingSkeleton :rows="6" :height="48" />
       </div>
@@ -277,6 +279,7 @@ onBeforeUnmount(() => {
 .fd-search-input { width: min(560px, 55vw); }
 .fd-search-count { color: var(--fd-text-muted); font-size: var(--fd-text-11); white-space: nowrap; }
 .fd-search-scroll { flex: 1; min-height: 0; overflow: auto; }
+.fd-search-warning { margin: 10px var(--fd-content-pad); color: var(--fd-warning); font-size: var(--fd-text-11); }
 .fd-search-state { display: flex; justify-content: center; padding: var(--fd-space-6) var(--fd-content-pad); }
 .fd-search-state :deep(.fd-skeleton) { max-width: 900px; }
 .fd-search-results { padding: var(--fd-space-3) 0 var(--fd-space-8); }
