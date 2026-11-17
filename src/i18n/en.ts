@@ -294,7 +294,7 @@ export default {
       apiLoading: 'Loading API state…',
       apiError: 'Could not load API monitor state',
       apiLimitations:
-        'The API budget is still a partial foundation: REST rate-limit observations are saved during manual issue import. Other GitHub calls do not yet pass through a shared dispatcher. The request log and queue do not represent all network activity, and the pause switch does not currently block direct client calls.',
+        'The API budget is still a partial foundation: REST rate-limit observations are saved during manual issue import. Other GitHub calls do not yet pass through a shared dispatcher. The request log and queue do not represent all network activity. The persisted pause flag is not enforced by HTTP clients; no pause control is exposed until a shared request gate exists.',
       openIntegrations: 'Open integrations',
       openApiMonitor: 'Open API monitor',
       refresh: 'Refresh status',
