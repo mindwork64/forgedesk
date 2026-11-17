@@ -43,6 +43,8 @@ import type {
   GitHubConnection,
   RepositoryDiscoveryResult,
   GitHubImportResult,
+  GitHubOutboxDispatchResult,
+  SyncConflict,
   GitHubPull,
   PullRequestDetail,
   GitHubSearchIssue,
@@ -267,6 +269,11 @@ export const api = {
   githubDisconnect: () => call<void>('github_disconnect'),
   githubDiscoverRepositories: (startPage = 1) =>
     call<RepositoryDiscoveryResult>('github_discover_repositories', { startPage }),
+  githubSyncConflicts: () => call<SyncConflict[]>('github_sync_conflicts'),
+  githubResolveSyncConflict: (conflictId: string, resolution: 'local' | 'remote') =>
+    call<SyncConflict>('github_resolve_sync_conflict', { conflictId, resolution }),
+  githubDispatchIssueOutbox: (owner: string, repo: string) =>
+    call<GitHubOutboxDispatchResult>('github_dispatch_issue_outbox', { owner, repo }),
   githubImportIssues: (
     owner: string,
     repo: string,

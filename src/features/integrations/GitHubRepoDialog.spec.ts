@@ -35,6 +35,8 @@ const repo: Repository = {
 const result: GitHubImportResult = {
   imported: 2,
   skipped: 1,
+  updated: 0,
+  conflicted: 0,
   projectId: 'project-1',
   projectName: 'mindwork64/forgedesk',
   repositoryId: 'repo-1',

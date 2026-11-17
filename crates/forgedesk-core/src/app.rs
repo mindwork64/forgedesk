@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use crate::backup::{self, BackupInfo};
 use crate::db::repositories::{
-    api_budget, issues, labels as label_repo, planning, projects, repo_registry, saved_views,
+    api_budget, issues, labels as label_repo, planning, projects, repo_registry, saved_views, sync,
     workflow,
 };
 use crate::db::Database;
@@ -13,6 +13,7 @@ use crate::domain::dashboard::Dashboard;
 use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
+use crate::domain::sync::OutboxState;
 use crate::domain::{
     ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle, CycleDetail,
     CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry, GitOverview,
@@ -28,7 +29,7 @@ use crate::github_activity::CiOverview;
 use crate::github_client::GitHubSearchIssue;
 use crate::github_client::{GitHubMergeResult, GitHubPull, GitHubReview};
 use crate::github_pr::PullRequestDetail;
-use crate::github_sync::ImportResult;
+use crate::github_sync::{ImportResult, OutboxDispatchResult};
 
 pub const DB_FILE_NAME: &str = "forgedesk.db";
 pub const BACKUPS_DIR_NAME: &str = "backups";
@@ -362,6 +363,495 @@ impl AppService {
                 &fetched,
                 target_project_id,
             )
+        })
+    }
+
+    /// Dispatch locally queued edits for linked GitHub issues. Requests are
+    /// processed sequentially; uncertain outcomes are reconciled with a GET
+    /// before any retry is allowed.
+    pub fn dispatch_github_issue_outbox(
+        &self,
+        token: &str,
+        owner_filter: &str,
+        repo_filter: &str,
+    ) -> CoreResult<OutboxDispatchResult> {
+        let workspace = self.require_workspace()?;
+        let client = crate::github_client::GitHubClient::new(token)?;
+        let mut jobs = self
+            .db
+            .with_conn(|conn| sync::list_outbox(conn, &workspace.id))?;
+        // list_outbox is newest-first; dispatch oldest-first so the latest
+        // local snapshot wins when several edits are queued for one issue.
+        jobs.sort_by(|left, right| left.created_at.cmp(&right.created_at));
+        let mut result = OutboxDispatchResult::default();
+
+        for job in jobs {
+            if job.operation != "update_issue" {
+                result.skipped += 1;
+                continue;
+            }
+            let Some(issue_id) = job.local_issue_id.as_deref() else {
+                result.skipped += 1;
+                continue;
+            };
+            let has_conflict = self.db.with_conn(|conn| {
+                Ok(sync::list_conflicts(conn, &workspace.id)?
+                    .iter()
+                    .any(|conflict| conflict.local_issue_id == issue_id))
+            })?;
+            if has_conflict {
+                result.skipped += 1;
+                continue;
+            }
+            let Some(link) = self
+                .db
+                .with_conn(|conn| sync::get_link(conn, &workspace.id, issue_id))?
+            else {
+                result.skipped += 1;
+                continue;
+            };
+            let Some(repository) = link.remote_repository_key.as_deref() else {
+                result.skipped += 1;
+                continue;
+            };
+            if repository != format!("{owner_filter}/{repo_filter}") {
+                result.skipped += 1;
+                continue;
+            }
+            let Some((owner, repo)) = repository.split_once('/') else {
+                result.skipped += 1;
+                continue;
+            };
+            let payload: serde_json::Value = serde_json::from_str(&job.payload_json)
+                .map_err(|error| CoreError::internal(format!("Invalid sync payload: {error}")))?;
+
+            let mut state = OutboxState::parse(&job.state)?;
+            if state == OutboxState::Dispatching {
+                self.db.with_transaction(|tx| {
+                    sync::transition_outbox(
+                        tx,
+                        &workspace.id,
+                        &job.id,
+                        OutboxState::OutcomeUnknown,
+                        Some("Previous dispatch was interrupted; reconciling remote state."),
+                    )?;
+                    Ok(())
+                })?;
+                state = OutboxState::OutcomeUnknown;
+            }
+            if matches!(
+                state,
+                OutboxState::OutcomeUnknown | OutboxState::Reconciling
+            ) {
+                if state == OutboxState::OutcomeUnknown {
+                    self.db.with_transaction(|tx| {
+                        sync::transition_outbox(
+                            tx,
+                            &workspace.id,
+                            &job.id,
+                            OutboxState::Reconciling,
+                            None,
+                        )?;
+                        Ok(())
+                    })?;
+                }
+                match client.get_issue(owner, repo, link.remote_number) {
+                    Ok(remote) => {
+                        let matches = payload
+                            .get("title")
+                            .and_then(serde_json::Value::as_str)
+                            .is_none_or(|value| value == remote.title)
+                            && payload
+                                .get("body")
+                                .and_then(serde_json::Value::as_str)
+                                .is_none_or(|value| Some(value) == remote.body.as_deref())
+                            && payload
+                                .get("state")
+                                .and_then(serde_json::Value::as_str)
+                                .is_none_or(|value| value == remote.state)
+                            && payload
+                                .get("labels")
+                                .and_then(serde_json::Value::as_array)
+                                .is_none_or(|values| {
+                                    let mut expected = values
+                                        .iter()
+                                        .filter_map(serde_json::Value::as_str)
+                                        .collect::<Vec<_>>();
+                                    let mut actual = remote
+                                        .labels
+                                        .iter()
+                                        .map(|label| label.name.as_str())
+                                        .collect::<Vec<_>>();
+                                    expected.sort_unstable();
+                                    actual.sort_unstable();
+                                    expected == actual
+                                });
+                        self.db.with_transaction(|tx| {
+                            if matches {
+                                let mut updated_link = link.clone();
+                                updated_link.remote_updated_at = remote.updated_at.clone();
+                                updated_link.last_synced_at = Some(crate::domain::time::now_rfc3339());
+                                sync::upsert_link(tx, &workspace.id, &updated_link)?;
+                                sync::transition_outbox(
+                                    tx,
+                                    &workspace.id,
+                                    &job.id,
+                                    OutboxState::Succeeded,
+                                    None,
+                                )?;
+                            } else {
+                                for (field, local_value, remote_value) in [
+                                    (
+                                        "title",
+                                        payload.get("title"),
+                                        Some(serde_json::json!(remote.title)),
+                                    ),
+                                    (
+                                        "body",
+                                        payload.get("body"),
+                                        Some(serde_json::json!(remote.body)),
+                                    ),
+                                    (
+                                        "status",
+                                        payload.get("state"),
+                                        Some(serde_json::json!(remote.state)),
+                                    ),
+                                    (
+                                        "labels",
+                                        payload.get("labels"),
+                                        Some(serde_json::json!(
+                                            remote.labels.iter().map(|label| &label.name).collect::<Vec<_>>()
+                                        )),
+                                    ),
+                                ] {
+                                    if let Some(local_value) = local_value {
+                                        let local_serialized = local_value.to_string();
+                                        let remote_serialized = remote_value
+                                            .as_ref()
+                                            .map(serde_json::Value::to_string)
+                                            .unwrap_or_default();
+                                        let existing = sync::list_conflicts(tx, &workspace.id)?;
+                                        if !existing.iter().any(|conflict| {
+                                            conflict.local_issue_id == issue_id
+                                                && conflict.field == field
+                                        }) {
+                                            sync::create_conflict(
+                                                tx,
+                                                &workspace.id,
+                                                issue_id,
+                                                field,
+                                                Some(&local_serialized),
+                                                Some(&remote_serialized),
+                                                remote.updated_at.as_deref(),
+                                            )?;
+                                        }
+                                    }
+                                }
+                                sync::transition_outbox(
+                                    tx,
+                                    &workspace.id,
+                                    &job.id,
+                                    OutboxState::NeedsUserAction,
+                                    Some("Remote issue differs from the queued update; manual conflict resolution is required."),
+                                )?;
+                            }
+                            Ok(())
+                        })?;
+                        if matches {
+                            result.reconciled += 1;
+                        } else {
+                            result.outcome_unknown += 1;
+                        }
+                    }
+                    Err(_) => result.outcome_unknown += 1,
+                }
+                continue;
+            }
+            if state == OutboxState::RetrySafe {
+                self.db.with_transaction(|tx| {
+                    sync::transition_outbox(
+                        tx,
+                        &workspace.id,
+                        &job.id,
+                        OutboxState::Pending,
+                        None,
+                    )?;
+                    Ok(())
+                })?;
+                state = OutboxState::Pending;
+            }
+            if state != OutboxState::Pending {
+                result.skipped += 1;
+                continue;
+            }
+
+            self.db.with_transaction(|tx| {
+                sync::transition_outbox(
+                    tx,
+                    &workspace.id,
+                    &job.id,
+                    OutboxState::Dispatching,
+                    None,
+                )?;
+                Ok(())
+            })?;
+            let title = payload.get("title").and_then(serde_json::Value::as_str);
+            let body = payload.get("body").and_then(serde_json::Value::as_str);
+            let remote_state = payload.get("state").and_then(serde_json::Value::as_str);
+            let labels = payload
+                .get("labels")
+                .and_then(serde_json::Value::as_array)
+                .map(|values| {
+                    values
+                        .iter()
+                        .filter_map(serde_json::Value::as_str)
+                        .map(str::to_owned)
+                        .collect::<Vec<_>>()
+                });
+            match client.update_issue(
+                owner,
+                repo,
+                link.remote_number,
+                &crate::github_client::GitHubIssueUpdate {
+                    title,
+                    body,
+                    state: remote_state,
+                    labels: labels.as_deref(),
+                },
+            ) {
+                Ok(remote) => {
+                    self.db.with_transaction(|tx| {
+                        let mut updated_link = link.clone();
+                        updated_link.remote_updated_at = remote.updated_at.clone();
+                        updated_link.last_synced_at = Some(crate::domain::time::now_rfc3339());
+                        sync::upsert_link(tx, &workspace.id, &updated_link)?;
+                        sync::transition_outbox(
+                            tx,
+                            &workspace.id,
+                            &job.id,
+                            OutboxState::Succeeded,
+                            None,
+                        )?;
+                        Ok(())
+                    })?;
+                    result.sent += 1;
+                }
+                Err(error) => {
+                    self.db.with_transaction(|tx| {
+                        sync::transition_outbox(
+                            tx,
+                            &workspace.id,
+                            &job.id,
+                            OutboxState::OutcomeUnknown,
+                            Some(&error.to_string()),
+                        )?;
+                        Ok(())
+                    })?;
+                    result.outcome_unknown += 1;
+                }
+            }
+        }
+        Ok(result)
+    }
+
+    pub fn list_github_sync_conflicts(&self) -> CoreResult<Vec<crate::domain::sync::SyncConflict>> {
+        let workspace = self.require_workspace()?;
+        self.db
+            .with_conn(|conn| sync::list_conflicts(conn, &workspace.id))
+    }
+
+    pub fn resolve_github_sync_conflict(
+        &self,
+        conflict_id: &str,
+        resolution: &str,
+    ) -> CoreResult<crate::domain::sync::SyncConflict> {
+        if !matches!(resolution, "local" | "remote") {
+            return Err(CoreError::validation(
+                "resolution",
+                "Resolution must be local or remote.",
+            ));
+        }
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            let conflicts = sync::list_conflicts(tx, &workspace.id)?;
+            let conflict = conflicts
+                .iter()
+                .find(|item| item.id == conflict_id)
+                .cloned()
+                .ok_or_else(|| CoreError::not_found("Sync conflict"))?;
+
+            if resolution == "remote" {
+                let raw = conflict.remote_value.as_deref().ok_or_else(|| {
+                    CoreError::validation("remoteValue", "Remote conflict value is unavailable.")
+                })?;
+                let value: serde_json::Value = serde_json::from_str(raw).map_err(|error| {
+                    CoreError::validation_message(format!("Invalid remote conflict value: {error}"))
+                })?;
+                let mut input = crate::domain::UpdateIssueInput::default();
+                match conflict.field.as_str() {
+                    "title" => {
+                        input.title = Some(
+                            value
+                                .as_str()
+                                .ok_or_else(|| {
+                                    CoreError::validation("remoteValue", "Remote title is invalid.")
+                                })?
+                                .to_owned(),
+                        );
+                    }
+                    "body" => {
+                        input.description = Some(
+                            value
+                                .as_str()
+                                .ok_or_else(|| {
+                                    CoreError::validation("remoteValue", "Remote body is invalid.")
+                                })?
+                                .to_owned(),
+                        );
+                    }
+                    "status" => {
+                        let remote_state = value.as_str().ok_or_else(|| {
+                            CoreError::validation("remoteValue", "Remote status is invalid.")
+                        })?;
+                        let statuses = workflow::statuses(tx, &workspace.id)?;
+                        let target = if remote_state == "closed" {
+                            statuses.iter().find(|status| status.category.is_closed())
+                        } else {
+                            statuses
+                                .iter()
+                                .find(|status| status.system_key.as_deref() == Some("todo"))
+                                .or_else(|| {
+                                    statuses.iter().find(|status| !status.category.is_closed())
+                                })
+                        }
+                        .ok_or_else(|| {
+                            CoreError::internal("No compatible workflow status exists.")
+                        })?;
+                        input.status_id = Some(target.id.clone());
+                    }
+                    "labels" => {
+                        let names = value
+                            .as_array()
+                            .ok_or_else(|| {
+                                CoreError::validation("remoteValue", "Remote labels are invalid.")
+                            })?
+                            .iter()
+                            .map(|item| {
+                                item.as_str().map(str::to_owned).ok_or_else(|| {
+                                    CoreError::validation(
+                                        "remoteValue",
+                                        "Remote label name is invalid.",
+                                    )
+                                })
+                            })
+                            .collect::<CoreResult<Vec<_>>>()?;
+                        input.label_names = Some(names);
+                    }
+                    _ => {
+                        return Err(CoreError::validation(
+                            "field",
+                            "Unsupported sync conflict field.",
+                        ))
+                    }
+                }
+                issues::update_from_remote(tx, &workspace.id, &conflict.local_issue_id, &input)?;
+            }
+
+            let resolved = sync::resolve_conflict(tx, &workspace.id, conflict_id, resolution)?;
+            let remaining = sync::list_conflicts(tx, &workspace.id)?;
+            if !remaining
+                .iter()
+                .any(|item| item.local_issue_id == conflict.local_issue_id)
+            {
+                let jobs = sync::list_outbox(tx, &workspace.id)?;
+                for job in jobs.iter().filter(|job| {
+                    job.local_issue_id.as_deref() == Some(&conflict.local_issue_id)
+                        && job.state == OutboxState::NeedsUserAction.as_str()
+                }) {
+                    sync::transition_outbox(
+                        tx,
+                        &workspace.id,
+                        &job.id,
+                        OutboxState::Cancelled,
+                        Some("Superseded by the resolved issue snapshot."),
+                    )?;
+                }
+                if let Some(mut link) = sync::get_link(tx, &workspace.id, &conflict.local_issue_id)?
+                {
+                    link.remote_updated_at = conflicts
+                        .iter()
+                        .filter(|item| item.local_issue_id == conflict.local_issue_id)
+                        .filter_map(|item| item.remote_updated_at.as_deref())
+                        .max()
+                        .map(str::to_owned)
+                        .or(link.remote_updated_at.clone());
+                    link.last_synced_at = Some(crate::domain::time::now_rfc3339());
+                    sync::upsert_link(tx, &workspace.id, &link)?;
+                    let detail = issues::get_detail(tx, &workspace.id, &conflict.local_issue_id)?;
+                    let ownership: serde_json::Value =
+                        serde_json::from_str(&link.field_ownership).unwrap_or_default();
+                    let mut payload = serde_json::Map::new();
+                    if ownership.get("title").and_then(serde_json::Value::as_str) == Some("remote")
+                    {
+                        payload.insert("title".into(), detail.summary.title.clone().into());
+                    }
+                    if ownership.get("body").and_then(serde_json::Value::as_str) == Some("remote") {
+                        payload.insert("body".into(), detail.description.clone().into());
+                    }
+                    if ownership.get("status").and_then(serde_json::Value::as_str) == Some("remote")
+                    {
+                        payload.insert(
+                            "state".into(),
+                            (if detail.summary.status.category.is_closed() {
+                                "closed"
+                            } else {
+                                "open"
+                            })
+                            .into(),
+                        );
+                    }
+                    if ownership.get("labels").and_then(serde_json::Value::as_str) == Some("remote")
+                    {
+                        payload.insert(
+                            "labels".into(),
+                            serde_json::json!(detail
+                                .summary
+                                .labels
+                                .iter()
+                                .map(|label| &label.name)
+                                .collect::<Vec<_>>()),
+                        );
+                    }
+                    if !payload.is_empty() {
+                        let payload_json = serde_json::Value::Object(payload).to_string();
+                        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                        use std::hash::{Hash, Hasher};
+                        payload_json.hash(&mut hasher);
+                        let fingerprint = format!("{:016x}", hasher.finish());
+                        let now = crate::domain::time::now_rfc3339();
+                        sync::enqueue_outbox(
+                            tx,
+                            &workspace.id,
+                            &crate::domain::sync::OutboxInput {
+                                local_issue_id: Some(conflict.local_issue_id.clone()),
+                                operation: "update_issue".into(),
+                                payload_json,
+                                idempotency_key: format!(
+                                    "resolved:{}:{now}:{fingerprint}",
+                                    link.remote_id
+                                ),
+                                fingerprint,
+                                reconciliation_hint: Some(format!(
+                                    "{}/issues/{}",
+                                    link.remote_repository_key.as_deref().unwrap_or_default(),
+                                    link.remote_number
+                                )),
+                            },
+                        )?;
+                    }
+                }
+            }
+            Ok(resolved)
         })
     }
 

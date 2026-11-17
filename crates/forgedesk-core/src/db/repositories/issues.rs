@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 
 use rusqlite::types::Value as SqlValue;
 use rusqlite::{params_from_iter, Connection, OptionalExtension, Row};
@@ -320,6 +321,26 @@ pub fn update(
     issue_id: &str,
     input: &UpdateIssueInput,
 ) -> CoreResult<IssueDetail> {
+    update_inner(conn, workspace_id, issue_id, input, true)
+}
+
+/// Apply provider-originated changes without echoing them into the outbound queue.
+pub fn update_from_remote(
+    conn: &Connection,
+    workspace_id: &str,
+    issue_id: &str,
+    input: &UpdateIssueInput,
+) -> CoreResult<IssueDetail> {
+    update_inner(conn, workspace_id, issue_id, input, false)
+}
+
+fn update_inner(
+    conn: &Connection,
+    workspace_id: &str,
+    issue_id: &str,
+    input: &UpdateIssueInput,
+    enqueue_remote_changes: bool,
+) -> CoreResult<IssueDetail> {
     input.validate()?;
     let current = get_summary(conn, workspace_id, issue_id)?;
     let current_description = conn
@@ -520,7 +541,107 @@ pub fn update(
         )?;
     }
 
+    if enqueue_remote_changes {
+        enqueue_linked_github_update(
+            conn,
+            workspace_id,
+            issue_id,
+            &LinkedGithubUpdate {
+                title: &title,
+                description: &description,
+                status: &status,
+                labels: &next_labels,
+                changed_fields: &changed_fields,
+                status_changed: status.id != current.status.id,
+                labels_changed: current_label_ids != next_label_ids,
+                updated_at: &now,
+            },
+        )?;
+    }
+
     get_detail(conn, workspace_id, issue_id)
+}
+
+struct LinkedGithubUpdate<'a> {
+    title: &'a str,
+    description: &'a str,
+    status: &'a crate::domain::issue::StatusSummary,
+    labels: &'a [Label],
+    changed_fields: &'a [&'a str],
+    status_changed: bool,
+    labels_changed: bool,
+    updated_at: &'a str,
+}
+
+fn enqueue_linked_github_update(
+    conn: &Connection,
+    workspace_id: &str,
+    issue_id: &str,
+    update: &LinkedGithubUpdate<'_>,
+) -> CoreResult<()> {
+    let Some(link) = super::sync::get_link(conn, workspace_id, issue_id)? else {
+        return Ok(());
+    };
+    if link.provider != "github" || link.state != "linked" {
+        return Ok(());
+    }
+    let ownership: serde_json::Value =
+        serde_json::from_str(&link.field_ownership).unwrap_or_default();
+    let owns =
+        |field: &str| ownership.get(field).and_then(serde_json::Value::as_str) == Some("remote");
+    let mut payload = serde_json::Map::new();
+    if update.changed_fields.contains(&"title") && owns("title") {
+        payload.insert("title".into(), update.title.into());
+    }
+    if update.changed_fields.contains(&"description") && owns("body") {
+        payload.insert("body".into(), update.description.into());
+    }
+    if update.status_changed && owns("status") {
+        let state = if update.status.category.is_closed() {
+            "closed"
+        } else {
+            "open"
+        };
+        payload.insert("state".into(), state.into());
+    }
+    if update.labels_changed && owns("labels") {
+        payload.insert(
+            "labels".into(),
+            serde_json::json!(update
+                .labels
+                .iter()
+                .map(|label| label.name.as_str())
+                .collect::<Vec<_>>()),
+        );
+    }
+    if payload.is_empty() {
+        return Ok(());
+    }
+    let payload_json = serde_json::Value::Object(payload).to_string();
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    payload_json.hash(&mut hasher);
+    let fingerprint = format!("{:016x}", hasher.finish());
+    let idempotency_key = format!(
+        "github:{}:{}:{fingerprint}",
+        link.remote_id, update.updated_at
+    );
+    super::sync::enqueue_outbox(
+        conn,
+        workspace_id,
+        &crate::domain::sync::OutboxInput {
+            local_issue_id: Some(issue_id.to_owned()),
+            operation: "update_issue".into(),
+            payload_json,
+            idempotency_key,
+            fingerprint,
+            reconciliation_hint: Some(format!(
+                "{}/issues/{}",
+                link.remote_repository_key.as_deref().unwrap_or_default(),
+                link.remote_number
+            )),
+        },
+    )?;
+    Ok(())
 }
 
 pub fn archive(
@@ -651,6 +772,23 @@ pub fn batch_update(
         } else {
             get_detail(conn, workspace_id, issue_id)?
         };
+        if !input.add_label_names.is_empty() || !input.remove_label_names.is_empty() {
+            enqueue_linked_github_update(
+                conn,
+                workspace_id,
+                issue_id,
+                &LinkedGithubUpdate {
+                    title: &detail.summary.title,
+                    description: &detail.description,
+                    status: &detail.summary.status,
+                    labels: &detail.summary.labels,
+                    changed_fields: &[],
+                    status_changed: false,
+                    labels_changed: true,
+                    updated_at: &detail.summary.updated_at,
+                },
+            )?;
+        }
         let detail = match input.archive {
             Some(archived) => archive(conn, workspace_id, issue_id, archived)?,
             None => detail,

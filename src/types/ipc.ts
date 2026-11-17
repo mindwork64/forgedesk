@@ -155,6 +155,9 @@ export type CommandName =
   | 'github_disconnect'
   | 'github_discover_repositories'
   | 'github_import_issues'
+  | 'github_dispatch_issue_outbox'
+  | 'github_sync_conflicts'
+  | 'github_resolve_sync_conflict'
   | 'github_list_pulls'
   | 'github_pull_detail'
   | 'github_review_requested'
@@ -804,12 +807,34 @@ export interface GitHubImportTarget {
 export interface GitHubImportResult {
   imported: number
   skipped: number
+  updated: number
+  conflicted: number
   projectId: string
   projectName: string
   repositoryId: string
   hasMore: boolean
   pages: number
   nextPage: number | null
+}
+
+export interface SyncConflict {
+  id: string
+  localIssueId: string
+  field: string
+  localValue: string | null
+  remoteValue: string | null
+  remoteUpdatedAt: string | null
+  resolution: string | null
+  resolvedAt: string | null
+  createdAt: string
+}
+
+export interface GitHubOutboxDispatchResult {
+  sent: number
+  reconciled: number
+  retryPending: number
+  outcomeUnknown: number
+  skipped: number
 }
 
 export interface GitHubRef {

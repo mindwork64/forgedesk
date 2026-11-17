@@ -50,6 +50,9 @@ describe('SettingsSync', () => {
       if (command === 'github_connection') {
         return (connected ? connection() : null) as T
       }
+      if (command === 'github_sync_conflicts') {
+        return [] as T
+      }
       throw { code: 'unsupported_capability', message: String(command) }
     })
 
