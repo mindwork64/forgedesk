@@ -14,7 +14,7 @@ use crate::domain::inbox::{InboxEvent, InboxFilter};
 use crate::domain::insights::InsightsSummary;
 use crate::domain::pull_link::PullLink;
 use crate::domain::{
-    ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
+    ActivityFeedItem, ApiControl, ApiMonitorState, AppSettings, BatchIssueInput, CreateIssueInput, Cycle,
     CycleDetail, CycleInput, Document, DocumentInput, GitAvailability, GitDiffStat, GitLogEntry,
     GitOverview, Initiative, InitiativeDetail, InitiativeInput, IssueDetail, IssueQuery,
     IssueRelation, IssueSummary, Label, Milestone, MilestoneInput, Project, ProjectDetail,
@@ -581,6 +581,13 @@ impl AppService {
         let workspace = self.require_workspace()?;
         self.db.with_conn(|conn| {
             crate::db::repositories::inbox::list(conn, &workspace.id, InboxFilter::parse(filter))
+        })
+    }
+
+    pub fn activity_feed(&self, limit: i64) -> CoreResult<Vec<ActivityFeedItem>> {
+        let workspace = self.require_workspace()?;
+        self.db.with_conn(|conn| {
+            crate::db::repositories::activity::list_workspace(conn, &workspace.id, limit)
         })
     }
 
@@ -1218,4 +1225,36 @@ mod tests {
         assert!(service.restore_backup("does-not-exist").is_err());
         assert!(service.restore_backup("../forgedesk.db").is_err());
     }
+    #[test]
+    fn activity_feed_is_independent_of_inbox_archive_state() {
+        let (_dir, service) = service();
+        service.create_workspace("Activity workspace").expect("workspace");
+        let issue = service
+            .create_issue(CreateIssueInput {
+                title: "Feed event".to_owned(),
+                description: String::new(),
+                status_id: None,
+                priority: crate::domain::Priority::default(),
+                issue_type: crate::domain::IssueType::default(),
+                estimate: None,
+                start_date: None,
+                due_date: None,
+                project_id: None,
+                parent_id: None,
+                label_names: Vec::new(),
+            })
+            .expect("issue");
+
+        let events = service.activity_feed(20).expect("activity feed");
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].issue_key, issue.summary.key);
+        assert_eq!(events[0].issue_title, "Feed event");
+        assert_eq!(events[0].kind, "issue_created");
+
+        service.inbox_archive(&events[0].id).expect("archive inbox item");
+        let events_after_archive = service.activity_feed(20).expect("activity feed");
+        assert_eq!(events_after_archive.len(), 1);
+        assert_eq!(events_after_archive[0].id, events[0].id);
+    }
+
 }

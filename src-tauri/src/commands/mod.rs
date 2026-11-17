@@ -7,6 +7,7 @@ use forgedesk_core::domain::automation::{
 };
 use forgedesk_core::domain::dashboard::Dashboard;
 use forgedesk_core::domain::inbox::InboxEvent;
+use forgedesk_core::domain::ActivityFeedItem;
 use forgedesk_core::domain::insights::InsightsSummary;
 use forgedesk_core::domain::pull_link::PullLink;
 use forgedesk_core::domain::{
@@ -971,6 +972,16 @@ pub fn inbox_list(
 ) -> Result<Vec<InboxEvent>, CommandError> {
     state
         .with_service(|service| service.inbox(&filter))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn activity_list(
+    state: State<'_, AppState>,
+    limit: i64,
+) -> Result<Vec<ActivityFeedItem>, CommandError> {
+    state
+        .with_service(|service| service.activity_feed(limit))
         .map_err(CommandError::from)
 }
 

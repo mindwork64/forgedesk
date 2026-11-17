@@ -168,6 +168,7 @@ export type CommandName =
   | 'github_close_pull'
   | 'github_submit_review'
   | 'inbox_list'
+  | 'activity_list'
   | 'inbox_mark_read'
   | 'inbox_archive'
   | 'inbox_mark_all_read'
@@ -279,6 +280,17 @@ export interface Comment {
 export interface ActivityEvent {
   id: string
   issueId: string
+  kind: string
+  data: unknown
+  createdAt: string
+}
+
+export interface ActivityFeedItem {
+  id: string
+  issueId: string
+  issueKey: string
+  issueTitle: string
+  source: IssueSource
   kind: string
   data: unknown
   createdAt: string

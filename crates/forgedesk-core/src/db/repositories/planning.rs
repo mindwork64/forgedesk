@@ -64,8 +64,10 @@ pub fn list_projects(
         .map(str::trim)
         .filter(|s| !s.is_empty())
     {
-        sql.push_str(" AND lower(p.name) LIKE ?");
-        params.push(SqlValue::Text(format!("%{}%", search.to_lowercase())));
+        sql.push_str(" AND (lower(p.name) LIKE ? OR lower(p.description) LIKE ?)");
+        let pattern = format!("%{}%", search.to_lowercase());
+        params.push(SqlValue::Text(pattern.clone()));
+        params.push(SqlValue::Text(pattern));
     }
     sql.push_str(" ORDER BY p.updated_at DESC, p.name COLLATE NOCASE ASC");
 

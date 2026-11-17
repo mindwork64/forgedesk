@@ -297,6 +297,19 @@ pub struct ActivityEvent {
     pub created_at: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActivityFeedItem {
+    pub id: String,
+    pub issue_id: String,
+    pub issue_key: String,
+    pub issue_title: String,
+    pub source: String,
+    pub kind: String,
+    pub data: Value,
+    pub created_at: String,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RelationKind {

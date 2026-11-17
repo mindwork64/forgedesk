@@ -54,6 +54,7 @@ import type {
   GitHubMergeResult,
   GitHubReview,
   InboxEvent,
+  ActivityFeedItem,
   InsightsSummary,
   AutomationRule,
   AutomationRun,
@@ -337,6 +338,8 @@ export const api = {
       confirmed,
     }),
   inboxList: (filter: string) => call<InboxEvent[]>('inbox_list', { filter }),
+  activityList: (limit = 150) =>
+    call<ActivityFeedItem[]>('activity_list', { limit }),
   inboxMarkRead: (eventId: string, read: boolean) =>
     call<void>('inbox_mark_read', { eventId, read }),
   inboxArchive: (eventId: string) =>
