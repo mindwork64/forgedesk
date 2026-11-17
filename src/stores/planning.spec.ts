@@ -36,6 +36,32 @@ describe('planning store', () => {
     expect(store.project?.issueCounts.length).toBeGreaterThan(0)
   })
 
+  it('removes archived projects from the active list and restores them', async () => {
+    const store = usePlanningStore()
+    await store.loadProjects()
+    const project = store.projects[0]
+    expect(project).toBeTruthy()
+    setDevTransport(async <T,>(
+      command: Parameters<typeof handlePlanningFixtureCommand>[0],
+      args?: Record<string, unknown>,
+    ) => {
+      if (command === 'archive_project') {
+        return {
+          ...project!,
+          archivedAt: (args?.archived as boolean) ? '2026-11-17T00:00:00.000Z' : null,
+        } as T
+      }
+      const result = handlePlanningFixtureCommand<T>(command, args)
+      if (!result.handled) throw { code: 'unsupported_capability', message: String(command) }
+      return result.value as T
+    })
+
+    expect(await store.archiveProject(project!.id, true)).toBe(true)
+    expect(store.projects.some((item) => item.id === project!.id)).toBe(false)
+    expect(await store.archiveProject(project!.id, false)).toBe(true)
+    expect(store.projects.some((item) => item.id === project!.id)).toBe(true)
+  })
+
   it('creates a project and loads initiatives/cycles/documents', async () => {
     const store = usePlanningStore()
     await store.loadProjects()

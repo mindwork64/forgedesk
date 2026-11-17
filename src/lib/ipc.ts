@@ -145,6 +145,8 @@ export const api = {
   bootstrap: () => call<Bootstrap>('bootstrap'),
   createWorkspace: (name: string) =>
     call<Workspace>('create_workspace', { name }),
+  updateWorkspaceKeyPrefix: (prefix: string) =>
+    call<Workspace>('update_workspace_key_prefix', { prefix }),
   saveSettings: (patch: SettingsPatch) =>
     call<AppSettings>('save_settings', { patch }),
   completeOnboarding: () => call<AppSettings>('complete_onboarding'),

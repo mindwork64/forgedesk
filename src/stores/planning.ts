@@ -107,12 +107,16 @@ export const usePlanningStore = defineStore('planning', () => {
 
   async function archiveProject(id: string, archived = true): Promise<boolean> {
     try {
-      await api.archiveProject(id, archived)
-      projects.value = projects.value.filter((item) => item.id !== id)
-      if (project.value?.project.id === id) {
-        project.value = null
+      const updated = await api.archiveProject(id, archived)
+      if (archived) {
+        projects.value = projects.value.filter((item) => item.id !== id)
+      } else {
+        projects.value = [updated, ...projects.value.filter((item) => item.id !== id)]
       }
-      toast.success(archived ? t('projects.archived') : t('projects.restored'))
+      if (project.value?.project.id === id) {
+        project.value = archived ? null : { ...project.value, project: updated }
+      }
+      toast.success(archived ? t('projects.archivedToast') : t('projects.restored'))
       return true
     } catch (caught) {
       const wire = toIpcError(caught)

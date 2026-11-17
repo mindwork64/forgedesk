@@ -35,6 +35,7 @@ const priority = ref<Priority>('none')
 const startDate = ref('')
 const targetDate = ref('')
 const initiativeId = ref('')
+const issueKeyPrefix = ref('')
 const error = ref('')
 const saving = ref(false)
 
@@ -58,6 +59,7 @@ watch(open, (isOpen) => {
   startDate.value = project?.startDate ?? ''
   targetDate.value = project?.targetDate ?? ''
   initiativeId.value = project?.initiative?.id ?? ''
+  issueKeyPrefix.value = project?.issueKeyPrefix ?? ''
   error.value = ''
   saving.value = false
 })
@@ -76,6 +78,7 @@ async function submit(): Promise<void> {
     startDate: startDate.value || null,
     targetDate: targetDate.value || null,
     initiativeId: initiativeId.value || null,
+    issueKeyPrefix: issueKeyPrefix.value.trim() || null,
   }
   saving.value = true
   const saved = props.project
@@ -174,6 +177,20 @@ async function submit(): Promise<void> {
         </template>
       </FdField>
 
+      <FdField :label="t('projects.issueKeyPrefix')">
+        <template #default="{ id }">
+          <FdInput
+            :id="id"
+            v-model="issueKeyPrefix"
+            maxlength="10"
+            autocomplete="off"
+            spellcheck="false"
+            :placeholder="t('projects.issueKeyPrefixPlaceholder')"
+          />
+        </template>
+      </FdField>
+      <p class="fd-project-form__hint">{{ t('projects.issueKeyPrefixHint') }}</p>
+
       <div class="fd-project-form__footer">
         <FdButton variant="ghost" size="md" @click="open = false">
           {{ t('common.cancel') }}
@@ -197,6 +214,13 @@ async function submit(): Promise<void> {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--fd-space-3);
+}
+
+.fd-project-form__hint {
+  margin: calc(-1 * var(--fd-space-2)) 0 0;
+  color: var(--fd-text-muted);
+  font-size: var(--fd-text-11);
+  line-height: var(--fd-line-body);
 }
 
 .fd-project-form__footer {
