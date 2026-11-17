@@ -71,13 +71,15 @@ function capabilityText(caps: ProviderCapabilities | null): string {
             }"
           >
             {{
-              auth.connected
-                ? t('apiMonitor.connectedAs', { login: auth.connection?.login })
-                : auth.storageUnavailable
-                  ? t('githubAuth.storageUnavailable')
-                  : auth.connectionCheckFailed
-                    ? t('githubAuth.connectionCheckFailed')
-                    : t('integrations.notConnected')
+              auth.connectionLoading || !auth.connectionChecked
+                ? t('status.githubChecking')
+                : auth.connected
+                  ? t('apiMonitor.connectedAs', { login: auth.connection?.login })
+                  : auth.storageUnavailable
+                    ? t('githubAuth.storageUnavailable')
+                    : auth.connectionCheckFailed
+                      ? t('githubAuth.connectionCheckFailed')
+                      : t('integrations.notConnected')
             }}
           </span>
         </div>
@@ -97,10 +99,10 @@ function capabilityText(caps: ProviderCapabilities | null): string {
           {{ t('githubAuth.connectionCheckFailedHint') }}
           <span v-if="auth.error?.message"> {{ auth.error.message }}</span>
         </p>
-        <p v-else-if="!auth.connected" class="fd-provider-card__notice">
+        <p v-else-if="auth.connectionChecked && !auth.connected" class="fd-provider-card__notice">
           {{ t('githubAuth.hint') }}
         </p>
-        <p v-else class="fd-provider-card__notice">
+        <p v-else-if="auth.connected" class="fd-provider-card__notice">
           {{ t('integrations.lastSync') }}: {{ t('integrations.never') }}
           <template v-if="auth.connection?.storageWarning">
             · {{ auth.connection.storageWarning }}
@@ -145,7 +147,7 @@ function capabilityText(caps: ProviderCapabilities | null): string {
               {{ t('githubAuth.retryCheck') }}
             </FdButton>
             <span
-              v-if="!auth.storageUnavailable && !auth.connectionCheckFailed"
+              v-if="auth.connectionChecked && !auth.storageUnavailable && !auth.connectionCheckFailed"
               class="fd-provider-muted"
             >
               {{ t('integrations.noAccount') }}

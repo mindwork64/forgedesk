@@ -19,6 +19,14 @@ const app = useAppStore()
 const { t } = useI18n()
 
 const state = computed(() => api.state)
+const githubConnectionLabel = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.storageUnavailable) return t('status.githubStorageUnavailable')
+  if (auth.connectionCheckFailed) return t('status.githubCheckFailed')
+  return auth.connected
+    ? t('apiMonitor.connectedAs', { login: auth.connection?.login ?? '' })
+    : t('apiMonitor.notConnected')
+})
 const graphql = computed(
   () => state.value?.budgets.find((budget) => budget.apiFamily === 'github_graphql') ?? null,
 )
@@ -108,13 +116,7 @@ onMounted(() => {
           <div class="fd-monitor-summary__item">
             <span>{{ t('apiMonitor.connection') }}</span>
             <strong>
-              {{
-                auth.connected || state.connected
-                  ? t('apiMonitor.connectedAs', {
-                      login: auth.connection?.login ?? state.accountLogin,
-                    })
-                  : t('apiMonitor.notConnected')
-              }}
+              {{ githubConnectionLabel }}
             </strong>
           </div>
           <div class="fd-monitor-summary__item">
