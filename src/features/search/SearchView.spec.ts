@@ -21,7 +21,7 @@ describe('SearchView', () => {
             id: 'doc-1', title: 'ForgeDesk notes', body: 'Design for ForgeDesk search',
             projectId: null, initiativeId: null, projectName: null, initiativeName: null,
             archivedAt: null, createdAt: '', updatedAt: '',
-          }] as T
+          }] as unknown as T
         case 'list_repositories':
           return [{
             id: 'repo-1', provider: 'github', host: 'github.com', externalId: '1',
@@ -32,7 +32,7 @@ describe('SearchView', () => {
             createdAt: '', updatedAt: '',
           }] as T
         case 'list_issues':
-          return [] as T
+          return [] as unknown as T
         case 'list_project_cards':
           return [{
             id: 'project-1', name: 'ForgeDesk project', description: 'Workspace',
