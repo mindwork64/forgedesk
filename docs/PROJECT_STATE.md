@@ -2,15 +2,15 @@
 
 **Updated:** 2026-11-17
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial
-**Verified CI revision:** `670b499` on `main`; post-merge CI run `43969772720` passed all jobs. The repository model feature was squash-merged via PR #1.
+**Verified feature revision:** `5d51b33` (PR #2 code tested by CI run `44004060587`, 7/7 jobs passed). Merged to `main` via PR #2 as `4ea91ebf3410e8712f9772e3112efdeb38fc4f91`.
 
 ## Current objective
 
-Search/Activity and Sync-settings corrections are implemented in PR #2. The PR
-remains a Draft and is not merged. Next technical phase: shared GitHub request
-dispatcher, enforced API pause gate and sync worker.
+Search/Activity and Sync-settings corrections are merged to `main` via PR #2.
+Next technical phase: shared GitHub request dispatcher, enforced API pause gate
+and sync worker.
 
-## Current implementation status — 2026-11-17 (PR #2, not merged)
+## Current implementation status — 2026-11-17 (PR #2 merged to main)
 
 - **Search page:** `/search` is no longer a generic placeholder. It searches local Issues
   through SQLite FTS5, Projects through the project query, Documents by title/body and
