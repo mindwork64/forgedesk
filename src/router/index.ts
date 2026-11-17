@@ -29,7 +29,6 @@ declare module 'vue-router' {
   interface RouteMeta {
     titleKey: string
     descriptionKey?: string
-    stage?: number
     settings?: boolean
   }
 }
@@ -52,7 +51,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.inbox.title',
       descriptionKey: 'pages.inbox.description',
-      stage: 7,
     },
   },
   {
@@ -62,7 +60,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.activity.title',
       descriptionKey: 'pages.activity.description',
-      stage: 7,
     },
   },
   {
@@ -72,7 +69,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.search.title',
       descriptionKey: 'pages.search.description',
-      stage: 2,
     },
   },
   {
@@ -82,7 +78,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.projects.title',
       descriptionKey: 'pages.projects.description',
-      stage: 3,
     },
   },
   {
@@ -92,7 +87,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.projects.title',
       descriptionKey: 'pages.projects.description',
-      stage: 3,
     },
   },
   {
@@ -102,7 +96,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.initiatives.title',
       descriptionKey: 'pages.initiatives.description',
-      stage: 3,
     },
   },
   {
@@ -112,7 +105,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.initiatives.title',
       descriptionKey: 'pages.initiatives.description',
-      stage: 3,
     },
   },
   {
@@ -122,7 +114,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.cycles.title',
       descriptionKey: 'pages.cycles.description',
-      stage: 3,
     },
   },
   {
@@ -132,7 +123,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.roadmap.title',
       descriptionKey: 'pages.roadmap.description',
-      stage: 3,
     },
   },
   {
@@ -142,7 +132,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.documents.title',
       descriptionKey: 'pages.documents.description',
-      stage: 3,
     },
   },
   {
@@ -152,7 +141,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.repositories.title',
       descriptionKey: 'pages.repositories.description',
-      stage: 4,
     },
   },
   {
@@ -162,7 +150,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.repositories.title',
       descriptionKey: 'pages.repositories.description',
-      stage: 4,
     },
   },
   {
@@ -172,7 +159,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.pullRequests.title',
       descriptionKey: 'pages.pullRequests.description',
-      stage: 6,
     },
   },
   {
@@ -182,7 +168,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.reviews.title',
       descriptionKey: 'pages.reviews.description',
-      stage: 6,
     },
   },
   {
@@ -192,7 +177,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.ci.title',
       descriptionKey: 'pages.ci.description',
-      stage: 6,
     },
   },
   {
@@ -202,7 +186,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.insights.title',
       descriptionKey: 'pages.insights.description',
-      stage: 7,
     },
   },
   {
@@ -212,7 +195,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.dashboards.title',
       descriptionKey: 'pages.dashboards.description',
-      stage: 7,
     },
   },
   {
@@ -222,7 +204,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.integrations.title',
       descriptionKey: 'pages.integrations.description',
-      stage: 4,
     },
   },
   {
@@ -232,7 +213,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.automations.title',
       descriptionKey: 'pages.automations.description',
-      stage: 7,
     },
   },
   {
@@ -242,7 +222,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       titleKey: 'pages.apiMonitor.title',
       descriptionKey: 'pages.apiMonitor.description',
-      stage: 4,
     },
   },
   {

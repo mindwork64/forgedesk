@@ -53,7 +53,6 @@ export default {
     search: 'Search',
     searchPlaceholder: 'Search or jump to…',
     quickCreate: 'Create issue',
-    localOnly: 'Local only',
     settings: 'Settings',
     notifications: 'Notifications',
     breadcrumbs: 'Breadcrumbs',
@@ -61,8 +60,14 @@ export default {
   status: {
     localReady: 'Local database ready',
     localError: 'Local database error',
-    localOnly: 'Local only',
-    noIntegrations: 'No integrations',
+    localStorage: 'Local storage',
+    githubChecking: 'Checking GitHub connection…',
+    githubConnected: 'GitHub connected: {login}',
+    githubDisconnected: 'GitHub not connected',
+    githubStorageUnavailable: 'Saved GitHub authorization cannot be read',
+    githubCheckFailed: 'Could not verify the GitHub connection',
+    githubConnectedNote: 'GitHub is connected. Data is loaded on request; automatic background refresh is not available yet.',
+    githubDisconnectedNote: 'GitHub is not connected. Local issues and projects continue to work.',
     details: 'Local status details',
     schema: 'Schema',
     version: 'Version',
@@ -110,7 +115,6 @@ export default {
     none: 'None',
     skipToContent: 'Skip to content',
     system: 'System',
-    stage: 'Stage {stage}',
   },
   onboarding: {
     title: 'Welcome to ForgeDesk',
@@ -273,7 +277,7 @@ export default {
       body: 'GitHub Device Flow, repository discovery and provider capabilities are managed on the Integrations screen. GitHub is optional; the local workspace works without an account.',
       open: 'Open Integrations',
       localOnlyBody:
-        'Nothing is connected. All data shown in ForgeDesk comes from the local SQLite database.',
+        'Local issues and projects are stored in the SQLite database on this computer. GitHub can be connected separately.',
     },
     sync: {
       title: 'Sync',
@@ -344,11 +348,6 @@ export default {
       resetHint:
         'Data reset and removal are not exposed in this build. Create and validate a backup before any destructive maintenance.',
     },
-    placeholder: {
-      planned: 'Scheduled for Stage {stage}',
-      body: 'The shell, local storage and backups are working. This module is not simulated: it will appear when its stage is implemented.',
-      openStorage: 'Open storage settings',
-    },
   },
   shortcuts: {
     title: 'Keyboard shortcuts',
@@ -375,7 +374,6 @@ export default {
     none: 'None',
     skipToContent: 'Skip to content',
     system: 'System',
-    stage: 'Stage {stage}',
     navigation: 'Navigation',
     issues: 'Issues',
     noResults: 'No matches',
@@ -401,11 +399,6 @@ export default {
     copyError: 'Could not copy to clipboard',
   },
   pages: {
-    placeholder: {
-      planned: 'Scheduled for Stage {stage}',
-      body: 'The shell, local storage and backups are working. This module is not simulated: it will appear when its stage is implemented.',
-      openStorage: 'Open storage settings',
-    },
     myIssues: {
       title: 'My Issues',
       description: 'Every local issue that belongs to the current workspace.',
@@ -1049,7 +1042,7 @@ export default {
   },
   integrations: {
     github: 'GitHub',
-    githubHint: 'Primary provider. GitHub App device flow is configured.',
+    githubHint: 'Connect GitHub to browse repositories, issues and pull requests, and send updates.',
     notConnected: 'Not connected',
     connect: 'Connect',
     connectUnavailable: 'GitHub App credentials are not configured in this build.',
@@ -1061,7 +1054,7 @@ export default {
     never: 'Never',
     gitlab: 'GitLab',
     gitea: 'Gitea',
-    planned: 'Planned for Stage 8',
+    planned: 'Planned',
     localGit: 'Local Git',
     localHint: 'Safe local Git operations on repositories you attach yourself.',
     gitAvailable: 'Git available',
@@ -1069,8 +1062,8 @@ export default {
     configuredRepositories: '{count} repositories',
     manageRepositories: 'Manage repositories',
     disconnect: 'Disconnect',
-    adapterNotConfigured: 'Credentials not configured',
-    readOnlyAdapter: 'Read-only adapter ready',
+    adapterNotConfigured: 'No live service connection is configured; only sample data is available here.',
+    readOnlyAdapter: 'Read-only',
     capabilitiesUnavailable: 'Capabilities unavailable',
     capRepositories: 'repositories',
     capIssues: 'issues',
@@ -1183,7 +1176,8 @@ export default {
     limitHint:
       'Imports up to 250 recently updated issues and creates/uses a local project named owner/repository. Remote comments and GitHub writes are not included.',
     open: 'View imported project',
-    useForPrs: 'Use for pull requests',
+    useForPrs: 'View pull requests',
+    useForPrsHint: 'Select this repository and open its pull requests. This does not create anything on GitHub.',
   },
 
   prs: {

@@ -88,7 +88,7 @@ describe('github auth store', () => {
 
     errorCode = null
     mode = 'connected'
-    await store.loadConnection()
+    await store.loadConnection(true)
     expect(store.connected).toBe(true)
     expect(store.storageUnavailable).toBe(false)
     expect(store.connectionCheckFailed).toBe(false)
