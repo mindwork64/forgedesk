@@ -1497,10 +1497,18 @@ async function main() {
       if (testCase.route === '/api-monitor') {
         const budgets = await page.locator('.fd-budget-panel').count()
         const queue = await page.locator('.fd-monitor-section').first().locator('.fd-monitor-row').count()
+        const unavailableStates = await page.getByText('Not implemented', { exact: true }).count()
+        const pauseControls = await page
+          .getByRole('button', { name: /Pause background sync|Resume background sync/ })
+          .count()
         caseReport.monitorBudgets = budgets
         caseReport.monitorQueue = queue
+        caseReport.monitorUnavailableStates = unavailableStates
+        caseReport.pauseControls = pauseControls
         assert(budgets >= 2, `${testCase.name}: expected budget panels`, report.failures)
         assert(queue >= 2, `${testCase.name}: expected queue rows`, report.failures)
+        assert(unavailableStates === 2, `${testCase.name}: dispatcher and background sync must be marked unavailable`, report.failures)
+        assert(pauseControls === 0, `${testCase.name}: must not expose a non-functional pause control`, report.failures)
       }
 
       if (testCase.route === '/roadmap') {
