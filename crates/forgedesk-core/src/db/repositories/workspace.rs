@@ -180,7 +180,7 @@ mod tests {
         assert_eq!(number, 1);
         assert_eq!(key, "FD-1");
         let (number, key) = db
-            .with_conn(|conn| next_issue_key(conn, &workspace.id))
+            .with_conn(|conn| next_issue_key(conn, &workspace.id, None))
             .expect("second key");
         assert_eq!(number, 2);
         assert_eq!(key, "FD-2");

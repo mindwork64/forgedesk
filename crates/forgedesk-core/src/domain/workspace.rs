@@ -59,6 +59,12 @@ impl Workspace {
         Ok(name.to_owned())
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
     #[test]
     fn validates_and_normalizes_key_prefixes() {
         assert_eq!(Workspace::validate_key_prefix(" exhi42 ").unwrap(), "EXHI42");
