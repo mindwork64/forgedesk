@@ -32,6 +32,25 @@ const cases = [
     measure: true,
   },
   {
+    name: 'gate2-workspace-search-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/search',
+    searchQuery: 'ForgeDesk',
+    waitFor: '[data-testid="search-results"]',
+  },
+  {
+    name: 'gate7-activity-timeline-dark-1440',
+    theme: 'dark',
+    sidebar: 'expanded',
+    width: 1440,
+    height: 900,
+    route: '/activity',
+    waitFor: '[data-testid="activity-list"]',
+  },
+  {
     name: 'gate0-shell-light-1440-expanded',
     waitFor: '[data-testid="issue-row"]',
     theme: 'light',
@@ -1044,6 +1063,10 @@ async function main() {
           .getByRole('button', { name: 'Restore', exact: true })
           .first()
           .click()
+      }
+
+      if (testCase.searchQuery) {
+        await page.locator('.fd-search-input').fill(testCase.searchQuery)
       }
 
       if (testCase.waitFor) {
