@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Gauge, Pause, Play } from '@lucide/vue'
+import { Gauge } from '@lucide/vue'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,9 +34,6 @@ const resourceBudgets = computed(
 )
 const secondary = computed(
   () => state.value?.budgets.find((budget) => budget.secondaryPauseUntil) ?? null,
-)
-const inFlight = computed(
-  () => state.value?.queue.filter((job) => job.state === 'running').length ?? 0,
 )
 const nextReset = computed(() => {
   const values = (state.value?.budgets ?? [])
@@ -86,19 +83,6 @@ onMounted(() => {
       :description="t('pages.apiMonitor.description')"
     >
       <template #actions>
-        <FdButton
-          variant="ghost"
-          size="md"
-          @click="api.setPaused(!state?.control.paused)"
-        >
-          <Play v-if="state?.control.paused" :size="13" aria-hidden="true" />
-          <Pause v-else :size="13" aria-hidden="true" />
-          {{
-            state?.control.paused
-              ? t('apiMonitor.resume')
-              : t('apiMonitor.pause')
-          }}
-        </FdButton>
         <FdButton variant="secondary" size="md" @click="api.exportDiagnostics()">
           {{ t('apiMonitor.exportDiagnostics') }}
         </FdButton>
@@ -134,18 +118,12 @@ onMounted(() => {
             </strong>
           </div>
           <div class="fd-monitor-summary__item">
-            <span>{{ t('apiMonitor.scheduler') }}</span>
-            <strong>
-              {{
-                state.control.paused
-                  ? t('apiMonitor.paused')
-                  : t('apiMonitor.idle')
-              }}
-            </strong>
+            <span>{{ t('apiMonitor.backgroundSync') }}</span>
+            <strong>{{ t('apiMonitor.notImplemented') }}</strong>
           </div>
           <div class="fd-monitor-summary__item">
             <span>{{ t('apiMonitor.dispatcher') }}</span>
-            <strong>{{ t('apiMonitor.inFlight', { count: inFlight }) }}</strong>
+            <strong>{{ t('apiMonitor.dispatcherUnavailable') }}</strong>
           </div>
           <div class="fd-monitor-summary__item">
             <span>{{ t('apiMonitor.lastObservation') }}</span>
