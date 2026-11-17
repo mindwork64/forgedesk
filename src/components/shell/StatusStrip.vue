@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useGithubAuthStore } from '@/stores/githubAuth'
 import FdPopover from '../ui/FdPopover.vue'
 import LocalStatusDetails from './LocalStatusDetails.vue'
 
 const { t } = useI18n()
+const auth = useGithubAuthStore()
 const detailsOpen = ref(false)
+const githubStatus = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.connected) return t('status.githubConnected', { login: auth.connection?.login ?? '' })
+  if (auth.storageUnavailable) return t('status.githubStorageUnavailable')
+  if (auth.connectionCheckFailed) return t('status.githubCheckFailed')
+  return t('status.githubDisconnected')
+})
 </script>
 
 <template>
@@ -33,12 +42,7 @@ const detailsOpen = ref(false)
       </template>
       <LocalStatusDetails />
     </FdPopover>
-
-    <div class="fd-status-strip__right">
-      <span>{{ t('status.localOnly') }}</span>
-      <span class="fd-status-strip__separator" aria-hidden="true">·</span>
-      <span>{{ t('status.noIntegrations') }}</span>
-    </div>
+    <div class="fd-status-strip__right" aria-live="polite">{{ githubStatus }}</div>
   </footer>
 </template>
 
@@ -55,7 +59,6 @@ const detailsOpen = ref(false)
   color: var(--fd-text-muted);
   font-size: var(--fd-text-11);
 }
-
 .fd-status-strip__state {
   display: flex;
   align-items: center;
@@ -68,27 +71,19 @@ const detailsOpen = ref(false)
   color: var(--fd-text-secondary);
   font-size: var(--fd-text-11);
 }
-
 .fd-status-strip__state:hover {
   background: var(--fd-surface-hover);
   color: var(--fd-text);
 }
-
 .fd-status-strip__dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--fd-success);
 }
-
 .fd-status-strip__right {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.fd-status-strip__separator {
-  color: var(--fd-border);
 }
 </style>

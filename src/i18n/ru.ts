@@ -52,7 +52,6 @@ export default {
     search: 'Поиск',
     searchPlaceholder: 'Поиск или переход…',
     quickCreate: 'Создать задачу',
-    localOnly: 'Только локально',
     settings: 'Настройки',
     notifications: 'Уведомления',
     breadcrumbs: 'Навигационная цепочка',
@@ -60,8 +59,14 @@ export default {
   status: {
     localReady: 'Локальная база готова',
     localError: 'Ошибка локальной базы',
-    localOnly: 'Только локально',
-    noIntegrations: 'Нет интеграций',
+    localStorage: 'Локальное хранение',
+    githubChecking: 'Проверяем подключение GitHub…',
+    githubConnected: 'GitHub подключён: {login}',
+    githubDisconnected: 'GitHub не подключён',
+    githubStorageUnavailable: 'Не удалось прочитать сохранённую авторизацию GitHub',
+    githubCheckFailed: 'Не удалось проверить подключение GitHub',
+    githubConnectedNote: 'Аккаунт GitHub подключён. Данные загружаются по запросу; автоматического фонового обновления пока нет.',
+    githubDisconnectedNote: 'Аккаунт GitHub не подключён. Локальные задачи и проекты продолжают работать.',
     details: 'Состояние локального хранилища',
     schema: 'Схема',
     version: 'Версия',
@@ -109,7 +114,6 @@ export default {
     none: 'Нет',
     skipToContent: 'Перейти к содержимому',
     system: 'Системный',
-    stage: 'Этап {stage}',
   },
   onboarding: {
     title: 'Добро пожаловать в ForgeDesk',
@@ -272,7 +276,7 @@ export default {
       body: 'GitHub Device Flow, обнаружение репозиториев и возможности провайдеров настраиваются на экране «Интеграции». GitHub необязателен: локальное пространство работает без учётной записи.',
       open: 'Открыть «Интеграции»',
       localOnlyBody:
-        'Ничего не подключено. Все данные в ForgeDesk берутся из локальной базы SQLite.',
+        'Локальные задачи и проекты хранятся в базе SQLite на этом компьютере. Подключение GitHub настраивается отдельно.',
     },
     sync: {
       title: 'Синхронизация',
@@ -316,7 +320,7 @@ export default {
       title: 'Горячие клавиши',
       description: 'Глобальная навигация и управление.',
       implemented: 'Доступно сейчас',
-      planned: 'Позднее',
+      planned: 'Пока недоступно',
       commandPalette: 'Открыть палитру команд или глобальный поиск',
       createIssue: 'Создать задачу',
       goInbox: 'Перейти к «Входящим»',
@@ -342,11 +346,6 @@ export default {
       reset: 'Сброс и удаление',
       resetHint:
         'Сброс и удаление данных не доступны в этой сборке. Перед любыми разрушительными действиями создайте и проверьте резервную копию.',
-    },
-    placeholder: {
-      planned: 'Запланировано на этап {stage}',
-      body: 'Оболочка, локальное хранилище и резервные копии работают. Этот модуль не имитируется: он появится, когда будет реализован соответствующий этап.',
-      openStorage: 'Открыть настройки хранилища',
     },
   },
   shortcuts: {
@@ -374,7 +373,6 @@ export default {
     none: 'Нет',
     skipToContent: 'Перейти к содержимому',
     system: 'Системный',
-    stage: 'Этап {stage}',
     navigation: 'Навигация',
     issues: 'Задачи',
     noResults: 'Нет совпадений',
@@ -400,11 +398,6 @@ export default {
     copyError: 'Не удалось скопировать в буфер обмена',
   },
   pages: {
-    placeholder: {
-      planned: 'Запланировано на этап {stage}',
-      body: 'Оболочка, локальное хранилище и резервные копии работают. Этот модуль не имитируется: он появится, когда будет реализован соответствующий этап.',
-      openStorage: 'Открыть настройки хранилища',
-    },
     myIssues: {
       title: 'Мои задачи',
       description: 'Все локальные задачи текущего пространства.',
@@ -1045,7 +1038,7 @@ export default {
   },
   integrations: {
     github: 'GitHub',
-    githubHint: 'Основной провайдер. GitHub App device flow настроен.',
+    githubHint: 'Подключите GitHub, чтобы просматривать репозитории, задачи и pull requests, а также отправлять изменения.',
     notConnected: 'Не подключено',
     connect: 'Подключить',
     connectUnavailable: 'Учётные данные GitHub App не настроены в этой сборке.',
@@ -1057,7 +1050,7 @@ export default {
     never: 'Никогда',
     gitlab: 'GitLab',
     gitea: 'Gitea',
-    planned: 'Запланировано на Stage 8',
+    planned: 'Планируется',
     localGit: 'Локальный Git',
     localHint: 'Безопасные локальные операции с добавленными вами репозиториями.',
     gitAvailable: 'Git доступен',
@@ -1065,8 +1058,8 @@ export default {
     configuredRepositories: 'Репозиториев: {count}',
     manageRepositories: 'Управлять репозиториями',
     disconnect: 'Отключить',
-    adapterNotConfigured: 'Учётные данные не настроены',
-    readOnlyAdapter: 'Read-only адаптер готов',
+    adapterNotConfigured: 'Пока нет подключения к сервису; здесь доступны только демонстрационные данные.',
+    readOnlyAdapter: 'Только просмотр',
     capabilitiesUnavailable: 'Возможности недоступны',
     capRepositories: 'репозитории',
     capIssues: 'задачи',
@@ -1142,6 +1135,9 @@ export default {
     connectionCheckFailed: 'Не удалось проверить подключение GitHub',
     connectionCheckFailedHint:
       'ForgeDesk не удалось проверить сохранённое подключение GitHub. Повторите проверку или подключитесь заново; это не подтверждённое состояние «не подключено».',
+    reconcileNeeded: 'Не удалось однозначно подтвердить результат для {count} изменений. Проверьте состояние задач на GitHub перед повторной отправкой.',
+    dispatchWarning: 'Не удалось отправить изменения в GitHub: {message}',
+    conflictReviewNeeded: 'Для {count} изменений требуется проверка конфликта. Откройте настройки синхронизации.',
     refreshed: 'Токен GitHub обновлён',
     refreshError: 'Не удалось обновить токен GitHub',
     disconnected: 'GitHub отключён',
@@ -1169,15 +1165,17 @@ export default {
 
     importing: 'Импорт…',
     imported: 'Импортировано {imported}, пропущено {skipped}',
+    importDetails: 'Проект: {project} · Обновлено: {updated} · Конфликтов: {conflicts} · Отправлено: {sent}',
     importError: 'Импорт задач не удался',
     private: 'Приватный',
     public: 'Публичный',
     noResults: 'Нет доступных репозиториев',
     noIssues: 'В этом репозитории нет задач для импорта.',
     limitHint:
-      'Импортирует до 250 недавно обновлённых задач и создаёт/использует локальный проект owner/repository. Комментарии и запись на GitHub не входят.',
+      'Загружает до 250 недавно изменённых задач в локальный проект с именем репозитория. ForgeDesk может отправлять изменения уже связанных задач; создание новых задач на GitHub и синхронизация комментариев пока не поддерживаются.',
     open: 'Открыть импортированный проект',
-    useForPrs: 'Для pull requests',
+    useForPrs: 'Открыть список PR',
+    useForPrsHint: 'Выбрать этот репозиторий и перейти к его pull requests. Ничего нового на GitHub не создаётся.',
   },
 
   prs: {
@@ -1465,8 +1463,7 @@ export default {
     noData: 'Локальных данных нет',
     apiDisconnected: 'GitHub не подключён',
     noObservations: 'Наблюдений бюджета нет',
-    paused: 'Фоновая синхронизация приостановлена',
-    active: 'Фоновая синхронизация активна',
+    manualOnly: 'Автоматическое обновление не запущено; синхронизация выполняется вручную',
     width: 'Ширина виджета',
     moveUp: 'Вверх',
     moveDown: 'Вниз',

@@ -1,5 +1,16 @@
 # PROJECT_STATE
 
+**Current state (2026-11-17, after PR #8 and PR #10):**
+- Main commit: `bd80833002cee660b8f2ef9e262c0556ab4f725a`; schema v11.
+- PR #8 is merged: project Archive/Restore, workspace and per-project issue-key prefixes, Search improvements. Issues #5, #6 and #7 are closed.
+- PR #10 is merged: manual bidirectional sync for already linked GitHub Issues (title, body, open/closed status and labels), Outbox dispatch, conservative reconciliation and field-conflict resolution.
+- Sync is still manual. Background polling/scheduling, a shared dispatcher for every GitHub request, fully enforced API pause/rate-limit gate, automatic creation of GitHub Issues from local-only tasks, comment sync and full incremental cursor/watermark are not implemented.
+- GitLab/Gitea are fixture-backed/read-only, not live-connected. Native interactive desktop smoke tests, signing, workspace export/import beyond SQLite backups and large-workspace soak tests remain open.
+- The PR #11 UX/status corrections are in draft review and are not in `main` yet.
+
+**Historical snapshot:** The original status and pending PR #8 notes below predate PR #8 and PR #10. Retain them as a record of the earlier implementation, not as the current backlog.
+
+
 **Updated:** 2026-11-17
 **Main schema:** v10. **Proposed branch schema:** v11 in PR #8 (pending CI/review; not yet merged).
 **Stage:** 10 — Repository model v10 implemented; native/signing and sync writes remain partial

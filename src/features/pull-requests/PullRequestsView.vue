@@ -44,6 +44,7 @@ const reviewDialog = ref(false)
 const closeDialog = ref(false)
 const detailTab = ref<DetailTab>('overview')
 const diffMode = ref('unified')
+const repositorySelectionReady = ref(false)
 const selectedRepo = computed(() => auth.selectedRepo)
 const pull = computed(() => prs.detail?.pull ?? null)
 const fileCompleteness = computed(() =>
@@ -98,16 +99,25 @@ function openRequested(): void {
 
 onMounted(async () => {
   await auth.loadConnection()
+  repositorySelectionReady.value = true
   await load()
   openRequested()
 })
 
 watch(state, load)
-watch(() => selectedRepo.value?.repositoryId ?? null, async () => {
-  prs.close()
-  await load()
-  openRequested()
-})
+watch(
+  () => selectedRepo.value?.repositoryId ?? null,
+  async (repositoryId, previousRepositoryId) => {
+    // Initial SQLite selection hydration is not a user switching repositories.
+    if (!repositorySelectionReady.value) return
+    if (repositoryId === previousRepositoryId) return
+    prs.close()
+    if (!repositoryId) return
+    await load()
+    openRequested()
+  },
+  { flush: 'sync' },
+)
 
 function openPull(item: GitHubPull): void {
   if (!selectedRepo.value) return
@@ -155,7 +165,24 @@ function duration(check: GitHubCheckRun): string {
     </PageToolbar>
 
     <div class="fd-pr-content">
-      <div v-if="!auth.connected" class="fd-pr-state">
+      <div v-if="auth.connectionLoading || !auth.connectionChecked" class="fd-pr-state">
+        <FdLoadingSkeleton :rows="5" :height="42" />
+      </div>
+      <div v-else-if="auth.storageUnavailable || auth.connectionCheckFailed" class="fd-pr-state">
+        <FdEmptyState
+          :icon="GitPullRequest"
+          :title="auth.storageUnavailable ? t('githubAuth.storageUnavailable') : t('githubAuth.connectionCheckFailed')"
+          :body="auth.error?.message ?? t('githubAuth.connectionCheckFailedHint')"
+        >
+          <FdButton variant="secondary" @click="auth.loadConnection(true)">
+            {{ t('githubAuth.retryCheck') }}
+          </FdButton>
+          <FdButton variant="ghost" @click="router.push('/integrations')">
+            {{ t('nav.integrations') }}
+          </FdButton>
+        </FdEmptyState>
+      </div>
+      <div v-else-if="!auth.connected" class="fd-pr-state">
         <FdEmptyState :icon="GitPullRequest" :title="t('prs.connectTitle')" :body="t('prs.connectBody')">
           <FdButton variant="primary" @click="router.push('/integrations')">
             {{ t('prs.connectTitle') }}

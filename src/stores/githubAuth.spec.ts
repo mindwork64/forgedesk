@@ -57,6 +57,36 @@ describe('github auth store', () => {
     expect(store.error).toBeNull()
   })
 
+  it('shares a concurrent connection check instead of issuing duplicate requests', async () => {
+    let resolveConnection!: (value: GitHubConnection | null) => void
+    let requests = 0
+    const pending = new Promise<GitHubConnection | null>((resolve) => {
+      resolveConnection = resolve
+    })
+    setDevTransport(async <T,>(command: CommandName) => {
+      if (command === 'github_connection') {
+        requests += 1
+        return pending as Promise<T>
+      }
+      if (command === 'selected_repository') return null as T
+      throw { code: 'unsupported_capability', message: String(command) }
+    })
+
+    const store = useGithubAuthStore()
+    const first = store.loadConnection()
+    const second = store.loadConnection()
+    expect(store.connectionLoading).toBe(true)
+    expect(store.connectionChecked).toBe(false)
+
+    resolveConnection(null)
+    await Promise.all([first, second])
+
+    expect(requests).toBe(1)
+    expect(store.connectionLoading).toBe(false)
+    expect(store.connectionChecked).toBe(true)
+    expect(store.connected).toBe(false)
+  })
+
   it('classifies credential storage failures as storage unavailable', async () => {
     errorCode = 'credential_storage'
     const store = useGithubAuthStore()
@@ -88,7 +118,7 @@ describe('github auth store', () => {
 
     errorCode = null
     mode = 'connected'
-    await store.loadConnection()
+    await store.loadConnection(true)
     expect(store.connected).toBe(true)
     expect(store.storageUnavailable).toBe(false)
     expect(store.connectionCheckFailed).toBe(false)

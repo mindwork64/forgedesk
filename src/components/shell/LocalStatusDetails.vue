@@ -6,16 +6,31 @@ import { useI18n } from 'vue-i18n'
 import { copyText } from '@/lib/clipboard'
 import { formatDateTime, formatRelative } from '@/lib/format'
 import { useAppStore } from '@/stores/app'
+import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useToastStore } from '@/stores/toasts'
 
 import FdBadge from '../ui/FdBadge.vue'
 import FdIconButton from '../ui/FdIconButton.vue'
 
 const app = useAppStore()
+const auth = useGithubAuthStore()
 const toast = useToastStore()
 const { t } = useI18n()
 
 const lastBackup = computed(() => app.backups[0] ?? null)
+const githubStatus = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.connected) return t('status.githubConnected', { login: auth.connection?.login ?? '' })
+  if (auth.storageUnavailable) return t('status.githubStorageUnavailable')
+  if (auth.connectionCheckFailed) return t('status.githubCheckFailed')
+  return t('status.githubDisconnected')
+})
+const githubStatusNote = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.storageUnavailable) return t('githubAuth.storageUnavailableHint')
+  if (auth.connectionCheckFailed) return t('githubAuth.connectionCheckFailedHint')
+  return auth.connected ? t('status.githubConnectedNote') : t('status.githubDisconnectedNote')
+})
 
 async function copy(value: string): Promise<void> {
   const ok = await copyText(value)
@@ -32,10 +47,12 @@ async function copy(value: string): Promise<void> {
     <div class="fd-status-details__heading">
       <span class="fd-status-details__dot" aria-hidden="true" />
       <span>{{ t('status.localReady') }}</span>
-      <FdBadge tone="accent">{{ t('status.localOnly') }}</FdBadge>
+      <FdBadge tone="accent">{{ t('status.localStorage') }}</FdBadge>
     </div>
 
     <dl class="fd-status-details__grid">
+      <dt>{{ t('integrations.github') }}</dt>
+      <dd>{{ githubStatus }}</dd>
       <dt>{{ t('status.schema') }}</dt>
       <dd class="fd-mono">v{{ app.schemaVersion }}</dd>
       <dt>{{ t('status.version') }}</dt>
@@ -75,9 +92,7 @@ async function copy(value: string): Promise<void> {
       </dd>
     </dl>
 
-    <p class="fd-status-details__note">
-      {{ t('status.noIntegrations') }} — {{ t('settings.integrations.localOnlyBody') }}
-    </p>
+    <p class="fd-status-details__note">{{ githubStatusNote }}</p>
   </div>
 </template>
 

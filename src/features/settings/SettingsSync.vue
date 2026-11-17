@@ -24,6 +24,7 @@ const { t } = useI18n()
 const refreshing = ref(false)
 
 const connectionLabel = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
   if (auth.connected) {
     return t('settings.sync.connected', { login: auth.connection?.login ?? '' })
   }
@@ -52,7 +53,7 @@ const apiSummary = computed(() => {
 async function refresh(): Promise<void> {
   refreshing.value = true
   try {
-    await Promise.all([api.load(), auth.loadConnection()])
+    await Promise.all([api.load(), auth.loadConnection(true)])
     conflicts.value = await ipc.githubSyncConflicts()
   } finally {
     refreshing.value = false
@@ -150,7 +151,7 @@ onMounted(() => {
         {{ t('settings.sync.refresh') }}
       </FdButton>
       <FdButton
-        v-if="auth.selectedRepo"
+        v-if="auth.connected && auth.selectedRepo"
         variant="secondary"
         :loading="auth.syncingOutbox"
         @click="pushPending"

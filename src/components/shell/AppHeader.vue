@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ChevronDown, Plus, Search, Settings } from '@lucide/vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import { useGithubAuthStore } from '@/stores/githubAuth'
 import { useUiStore } from '@/stores/ui'
 
 import FdIconButton from '../ui/FdIconButton.vue'
@@ -13,9 +14,17 @@ import Breadcrumbs from './Breadcrumbs.vue'
 import LocalStatusDetails from './LocalStatusDetails.vue'
 
 const ui = useUiStore()
+const auth = useGithubAuthStore()
 const router = useRouter()
 const { t } = useI18n()
 const syncOpen = ref(false)
+const githubStatus = computed(() => {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.connected) return t('status.githubConnected', { login: auth.connection?.login ?? '' })
+  if (auth.storageUnavailable) return t('status.githubStorageUnavailable')
+  if (auth.connectionCheckFailed) return t('status.githubCheckFailed')
+  return t('status.githubDisconnected')
+})
 const emit = defineEmits<{ (event: 'quick-create'): void }>()
 </script>
 
@@ -64,7 +73,7 @@ const emit = defineEmits<{ (event: 'quick-create'): void }>()
             @click="toggle"
           >
             <span class="fd-header__sync-dot" aria-hidden="true" />
-            <span class="fd-header__sync-label">{{ t('header.localOnly') }}</span>
+            <span class="fd-header__sync-label">{{ githubStatus }}</span>
             <ChevronDown :size="12" aria-hidden="true" />
           </button>
         </template>
