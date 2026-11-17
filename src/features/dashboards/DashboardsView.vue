@@ -13,6 +13,7 @@ import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import { api, toIpcError } from '@/lib/ipc'
 import { useAppStore } from '@/stores/app'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useGithubAuthStore } from '@/stores/githubAuth'
 import type {
   ApiMonitorState,
   InsightsSummary,
@@ -20,6 +21,7 @@ import type {
 } from '@/types/ipc'
 
 const dashboard = useDashboardStore()
+const auth = useGithubAuthStore()
 const app = useAppStore()
 const { t } = useI18n()
 const edit = ref(false)
@@ -55,8 +57,11 @@ function dataThrough(): string {
 }
 
 function apiSummary(): string {
+  if (auth.connectionLoading || !auth.connectionChecked) return t('status.githubChecking')
+  if (auth.storageUnavailable) return t('status.githubStorageUnavailable')
+  if (auth.connectionCheckFailed) return t('status.githubCheckFailed')
+  if (!auth.connected) return t('dashboardPage.apiDisconnected')
   if (!monitor.value) return t('dashboardPage.noData')
-  if (!monitor.value.connected) return t('dashboardPage.apiDisconnected')
   const budget = monitor.value.budgets[0]
   if (!budget) return t('dashboardPage.noObservations')
   return `${budget.remainingValue ?? '—'} / ${budget.limitValue ?? '—'}`
@@ -176,7 +181,7 @@ onMounted(async () => {
           </template>
           <template v-else>
             <strong class="fd-dash-budget">{{ apiSummary() }}</strong>
-            <span class="fd-dash-muted">{{ monitor?.control.paused ? t('dashboardPage.paused') : t('dashboardPage.active') }}</span>
+            <span class="fd-dash-muted">{{ t('dashboardPage.manualOnly') }}</span>
           </template>
         </section>
       </div>
