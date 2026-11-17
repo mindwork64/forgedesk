@@ -625,6 +625,36 @@ mod tests {
     }
 
     #[test]
+    fn upgrades_v10_project_rows_with_inherited_prefix() {
+        let mut conn = connection();
+        apply_through(&mut conn, 10);
+        conn.execute(
+            "INSERT INTO workspace (id, name, key_prefix, created_at, updated_at) \\
+             VALUES ('ws-prefix', 'Prefix workspace', 'FD', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .expect("workspace");
+        conn.execute(
+            "INSERT INTO project (id, workspace_id, name, description, status, priority, created_at, updated_at) \\
+             VALUES ('project-prefix', 'ws-prefix', 'Existing project', '', 'active', 'none', \\
+                     '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .expect("project before migration");
+
+        assert_eq!(run(&mut conn).expect("upgrade to v11"), 11);
+        let (name, prefix): (String, Option<String>) = conn
+            .query_row(
+                "SELECT name, issue_key_prefix FROM project WHERE id = 'project-prefix'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .expect("project after migration");
+        assert_eq!(name, "Existing project");
+        assert_eq!(prefix, None);
+    }
+
+    #[test]
     fn refuses_newer_schema() {
         let mut conn = connection();
         run(&mut conn).expect("migrate");
