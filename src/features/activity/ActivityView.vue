@@ -112,7 +112,7 @@ onMounted(() => {
           </span>
           <span class="fd-activity-meta">
             <span>{{ event.source }}</span>
-            <time :datetime="event.createdAt">{{ formatRelative(event.createdAt, locale.value) }}</time>
+            <time :datetime="event.createdAt">{{ formatRelative(event.createdAt, locale) }}</time>
           </span>
         </button>
       </div>
