@@ -339,14 +339,20 @@ pub(crate) fn record_transport_failure(
     elapsed: Duration,
     error: &str,
 ) -> CoreResult<()> {
-    let Some(database_path) = configured_path()? else { return Ok(()); };
+    let Some(database_path) = configured_path()? else {
+        return Ok(());
+    };
     let connection = open_runtime_database(&database_path)?;
-    let Some(workspace_id) = workspace_id(&connection)? else { return Ok(()); };
+    let Some(workspace_id) = workspace_id(&connection)? else {
+        return Ok(());
+    };
     let resource = inferred_resource(path);
     let body_text = body.map(serde_json::Value::to_string).unwrap_or_default();
     let mut hasher = Sha256::new();
-    hasher.update(method.as_bytes()); hasher.update(b"\n");
-    hasher.update(path.as_bytes()); hasher.update(b"\n");
+    hasher.update(method.as_bytes());
+    hasher.update(b"\n");
+    hasher.update(path.as_bytes());
+    hasher.update(b"\n");
     hasher.update(body_text.as_bytes());
     let fingerprint = format!("{:x}", hasher.finalize());
     connection.execute(
