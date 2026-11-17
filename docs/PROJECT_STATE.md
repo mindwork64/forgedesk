@@ -6,9 +6,9 @@
 
 ## Current objective
 
-Finish the Search/Activity/Sync-settings correction in PR #2, then implement the
-shared GitHub request dispatcher and sync worker. PR #2 is still a Draft and has
-not been merged; its current CI result must be checked against the latest head.
+Search/Activity and Sync-settings corrections are implemented in PR #2. The PR
+remains a Draft and is not merged. Next technical phase: shared GitHub request
+dispatcher, enforced API pause gate and sync worker.
 
 ## Current implementation status — 2026-11-17 (PR #2, not merged)
 
@@ -26,8 +26,12 @@ not been merged; its current CI result must be checked against the latest head.
 - **Sync settings:** the current page truthfully reports manual-only GitHub access.
   No periodic scheduler, shared HTTP dispatcher, queue worker or outbox reconciler
   is currently wired.
-- **Verification:** current component/visual/core tests are being evaluated by CI on
-  the latest PR head. Do not reuse older green CI runs as evidence for this revision.
+- **Verification:** GitHub Actions run #84
+  ([44002363339](https://github.com/mindwork64/forgedesk/actions/runs/44002363339))
+  passed all seven jobs at tested implementation revision `8ef6c62`: 147 frontend
+  tests, UI Gate 0 with 61 captures, core tests/Clippy on Ubuntu and Windows,
+  Tauri compile checks on Linux and Windows, and optional AI crate checks. Native
+  interactive desktop flows and live GitHub credential flows remain unverified.
 
 ## Architecture (locked)
 
