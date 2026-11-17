@@ -14,6 +14,8 @@ const ApiMonitorView = () => import('@/features/api-monitor/ApiMonitorView.vue')
 const IntegrationsView = () => import('@/features/integrations/IntegrationsView.vue')
 const PullRequestsView = () => import('@/features/pull-requests/PullRequestsView.vue')
 const InboxView = () => import('@/features/inbox/InboxView.vue')
+const ActivityView = () => import('@/features/activity/ActivityView.vue')
+const SearchView = () => import('@/features/search/SearchView.vue')
 const InsightsView = () => import('@/features/insights/InsightsView.vue')
 const AutomationsView = () => import('@/features/automations/AutomationsView.vue')
 const DashboardsView = () => import('@/features/dashboards/DashboardsView.vue')
@@ -21,7 +23,6 @@ const ReviewsView = () => import('@/features/reviews/ReviewsView.vue')
 const CiView = () => import('@/features/ci/CiView.vue')
 const RepositoriesView = () => import('@/features/repositories/RepositoriesView.vue')
 const RepositoryDetailView = () => import('@/features/repositories/RepositoryDetailView.vue')
-const PlaceholderView = () => import('@/features/placeholder/PlaceholderView.vue')
 const SettingsView = () => import('@/features/settings/SettingsView.vue')
 
 declare module 'vue-router' {
@@ -57,7 +58,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/activity',
     name: 'activity',
-    component: PlaceholderView,
+    component: ActivityView,
     meta: {
       titleKey: 'pages.activity.title',
       descriptionKey: 'pages.activity.description',
@@ -67,7 +68,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/search',
     name: 'search',
-    component: PlaceholderView,
+    component: SearchView,
     meta: {
       titleKey: 'pages.search.title',
       descriptionKey: 'pages.search.description',
