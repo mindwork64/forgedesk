@@ -14,9 +14,20 @@ The highest-risk mismatch was stale Sync settings copy claiming GitHub integrati
 
 | Route | Current behavior on main | Remaining boundary |
 |---|---|---|
-| `/search` | Full local workspace search: Issues through the SQLite FTS5 query path; Projects through the project query; Documents by title/body; Repositories by name, description, remote URL and checkout path. Results link to their owning screens. | Local records only. GitHub issues must first be imported. Search does not query remote GitHub, comments, cycles or initiatives. Result sets are bounded (up to 40 issues and 12 per other entity group). |
+| `/search` | Full local workspace search: Issues through SQLite FTS5; Projects; Documents; Repositories. Results link to their owning screens. | Local records only. GitHub issues must first be imported. Search does not query remote GitHub or comments. Initiative name/description and Project description matching are added in pending PR #8, not yet in main. Result sets are bounded. |
 | `/activity` | Dedicated read-only timeline of the latest 300 issue activity events, including notifications archived in Inbox. Local issue events and linked GitHub PR status events are classified separately. Entries open the relevant issue. | Not a universal event bus: it does not yet include project/document/repository changes, arbitrary provider webhook events or background sync events that are not stored in `activity_event`. |
 | `/settings/sync` | Replaced with actual GitHub connection, manual-only mode, API-monitor snapshot and explicit background-worker limitations. | The UI reports missing sync infrastructure; it does not implement the dispatcher or scheduler. |
+
+## Pending PR #8
+
+https://github.com/mindwork64/forgedesk/pull/8
+
+The branch adds soft project Archive/Restore (Issue #5), editable workspace and
+per-project issue-key prefixes plus append-only schema v11 (Issue #7), and two
+Search improvements recovered from obsolete PR #3 (Initiative name/description
+and Project description). Existing issue keys remain unchanged; all keys use a
+single monotonic workspace counter. The existing main Activity implementation
+is deliberately untouched. Treat PR #8 as pending until CI/review and merge.
 
 ## Synchronization and API budget
 
@@ -45,7 +56,8 @@ The highest-risk mismatch was stale Sync settings copy claiming GitHub integrati
 The stage reports document these deliberately incomplete areas; they should remain visible in the product backlog and must not be described as complete:
 
 - **Issues / Stage 2:** issue templates, watchers, attachments and milestone/cycle fields; workflow transition editor; Activity event edit/delete; Saved View column/density application; UI for `in`/`notIn` filters. The command palette remains a small quick-search/navigation surface; the new Search page is the full local entity search.
-- **Planning / Stage 3:** templates; document import, outline and in-document search; cycle board and burnup/velocity analytics; roadmap milestone level, drag editing and dependency overlays; project archive menu; project-scoped quick-create prefill. Cycle assignment and summary data do exist.
+- **Issue-key configuration:** global workspace prefix and optional per-project prefix are implemented on the PR #8 branch only; not yet merged into main.
+- **Planning / Stage 3:** templates; document import, outline and in-document search; cycle board and burnup/velocity analytics; roadmap milestone level, drag editing and dependency overlays; project-scoped quick-create prefill. Cycle assignment and summary data do exist. Project Archive/Restore UI is proposed in pending PR #8; it is not in main until merge.
 - **Local Git / Stage 4:** process timeout, open-folder/terminal, branch deletion, rebase and remote sync.
 - **PR / Stage 6:** inline review-comment placement and review-thread resolution remain incomplete.
 - **Inbox / Stage 7:** triage routing/assignment and real-time webhooks are explicitly out of v1 scope.

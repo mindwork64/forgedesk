@@ -110,6 +110,7 @@ pub struct Project {
     pub initiative: Option<InitiativeRef>,
     pub progress: Progress,
     pub color: String,
+    pub issue_key_prefix: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub archived_at: Option<String>,
@@ -133,6 +134,9 @@ pub struct ProjectInput {
     pub initiative_id: Option<String>,
     #[serde(default)]
     pub color: Option<String>,
+    /// Optional project override. None inherits the workspace prefix.
+    #[serde(default)]
+    pub issue_key_prefix: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]

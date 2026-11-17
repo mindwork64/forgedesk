@@ -41,6 +41,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::bootstrap,
             commands::create_workspace,
+            commands::update_workspace_key_prefix,
             commands::save_settings,
             commands::complete_onboarding,
             commands::save_window_state,

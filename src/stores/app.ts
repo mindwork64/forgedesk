@@ -145,6 +145,19 @@ export const useAppStore = defineStore('app', () => {
     return task
   }
 
+  async function updateWorkspaceKeyPrefix(prefix: string): Promise<boolean> {
+    try {
+      const workspace = await api.updateWorkspaceKeyPrefix(prefix)
+      if (data.value) data.value.workspace = workspace
+      toast.success(t('settings.workspace.keyPrefixSaved'))
+      return true
+    } catch (error) {
+      const wire = toIpcError(error)
+      toast.error(t('settings.workspace.keyPrefixError'), wire.message, wire.detail)
+      return false
+    }
+  }
+
   async function setTheme(theme: ThemePreference): Promise<boolean> {
     return saveSettings({ theme })
   }
@@ -268,6 +281,7 @@ export const useAppStore = defineStore('app', () => {
     load,
     saveSettings,
     setTheme,
+    updateWorkspaceKeyPrefix,
     setLocale,
     setSidebarCollapsed,
     setAutoBackupEnabled,

@@ -9,6 +9,7 @@ import PageHeader from '@/components/layout/PageHeader.vue'
 import PlanningStatusBadge from '@/components/planning/PlanningStatusBadge.vue'
 import ProgressBar from '@/components/planning/ProgressBar.vue'
 import FdButton from '@/components/ui/FdButton.vue'
+import FdConfirmDialog from '@/components/ui/FdConfirmDialog.vue'
 import FdEmptyState from '@/components/ui/FdEmptyState.vue'
 import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
@@ -40,6 +41,8 @@ const projectIssues = ref<IssueSummary[]>([])
 const documents = ref<Document[]>([])
 const editOpen = ref(false)
 const milestoneOpen = ref(false)
+const archiveDialogOpen = ref(false)
+const archiveBusy = ref(false)
 const issuesLoading = ref(false)
 
 const projectId = computed(() => String(route.params.id ?? ''))
@@ -144,6 +147,22 @@ async function linkIssue(milestone: Milestone, issueId: string): Promise<void> {
 function milestoneLabel(milestone: Milestone): string {
   return milestoneStatusLabel(milestone.status, t)
 }
+
+async function archiveCurrentProject(): Promise<void> {
+  if (!project.value || archiveBusy.value) return
+  archiveBusy.value = true
+  const archived = await planning.archiveProject(projectId.value, true)
+  archiveBusy.value = false
+  archiveDialogOpen.value = false
+  if (archived) void router.push('/projects')
+}
+
+async function restoreCurrentProject(): Promise<void> {
+  if (!project.value || archiveBusy.value) return
+  archiveBusy.value = true
+  await planning.archiveProject(projectId.value, false)
+  archiveBusy.value = false
+}
 </script>
 
 <template>
@@ -171,10 +190,27 @@ function milestoneLabel(milestone: Milestone): string {
     <template v-else-if="project">
       <PageHeader :title="project.name" :description="description">
         <template #actions>
-          <FdButton variant="ghost" size="md" @click="editOpen = true">
+          <FdButton
+            v-if="project.archivedAt"
+            variant="secondary"
+            size="md"
+            :loading="archiveBusy"
+            @click="restoreCurrentProject"
+          >
+            {{ t('projects.restoreProject') }}
+          </FdButton>
+          <FdButton
+            v-else
+            variant="destructive"
+            size="md"
+            @click="archiveDialogOpen = true"
+          >
+            {{ t('projects.archiveProject') }}
+          </FdButton>
+          <FdButton v-if="!project.archivedAt" variant="ghost" size="md" @click="editOpen = true">
             {{ t('projects.editProject') }}
           </FdButton>
-          <FdButton variant="primary" size="md" @click="openAddIssue">
+          <FdButton v-if="!project.archivedAt" variant="primary" size="md" @click="openAddIssue">
             <Plus :size="14" aria-hidden="true" />
             {{ t('issues.newIssue') }}
           </FdButton>
@@ -408,6 +444,15 @@ function milestoneLabel(milestone: Milestone): string {
       v-model:open="milestoneOpen"
       :project-id="projectId"
       @saved="planning.loadProject(projectId)"
+    />
+    <FdConfirmDialog
+      v-model="archiveDialogOpen"
+      :title="t('projects.archiveTitle')"
+      :body="t('projects.archiveBody')"
+      :confirm-label="t('projects.archiveConfirm')"
+      :busy="archiveBusy"
+      destructive
+      @confirm="archiveCurrentProject"
     />
   </div>
 </template>

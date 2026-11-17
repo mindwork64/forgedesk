@@ -265,7 +265,11 @@ pub fn create(
         ensure_parent_valid(conn, workspace_id, &id, Some(parent_id))?;
     }
 
-    let (key_number, key) = crate::db::repositories::workspace::next_issue_key(conn, workspace_id)?;
+    let (key_number, key) = crate::db::repositories::workspace::next_issue_key(
+        conn,
+        workspace_id,
+        project.as_ref().map(|value| value.id.as_str()),
+    )?;
     let now = now_rfc3339();
     let completed_at = if status.category == StatusCategory::Completed {
         Some(now.clone())

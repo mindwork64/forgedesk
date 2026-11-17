@@ -81,6 +81,7 @@ export interface IpcError {
 export type CommandName =
   | 'bootstrap'
   | 'create_workspace'
+  | 'update_workspace_key_prefix'
   | 'save_settings'
   | 'complete_onboarding'
   | 'save_window_state'
@@ -475,6 +476,7 @@ export interface Project {
   createdAt: string
   updatedAt: string
   archivedAt: string | null
+  issueKeyPrefix?: string | null
 }
 
 export interface ProjectInput {
@@ -486,6 +488,7 @@ export interface ProjectInput {
   targetDate?: string | null
   initiativeId?: string | null
   color?: string | null
+  issueKeyPrefix?: string | null
 }
 
 export interface ProjectQuery {

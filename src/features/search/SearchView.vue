@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleDot, FileText, FolderGit2, Layers } from '@lucide/vue'
+import { CircleDot, FileText, Flag, FolderGit2, Layers } from '@lucide/vue'
 import type { Component } from 'vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -12,9 +12,9 @@ import FdErrorState from '@/components/ui/FdErrorState.vue'
 import FdInput from '@/components/ui/FdInput.vue'
 import FdLoadingSkeleton from '@/components/ui/FdLoadingSkeleton.vue'
 import { api, toIpcError } from '@/lib/ipc'
-import type { Document, IssueSummary, Project, Repository } from '@/types/ipc'
+import type { Document, Initiative, IssueSummary, Project, Repository } from '@/types/ipc'
 
-type ResultKind = 'issue' | 'project' | 'document' | 'repository'
+type ResultKind = 'issue' | 'project' | 'initiative' | 'document' | 'repository'
 interface SearchResult {
   id: string
   kind: ResultKind
@@ -33,6 +33,7 @@ const router = useRouter()
 const { t } = useI18n()
 const query = ref('')
 const documents = ref<Document[]>([])
+const initiatives = ref<Initiative[]>([])
 const repositories = ref<Repository[]>([])
 const projects = ref<Project[]>([])
 const issues = ref<IssueSummary[]>([])
@@ -64,6 +65,17 @@ const groups = computed((): SearchGroup[] => {
     subtitle: t('searchPage.projectStatus', { status: t(`planning.status.${project.status}`) }),
     description: project.description,
   }))
+  const initiativeResults: SearchResult[] = initiatives.value
+    .filter((initiative) => !initiative.archivedAt)
+    .filter((initiative) => (initiative.name + ' ' + initiative.description).toLocaleLowerCase().includes(q))
+    .slice(0, 12)
+    .map((initiative) => ({
+      id: initiative.id,
+      kind: 'initiative',
+      title: initiative.name,
+      subtitle: t('searchPage.initiativeStatus', { status: t(`planning.status.${initiative.status}`) }),
+      description: initiative.description,
+    }))
   const documentResults: SearchResult[] = documents.value
     .filter((document) => !document.archivedAt)
     .filter((document) => (document.title + ' ' + document.body).toLocaleLowerCase().includes(q))
@@ -100,6 +112,7 @@ const groups = computed((): SearchGroup[] => {
   const resultGroups: SearchGroup[] = [
     { kind: 'issue', label: t('searchPage.issues'), icon: CircleDot, results: issueResults },
     { kind: 'project', label: t('searchPage.projects'), icon: Layers, results: projectResults },
+    { kind: 'initiative', label: t('searchPage.initiatives'), icon: Flag, results: initiativeResults },
     { kind: 'document', label: t('searchPage.documents'), icon: FileText, results: documentResults },
     { kind: 'repository', label: t('searchPage.repositories'), icon: FolderGit2, results: repositoryResults },
   ]
@@ -111,14 +124,17 @@ const resultCount = computed(() => groups.value.reduce((total, group) => total +
 async function loadCatalogs(): Promise<void> {
   catalogsLoading.value = true
   catalogsError.value = null
-  const [documentResult, repositoryResult] = await Promise.allSettled([
+  const [documentResult, repositoryResult, initiativeResult] = await Promise.allSettled([
     api.listDocuments(),
     api.listRepositories(),
+    api.listInitiatives(),
   ])
   if (documentResult.status === 'fulfilled') documents.value = documentResult.value
   else catalogsError.value = toIpcError(documentResult.reason)
   if (repositoryResult.status === 'fulfilled') repositories.value = repositoryResult.value
   else if (!catalogsError.value) catalogsError.value = toIpcError(repositoryResult.reason)
+  if (initiativeResult.status === 'fulfilled') initiatives.value = initiativeResult.value
+  else if (!catalogsError.value) catalogsError.value = toIpcError(initiativeResult.reason)
   catalogsLoading.value = false
 }
 
@@ -167,6 +183,9 @@ function openResult(result: SearchResult): void {
       break
     case 'project':
       void router.push(`/projects/${result.id}`)
+      break
+    case 'initiative':
+      void router.push(`/initiatives/${result.id}`)
       break
     case 'document':
       void router.push({ path: '/documents', query: { doc: result.id } })

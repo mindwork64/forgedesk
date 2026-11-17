@@ -59,6 +59,16 @@ pub fn save_settings(
 }
 
 #[tauri::command]
+pub fn update_workspace_key_prefix(
+    state: State<'_, AppState>,
+    prefix: String,
+) -> Result<Workspace, CommandError> {
+    state
+        .with_service(|service| service.update_workspace_key_prefix(&prefix))
+        .map_err(CommandError::from)
+}
+
+#[tauri::command]
 pub fn complete_onboarding(state: State<'_, AppState>) -> Result<AppSettings, CommandError> {
     state
         .with_service(|service| service.complete_onboarding())

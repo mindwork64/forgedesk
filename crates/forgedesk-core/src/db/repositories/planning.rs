@@ -11,6 +11,7 @@ use crate::domain::planning::{
     ProjectDetail, ProjectInput, ProjectQuery, StatusCount,
 };
 use crate::domain::time::now_rfc3339;
+use crate::domain::workspace::Workspace;
 use crate::error::{CoreError, CoreResult};
 
 use super::issues;
@@ -22,7 +23,8 @@ SELECT p.id, p.name, p.description, p.status, p.priority, p.start_date, p.target
        (SELECT count(*) FROM issue x JOIN workflow_status s ON s.id = x.status_id \
           WHERE x.project_id = p.id AND x.deleted_at IS NULL AND x.archived_at IS NULL AND s.category = 'completed'), \
        (SELECT count(*) FROM issue x JOIN workflow_status s ON s.id = x.status_id \
-          WHERE x.project_id = p.id AND x.deleted_at IS NULL AND x.archived_at IS NULL AND s.category = 'canceled') \
+          WHERE x.project_id = p.id AND x.deleted_at IS NULL AND x.archived_at IS NULL AND s.category = 'canceled'), \
+       p.issue_key_prefix \
 FROM project p LEFT JOIN initiative i ON i.id = p.initiative_id";
 
 const MILESTONE_SELECT: &str = "\
@@ -64,8 +66,10 @@ pub fn list_projects(
         .map(str::trim)
         .filter(|s| !s.is_empty())
     {
-        sql.push_str(" AND lower(p.name) LIKE ?");
-        params.push(SqlValue::Text(format!("%{}%", search.to_lowercase())));
+        sql.push_str(" AND (lower(p.name) LIKE ? OR lower(p.description) LIKE ?)");
+        let pattern = format!("%{}%", search.to_lowercase());
+        params.push(SqlValue::Text(pattern.clone()));
+        params.push(SqlValue::Text(pattern));
     }
     sql.push_str(" ORDER BY p.updated_at DESC, p.name COLLATE NOCASE ASC");
 
@@ -120,6 +124,7 @@ pub fn create_project(
     input: &ProjectInput,
 ) -> CoreResult<Project> {
     let name = validate_name("name", &input.name)?;
+    let issue_key_prefix = normalize_project_key_prefix(input.issue_key_prefix.as_deref())?;
     validate_date_range(input.start_date.as_deref(), input.target_date.as_deref())?;
     if let Some(initiative_id) = &input.initiative_id {
         ensure_initiative(conn, workspace_id, initiative_id)?;
@@ -129,8 +134,8 @@ pub fn create_project(
     conn.execute(
         "INSERT INTO project \
          (id, workspace_id, name, description, status, priority, start_date, target_date, \
-          initiative_id, color, progress_method, created_at, updated_at) \
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'issues', ?11, ?11)",
+          initiative_id, color, issue_key_prefix, progress_method, created_at, updated_at) \
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'issues', ?12, ?12)",
         rusqlite::params![
             id,
             workspace_id,
@@ -142,6 +147,7 @@ pub fn create_project(
             input.target_date,
             input.initiative_id,
             input.color.clone().unwrap_or_else(|| "accent".into()),
+            issue_key_prefix,
             now,
         ],
     )?;
@@ -155,14 +161,16 @@ pub fn update_project(
     input: &ProjectInput,
 ) -> CoreResult<Project> {
     let name = validate_name("name", &input.name)?;
+    let issue_key_prefix = normalize_project_key_prefix(input.issue_key_prefix.as_deref())?;
     validate_date_range(input.start_date.as_deref(), input.target_date.as_deref())?;
     if let Some(initiative_id) = &input.initiative_id {
         ensure_initiative(conn, workspace_id, initiative_id)?;
     }
     let changed = conn.execute(
         "UPDATE project SET name = ?1, description = ?2, status = ?3, priority = ?4, \
-         start_date = ?5, target_date = ?6, initiative_id = ?7, color = ?8, updated_at = ?9 \
-         WHERE workspace_id = ?10 AND id = ?11",
+         start_date = ?5, target_date = ?6, initiative_id = ?7, color = ?8, \
+         issue_key_prefix = ?9, updated_at = ?10 \
+         WHERE workspace_id = ?11 AND id = ?12",
         rusqlite::params![
             name,
             input.description,
@@ -172,6 +180,7 @@ pub fn update_project(
             input.target_date,
             input.initiative_id,
             input.color.clone().unwrap_or_else(|| "accent".into()),
+            issue_key_prefix,
             now_rfc3339(),
             workspace_id,
             project_id,
@@ -788,6 +797,7 @@ fn read_project(row: &Row<'_>) -> rusqlite::Result<Project> {
             _ => None,
         },
         progress: Progress::new(completed, total, canceled),
+        issue_key_prefix: row.get(16)?,
     })
 }
 
@@ -885,6 +895,13 @@ fn read_status(row: &Row<'_>, offset: usize) -> rusqlite::Result<StatusSummary> 
         position: row.get(offset + 4)?,
         system_key: row.get(offset + 5)?,
     })
+}
+
+fn normalize_project_key_prefix(raw: Option<&str>) -> CoreResult<Option<String>> {
+    match raw.map(str::trim).filter(|value| !value.is_empty()) {
+        Some(value) => Ok(Some(Workspace::validate_key_prefix(value)?)),
+        None => Ok(None),
+    }
 }
 
 fn ensure_initiative(conn: &Connection, workspace_id: &str, initiative_id: &str) -> CoreResult<()> {
@@ -1140,6 +1157,7 @@ mod tests {
                     &workspace_id,
                     &ProjectInput {
                         name: "Hidden project".into(),
+                        description: "Searchable project description".into(),
                         ..Default::default()
                     },
                 )?;
@@ -1162,5 +1180,78 @@ mod tests {
             .expect("query");
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, project.id);
+
+        let description_results = db
+            .with_conn(|conn| {
+                list_projects(
+                    conn,
+                    &workspace_id,
+                    &ProjectQuery {
+                        search: Some("searchable".into()),
+                        ..Default::default()
+                    },
+                )
+            })
+            .expect("description search");
+        assert_eq!(description_results.len(), 1);
+        assert_eq!(description_results[0].name, "Hidden project");
+    }
+
+    #[test]
+    fn project_without_override_inherits_workspace_prefix() {
+        let (_dir, db, workspace_id) = fixture();
+        db.with_conn(|conn| {
+            let project = create_project(
+                conn,
+                &workspace_id,
+                &ProjectInput {
+                    name: "Inherited".into(),
+                    ..Default::default()
+                },
+            )?;
+            crate::db::repositories::workspace::update_key_prefix(conn, &workspace_id, "exhi")?;
+            let issue_id = issue(conn, &workspace_id, &project.id, "Inherited prefix");
+            let created = issues::get_summary(conn, &workspace_id, &issue_id)?;
+            assert_eq!(created.key, "EXHI-1");
+            Ok(())
+        })
+        .expect("workspace prefix inheritance");
+    }
+
+    #[test]
+    fn project_prefix_applies_to_new_issues_without_rewriting_old_keys() {
+        let (_dir, db, workspace_id) = fixture();
+        db.with_conn(|conn| {
+            let project = create_project(
+                conn,
+                &workspace_id,
+                &ProjectInput {
+                    name: "Prefixed".into(),
+                    issue_key_prefix: Some("prj".into()),
+                    ..Default::default()
+                },
+            )?;
+            let first_id = issue(conn, &workspace_id, &project.id, "First");
+            let first = issues::get_summary(conn, &workspace_id, &first_id)?;
+            assert_eq!(first.key, "PRJ-1");
+
+            update_project(
+                conn,
+                &workspace_id,
+                &project.id,
+                &ProjectInput {
+                    name: "Prefixed".into(),
+                    issue_key_prefix: Some("px".into()),
+                    ..Default::default()
+                },
+            )?;
+            let second_id = issue(conn, &workspace_id, &project.id, "Second");
+            let second = issues::get_summary(conn, &workspace_id, &second_id)?;
+            assert_eq!(second.key, "PX-2");
+            let first_after = issues::get_summary(conn, &workspace_id, &first_id)?;
+            assert_eq!(first_after.key, "PRJ-1");
+            Ok(())
+        })
+        .expect("project prefix behavior");
     }
 }
