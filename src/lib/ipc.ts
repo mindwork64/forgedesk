@@ -32,6 +32,7 @@ import type {
   ProjectInput,
   ProjectQuery,
   ApiMonitorState,
+  ApiControl,
   GitAvailability,
   GitDiffStat,
   GitLogEntry,
@@ -260,6 +261,7 @@ export const api = {
     call<GitLogEntry[]>('get_git_log', { id, limit }),
   getGitDiff: (id: string) => call<GitDiffStat>('get_git_diff', { id }),
   getApiMonitor: () => call<ApiMonitorState>('get_api_monitor'),
+  setApiPaused: (paused: boolean) => call<ApiControl>('set_api_paused', { paused }),
   exportApiDiagnostics: () => call<string>('export_api_diagnostics'),
   githubStartDeviceFlow: () =>
     call<DeviceFlowStart>('github_start_device_flow'),

@@ -86,6 +86,12 @@ pub enum CoreError {
     #[error("network error: {message}")]
     Network { message: String },
 
+    #[error("GitHub primary rate limit: {message}")]
+    RateLimitPrimary { message: String },
+
+    #[error("GitHub secondary rate limit: {message}")]
+    RateLimitSecondary { message: String },
+
     #[error("unsupported capability: {message}")]
     UnsupportedCapability { message: String },
 
@@ -147,6 +153,18 @@ impl CoreError {
         }
     }
 
+    pub fn rate_limit_primary(message: impl Into<String>) -> Self {
+        Self::RateLimitPrimary {
+            message: message.into(),
+        }
+    }
+
+    pub fn rate_limit_secondary(message: impl Into<String>) -> Self {
+        Self::RateLimitSecondary {
+            message: message.into(),
+        }
+    }
+
     pub fn unsupported(message: impl Into<String>) -> Self {
         Self::UnsupportedCapability {
             message: message.into(),
@@ -183,6 +201,8 @@ impl CoreError {
             Self::Internal { .. } => ErrorCategory::Internal,
             Self::Auth { .. } => ErrorCategory::Auth,
             Self::Network { .. } => ErrorCategory::Network,
+            Self::RateLimitPrimary { .. } => ErrorCategory::RateLimitPrimary,
+            Self::RateLimitSecondary { .. } => ErrorCategory::RateLimitSecondary,
             Self::UnsupportedCapability { .. } => ErrorCategory::UnsupportedCapability,
             Self::CredentialStorage { .. } => ErrorCategory::CredentialStorage,
             Self::Permission { .. } => ErrorCategory::Permission,
@@ -202,6 +222,8 @@ impl CoreError {
             Self::Internal { message } => message.clone(),
             Self::Auth { message } => message.clone(),
             Self::Network { message } => message.clone(),
+            Self::RateLimitPrimary { message } => message.clone(),
+            Self::RateLimitSecondary { message } => message.clone(),
             Self::UnsupportedCapability { message } => message.clone(),
             Self::CredentialStorage { message } => message.clone(),
             Self::Permission { message } => message.clone(),
@@ -221,6 +243,8 @@ impl CoreError {
             Self::Internal { .. } => None,
             Self::Auth { .. }
             | Self::Network { .. }
+            | Self::RateLimitPrimary { .. }
+            | Self::RateLimitSecondary { .. }
             | Self::UnsupportedCapability { .. }
             | Self::CredentialStorage { .. }
             | Self::Permission { .. } => Some(self.to_string()),

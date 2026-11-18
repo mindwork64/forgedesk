@@ -1363,6 +1363,22 @@ impl AppService {
         })
     }
 
+    pub fn set_api_paused(&self, paused: bool) -> CoreResult<crate::domain::ApiControl> {
+        let workspace = self.require_workspace()?;
+        self.db.with_transaction(|tx| {
+            api_budget::set_paused(
+                tx,
+                &workspace.id,
+                paused,
+                if paused {
+                    "Paused by user in API Monitor."
+                } else {
+                    ""
+                },
+            )
+        })
+    }
+
     pub fn export_api_diagnostics(&self) -> CoreResult<String> {
         let state = self.api_monitor()?;
         serde_json::to_string_pretty(&state)

@@ -107,6 +107,7 @@ pub fn run() {
             commands::get_git_log,
             commands::get_git_diff,
             commands::get_api_monitor,
+            commands::set_api_paused,
             commands::export_api_diagnostics,
             commands::github_start_device_flow,
             commands::github_poll_device_flow,
