@@ -1,27 +1,30 @@
-# Project stages
+# Project stages — full completion status
 
 | Stage | Scope | Status |
 |---|---|---|
-| 1 | Desktop foundation, SQLite, settings, backups, UI shell | Complete |
-| 2 | Issues, workflow, search, saved views, board | Complete |
-| 3 | Projects, initiatives, milestones, cycles, documents, roadmap | Partial |
-| 4 | Local Git, repositories, API budget foundation, API Monitor | Partial — REST dispatcher/pause merged; GraphQL scheduler/budget enforcement remain |
-| 5 | GitHub Issue synchronization | Partial — manual import and linked-Issue updates; automatic Outbox/cursor workers remain |
-| 6 | Pull requests, commits, checks, reviews | Partial — core list/detail/actions exist; review-thread polish remains |
-| 7 | Inbox, triage, automations, analytics, dashboards | Partial |
-| 8 | GitLab/Gitea providers | Fixture-backed/read-only; live sync not implemented |
-| 9 | Optional AI extension | Complete as optional/fixture-backed integration |
-| 10 | Stabilization and release | Partial — native smoke/signing/export/soak items remain |
+| 1 | Desktop/Core/SQLite/UI shell | Implemented; native interactive smoke open |
+| 2 | Issues/Workflow/Search/Views | Partial: templates, watchers, attachments, workflow editor, saved-view columns/density, in/notIn, more views |
+| 3 | Projects/Initiatives/Cycles/Documents/Roadmap | Partial: templates, cycle board/analytics, roadmap milestones/dependencies, document history/import/outline/search |
+| 4 | Local Git + GitHub API budget | Partial: REST dispatcher merged; GraphQL, scheduler/budget enforcement and Local Git gaps remain |
+| 5 | GitHub Issue sync | Partial: manual import/update; automatic Outbox/cursor workers, comments/create and incremental sync remain |
+| 6 | PR/Commits/Checks/Reviews | Mostly implemented; inline comments/thread resolution and complete API budget integration remain |
+| 7 | Inbox/Triage/Automations/Insights/Dashboards | Partial: triage, broader triggers/actions and complete metrics/widget set remain |
+| 8 | GitLab/Gitea | Fixture/read-only adapters; live account and supported operations remain |
+| 9 | Optional AI | Default-off extension exists; generators/streaming/usage accounting and live verification remain |
+| 10 | Stabilization/Release | Partial: native smoke, export/import, perf/soak, packaging/signing/docs |
 
-## PR #12 — 2026-11-18
+## Completion order
 
-Merged as `e380c58098878080b7d746f3cad7889effdc2fb6`. Adds a shared process-wide GitHub REST request gate, mutation pacing, REST request telemetry, primary/secondary REST rate-limit classification and enforced REST pause/resume. CI run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258) passed 7/7 jobs.
+1. One-time requirement-to-source traceability audit.
+2. Finish Issues/Workflow/Views.
+3. Finish Planning/Documents.
+4. Finish Local Git.
+5. Complete REST+GraphQL dispatcher, API budget and scheduler.
+6. Finish GitHub Issue lifecycle and safe incremental sync.
+7. Finish PR/reviews/CI.
+8. Finish Inbox/Triage/Automations/Insights/Dashboards.
+9. Finish live GitLab/Gitea capabilities.
+10. Finish optional AI extension.
+11. Native Windows/Linux and release hardening.
 
-## P0 remaining
-
-1. Unified REST + GraphQL dispatcher with priorities and shared secondary guard.
-2. Enforced 10% background allowance / 20% reserve and adaptive scheduler.
-3. Automatic durable Outbox worker with safe reconciliation.
-4. Cursor/watermark-driven incremental Issue sync.
-
-Detailed handoff: `docs/specs/P0_REMAINING_SYNC_SPEC.md`.
+PR #12 delivered a REST dispatcher slice only. Green compile CI is not native interactive smoke evidence. See docs/specs/PRODUCT_COMPLETION_SPEC.md for full acceptance.

@@ -1,6 +1,13 @@
-# ForgeDesk — P0 remaining sync implementation handoff
+# P0 GitHub sync sub-specification
 
-**Baseline:** `main` commit `e380c58098878080b7d746f3cad7889effdc2fb6`, PR #12 merged 2026-11-18, SQLite schema v11. This task extends the REST dispatcher; it must not reimplement the already-delivered slice.
+**This is a subsystem spec only. It is NOT the master plan for completing ForgeDesk.**  
+The full project handoff is docs/specs/PRODUCT_COMPLETION_SPEC.md.
+
+Use the detailed acceptance criteria below for the GitHub dispatcher/API budget/scheduler/Outbox/cursor track. It must be executed in the context of the whole product roadmap, not as a standalone project.
+
+Baseline: main e380c58098878080b7d746f3cad7889effdc2fb6, schema v11, PR #12 merged 2026-11-18. PR #12 already delivered shared production REST single-flight, REST mutation pacing, REST telemetry/rate classification and enforced API Monitor pause. It did not deliver GraphQL dispatch or background sync.
+
+---
 
 ## Delivered by PR #12
 
