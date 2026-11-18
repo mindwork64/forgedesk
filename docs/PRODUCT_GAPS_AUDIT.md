@@ -1,3 +1,47 @@
+# Current-state addendum — 2026-11-18 (after PR #12)
+
+This addendum supersedes all older current-state statements below. The historical audit is retained; do not use its earlier implementation status as the current backlog.
+
+- **Main revision:** `e380c58098878080b7d746f3cad7889effdc2fb6`; database schema v11.
+- **PR #12 merged:** [shared GitHub REST dispatcher and API pause gate](https://github.com/mindwork64/forgedesk/pull/12).
+- **Verification:** [GitHub Actions run 44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258), 7/7 jobs passed at PR head `405f3d4cf4080a49f154d7d29eea53bade4857b4`.
+
+## Current GitHub sync / API state
+
+**Implemented:**
+- GitHub App Device Flow / refresh / credential storage and repository discovery/import.
+- Manual synchronization of already linked GitHub Issues; local changes can enqueue `update_issue` in `sync_outbox`.
+- Outbox state machine, idempotent enqueue, conservative handling of ambiguous writes, remote GET reconciliation and field-conflict persistence/resolution.
+- Shared single-flight **REST** dispatcher for calls through `GitHubClient`, mutation pacing, REST telemetry and primary/secondary rate observations.
+- Persisted API Monitor Pause/Resume control enforced on authenticated REST calls through that client.
+
+**Still not implemented / not complete end-to-end:**
+- Background scheduler/worker and automatic Outbox processing. Existing dispatch is manually invoked.
+- Durable due-time/lease-based execution of scheduled read jobs from `api_queue_job`.
+- Active incremental cursor/watermark sync. `sync_cursor` persistence exists, but manual import remains bounded/page-based.
+- Shared GraphQL + REST dispatcher path. A dedicated GraphQL client is not present in the current main source tree.
+- Runtime adaptive background quota enforcement (10% cap / 20% reserve) against fresh per-account/per-resource observations.
+- Automated background polling for tracked repositories and active linked PR/check summaries.
+- Full history import remains manual. Automatic GitHub Issue creation from local-only tasks, comment sync and automatic PR mutations are outside the remaining P0 scope documented for the current handoff.
+
+**Important distinction:** PR #12 makes the REST dispatcher and REST pause gate real; it does not make background sync active, nor does it complete the cross-transport budget manager.
+
+## Implementation handoff
+
+The remaining P0 implementation is specified in [docs/implementation/P0_REMAINDER_DEEPSEEK_TZ.md](implementation/P0_REMAINDER_DEEPSEEK_TZ.md). It requires reuse of existing persistence:
+
+- `sync_outbox` — only source of truth for outgoing mutation intents;
+- `api_queue_job` — scheduled/read jobs;
+- `sync_cursor` — page cursor and watermark;
+- `api_request_log` / `api_budget_observation` — telemetry and observed quota;
+- `api_control` — pause control.
+
+No duplicate generic queue should be introduced. Network requests must never run inside SQLite transactions, and ambiguous mutations must be reconciled before retry.
+
+Native interactive Windows/Linux smoke tests remain separate from CI and are not claimed as complete.
+
+---
+
 # ForgeDesk product gaps audit
 
 # Current-state addendum — 2026-11-17 (after PR #8 and PR #10)
