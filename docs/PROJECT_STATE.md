@@ -1,3 +1,20 @@
+# Current verified status — 2026-11-18 (PR #12 merged; docs PR in progress)
+
+- **Main:** e380c58098878080b7d746f3cad7889effdc2fb6.
+- **PR #12:** merged by squash on 2026-11-18. Merge commit e380c58098878080b7d746f3cad7889effdc2fb6. Exact PR head 405f3d4cf4080a49f154d7d29eea53bade4857b4; Actions run 44166546258 passed 7/7 jobs.
+- **Implemented in PR #12:** shared authenticated GitHub REST single-flight dispatcher; one-second mutative request pacing; request logs/fingerprints and REST rate observations; primary/secondary rate-limit classification; persisted API Monitor Pause/Resume enforced before authenticated REST calls. OAuth Device Flow/token exchange/refresh remain outside REST pause.
+- **Schema:** v11 at this baseline. Existing api_queue_job, sync_cursor, sync_outbox and sync_conflict tables remain the foundation.
+- **Manual sync already present:** bidirectional update of linked GitHub Issue title/body/open-closed status/labels through Outbox, conservative ambiguity reconciliation and conflict resolution. Manual Issue import/pagination remains.
+- **Remaining P0:** worker lifecycle/scheduler; priority-aware request classes; 10% per-reset-window background allocation plus 20% reserve and stale-observation guard; account-scoped durable queue; automatic Outbox worker/retry/reconciliation; production cursor/watermark sync; real UI worker/queue status.
+- **Important constraints:** do not create a second HTTP client/queue/scheduler; do not hold AppState mutex or SQLite transaction across HTTP; ambiguous mutations must reconcile; partial sync cannot advance last_success_at; no full historical scan on startup.
+- **Out of scope:** comment sync, auto-publishing every local Issue, GitLab/Gitea live sync, new GraphQL client, webhooks/backend/cloud sync.
+- **Canonical task:** 07_P0_BACKGROUND_SYNC_IMPLEMENTATION.md. Token-efficiency rules in 04_TOKEN_EFFICIENCY_RULES.md remain mandatory.
+- **Next:** DeepSeek implements the five vertical stages in the P0 specification and creates unmerged PR(s). User retains merge approval.
+
+Older sections below are historical snapshots. Where they conflict with this addendum or the current P0 specification, this addendum is authoritative.
+
+---
+
 # PROJECT_STATE
 
 **Current state (2026-11-17, after PR #8 and PR #10):**
