@@ -81,3 +81,29 @@ issue import/export and conflict UI remain pending. No remote write was attempte
 5. Conflict UI and manual sync/status controls.
 
 No mass synchronization is enabled until these exist and are tested.
+
+
+---
+
+## Current-state addendum — 2026-11-18 (after PR #12)
+
+Stage 5 is partially implemented beyond the original snapshot above:
+
+- GitHub App authentication, repository discovery and bounded/manual Issue import.
+- Manual bidirectional updates for already linked GitHub Issues.
+- Persisted Outbox with idempotent enqueue, conservative ambiguous outcome handling,
+  reconciliation and conflict resolution.
+- PR #12 added the shared REST dispatcher and enforced REST API pause gate.
+
+PR #12 merge: `e380c58098878080b7d746f3cad7889effdc2fb6`; exact tested PR head
+`405f3d4cf4080a49f154d7d29eea53bade4857b4`; [CI run 44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258)
+passed 7/7 jobs.
+
+Remaining P0: automatic Outbox worker, durable job scheduling/leases, persisted
+incremental page cursor + watermark sync, active linked PR/check polling, adaptive
+budget enforcement and shared REST/GraphQL dispatcher integration. Current Outbox
+dispatch remains manually invoked; current Issue import remains bounded/manual.
+
+The canonical implementation handoff is
+`docs/implementation/P0_REMAINDER_DEEPSEEK_TZ.md`. Historical status statements
+above are not the current backlog.
