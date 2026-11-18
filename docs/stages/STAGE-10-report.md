@@ -92,3 +92,19 @@ open.
 3. Complete export/import and crash diagnostics policy.
 4. Perform large-workspace performance/soak tests.
 5. Resolve remaining Stage 5 sync-write limitations if they are in release scope.
+
+
+---
+
+## Current-state addendum — 2026-11-18 (PR #12 baseline)
+
+PR #12 is merged to main at `e380c58098878080b7d746f3cad7889effdc2fb6`.
+The exact PR head `405f3d4cf4080a49f154d7d29eea53bade4857b4` passed all seven
+jobs in [GitHub Actions run 44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258).
+That slice adds a shared authenticated REST dispatcher, mutation pacing, REST
+telemetry/rate observations and enforced API Monitor Pause/Resume.
+
+This is not native interactive runtime verification. The remaining P0 work is
+background lifecycle/scheduler, GraphQL dispatcher integration, adaptive quota
+enforcement, cursor/watermark incremental sync and automatic safe Outbox processing.
+See `docs/implementation/P0_REMAINDER_DEEPSEEK_TZ.md` for the acceptance contract.
