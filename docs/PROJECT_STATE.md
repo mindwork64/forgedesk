@@ -1,3 +1,39 @@
+
+
+---
+
+## Current state — 2026-11-18 (after PR #12)
+
+**Main:** `e380c58098878080b7d746f3cad7889effdc2fb6`  
+**Schema:** v11  
+**PR #12:** merged — [Add shared GitHub REST dispatcher and API pause gate](https://github.com/mindwork64/forgedesk/pull/12).  
+**Exact tested PR head:** `405f3d4cf4080a49f154d7d29eea53bade4857b4`.  
+**CI:** [run 44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258), all 7/7 jobs passed.
+
+### Implemented by PR #12
+
+- Shared single-flight dispatcher for authenticated GitHub REST requests made through `GitHubClient`.
+- At least one second between mutation requests.
+- REST request telemetry, request fingerprint without credentials, response status/latency/size and rate-limit headers.
+- Primary/secondary rate-limit classification and persisted observations.
+- API Monitor Pause/Resume control now enforces the stored pause flag on that REST path.
+- Authenticated `GET /user` is routed through the shared REST client; OAuth Device Flow and token exchange/refresh remain separate.
+
+### Remaining P0 work
+
+- Lifecycle-managed background scheduler and worker (not implemented).
+- Priority-aware durable execution of scheduled read jobs from `api_queue_job`.
+- Shared REST + GraphQL scheduling, accounting and secondary guard. The current active code is REST-backed; a dedicated GraphQL client is not yet present.
+- Runtime enforcement of the 10% background allowance / 20% reserve, with zero background allowance for unknown or stale observations.
+- Automatic safe worker for existing `sync_outbox` `update_issue` operations, including due-time/lease recovery and reconciliation. Current dispatch is manually invoked.
+- Incremental Issue/repository sync using persisted page cursors and watermarks. `sync_cursor` storage exists but is not yet the live incremental checkpoint.
+- Active linked PR/check summary polling and truthful API Monitor / Sync worker status.
+
+The canonical handoff is [P0_REMAINDER_DEEPSEEK_TZ.md](implementation/P0_REMAINDER_DEEPSEEK_TZ.md). It defines scope, queue ownership, runtime lifecycle, schema constraints, algorithm contracts, acceptance tests, delivery stages and the DeepSeek starter prompt.
+
+### Verification boundary
+
+The 7/7 CI run is compile/test/visual-gate evidence for PR #12's exact head. It does **not** verify background synchronization, native interactive runtime behavior, or Windows/Linux smoke tests. Those remain pending until the relevant implementation exists and is exercised.
 # PROJECT_STATE
 
 **Current state (2026-11-17, after PR #8 and PR #10):**
