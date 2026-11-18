@@ -1,36 +1,25 @@
 # Architecture
 
-## Stack
+## Stack and boundary
 
-- **Rust stable** core crate `forgedesk-core`: domain, SQLite repositories, services,
-  backup, safe Git wrapper. No Tauri dependency.
-- **Tauri 2** shell in `src-tauri`: typed IPC commands, window state, capabilities.
-- **Vue 3 + TypeScript + Vite** renderer: Pinia, Vue Router (hash), vue-i18n, shared
-  `Fd*` primitives and a small design-token system. No generic UI kit.
-- **SQLite** (bundled), WAL, foreign keys, serialized writes, append-only migrations
-  through `PRAGMA user_version`.
+- Rust Stable Core, Tauri 2 shell, Vue 3 + TypeScript renderer and SQLite.
+- Local-first, single-user desktop; local workflows work offline; no required backend.
+- UI → typed IPC → Tauri commands/AppState → AppService → domain/repositories → SQLite/provider clients.
+- Renderer has no arbitrary filesystem/network/SQL/shell access.
+- Credentials stay in OS credential store; logs and exports exclude tokens.
 
-## Layers
+## GitHub API runtime
 
-```text
-Vue views/stores
-   │ typed IPC
-Tauri commands
-   │ AppService
-Domain + repositories
-   │
-SQLite / Git CLI / (future provider client)
-```
+PR #12 merged 2026-11-18 as e380c58098878080b7d746f3cad7889effdc2fb6. Production GitHubClient REST calls use a process-wide single-flight gate, mutation pacing, REST response telemetry, rate-limit classification and persisted pause enforcement. CI run 44166546258 passed 7/7.
 
-## Key principles
+This implementation is REST-only. GraphQL transport through the same dispatcher, priority scheduling, enforced background budgets/adaptive scheduler and automatic incremental sync remain unfinished.
 
-- Local-first; the app works offline without a backend.
-- No fake UI: disconnected/empty/unsupported states are explicit.
-- Provider-neutral domain; GitHub adapters are isolated from issue/project storage.
-- Append-only migrations; no destructive schema rewrite.
-- One issue workflow with human keys (`FD-<n>`), labels, relations, comments,
-  activity and FTS search.
-- Planning progress formula: completed / (total − canceled), excluding archived and
-  deleted issues; initiatives aggregate completed/total across linked projects.
+## Sync persistence
 
-See ADR-0001…0005 in `docs/decisions/` for the full decision record.
+Existing schema contains remote links, sync_outbox, sync_cursor, sync_conflict, api_budget_observation, api_request_log, api_queue_job and api_control. These are persistence foundations; their existence is not proof of active workers. Current Issue import and linked Issue Outbox dispatch remain manually initiated.
+
+## Full completion scope
+
+Remaining tracks include local Issue/Workflow/View completion; Planning/Documents; safe Local Git; full REST+GraphQL budget/scheduler; GitHub Issue/comment/cursor sync; PR review threads; Inbox/Triage/Automation/Insights; live GitLab/Gitea capabilities; optional AI; native Windows/Linux and release hardening.
+
+See docs/specs/PRODUCT_COMPLETION_SPEC.md and docs/PRODUCT_GAPS_AUDIT.md.

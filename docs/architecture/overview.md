@@ -88,3 +88,17 @@ adapters return provider-neutral DTOs; domain does not import them.
 
 No server, PostgreSQL/MySQL, Redis, Docker, Nginx, hosted telemetry, webhooks
 relay, embedded Chromium or mandatory AI runtime.
+
+
+## Current GitHub runtime after PR #12
+
+Production `GitHubClient` REST requests pass through `github_dispatcher.rs`, which provides a process-wide single-flight gate, mutation pacing, REST telemetry and the persisted API Monitor pause gate. Authenticated `GET /user` uses this path; Device Flow/token exchange/refresh remain separate auth operations.
+
+This is not yet the complete target in `03_GITHUB_API_BUDGET_AND_SYNC.md`: GraphQL dispatch, priority scheduling, enforced background quota, adaptive scheduler, automatic Outbox worker and cursor/watermark-driven incremental sync remain P0.
+
+
+## Current full-product state — 2026-11-18
+
+Main is e380c58098878080b7d746f3cad7889effdc2fb6, schema v11. PR #12 adds a shared process-wide GitHub REST single-flight gate, mutation pacing, REST telemetry/rate-limit classification and enforced REST pause. CI run 44166546258 passed 7/7 at tested head 405f3d4cf4080a49f154d7d29eea53bade4857b4.
+
+The REST dispatcher is not the entire target API manager: GraphQL dispatch, priority scheduling, budget admission, adaptive polling, Outbox workers and cursor-driven sync remain. The rest of the unfinished product is tracked by docs/specs/PRODUCT_COMPLETION_SPEC.md.

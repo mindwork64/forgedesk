@@ -1,4 +1,27 @@
+## Full-product status addendum — 2026-11-18
+
+PR #10 delivered manual bidirectional updates for linked GitHub Issues (title/body/open-closed/labels), Outbox persistence, reconciliation foundations and conflict resolution. PR #12 added the shared REST dispatcher/pause gate; main is e380c58098878080b7d746f3cad7889effdc2fb6, schema v11, CI run 44166546258 passed 7/7.
+
+Stage 5 remains partial for full product completion: automatic Outbox worker, remote Issue creation on explicit intent, GitHub Issue comments/labels/milestones lifecycle, operation-specific reconciliation, full field ownership, incremental cursor/watermark polling and Projects V2 minimum integration remain. Current import/Outbox processing is manually initiated. Existing cursor/outbox tables are foundations, not active workers.
+
+See PRODUCT_COMPLETION_SPEC.md §§4.4–4.5 and the P0 sync sub-spec.
+
+---
+
 # Stage 5 report — GitHub Issue synchronization foundation
+
+> Historical baseline below; use this dated addendum for current status.
+
+## Current-state addendum — 2026-11-18 (after PR #10 and PR #12)
+
+PR #10 provides manual bidirectional field sync for already-linked GitHub Issues (title, body, open/closed state and labels), Outbox persistence, reconciliation foundations and conflict resolution UI. PR #12 adds shared GitHub REST dispatch, REST telemetry, primary/secondary REST rate-limit classification and enforced API Monitor REST pause.
+
+Main commit: `e380c58098878080b7d746f3cad7889effdc2fb6`; schema v11. CI run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258) passed all seven jobs.
+
+Still open: automatic Outbox worker; persistent cursor/watermark-driven incremental Issue sync; lifecycle-managed background scheduler; enforced 10% allowance / 20% reserve; GraphQL transport through the shared REST+GraphQL dispatcher. Current Issue import and Outbox dispatch remain manually initiated. Existing cursors and Outbox rows are foundations, not active workers.
+
+---
+
 
 **Date:** 2026-11-15  
 **Status:** PARTIAL — the local sync-safety foundation and GitHub App Device Flow

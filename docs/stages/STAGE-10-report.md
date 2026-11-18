@@ -1,3 +1,11 @@
+## Full-product status addendum — 2026-11-18
+
+The release foundation has CI, migration/FK tests, axe gates and non-interactive Windows Debug build evidence. It is not release-ready.
+
+Remaining: native interactive Windows 10/11 and Linux WebKitGTK smoke; full user journeys; workspace export/import including managed attachments; schema v11 onward migration preservation; large-workspace performance and long-running sync soak; local crash recovery/diagnostics; final packaging/signing (signed only when credentials supplied); installation/update/uninstall/troubleshooting documentation. No telemetry/crash upload backend. See PRODUCT_COMPLETION_SPEC.md §4.10.
+ 
+---
+
 # Stage 10 report — Stabilization/release (partial)
 
 **Date:** 2026-11-16

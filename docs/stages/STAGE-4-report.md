@@ -1,4 +1,25 @@
+## Full-product status addendum — 2026-11-18
+
+PR #12 merged as e380c58098878080b7d746f3cad7889effdc2fb6: production GitHub REST requests use a process-wide single-flight gate; mutations are paced; REST telemetry and primary/secondary rate observations are recorded; persisted pause is enforced; API Monitor Pause/Resume is functional. CI run 44166546258 passed 7/7 jobs at tested PR head 405f3d4cf4080a49f154d7d29eea53bade4857b4.
+
+The rest of Stage 4 is not complete: local Git timeouts/cancel/open folder-terminal-IDE/branch delete/rebase/guarded remote workflow remain; GitHub GraphQL transport, ETag/cache, priority scheduler, background budget enforcement and adaptive polling remain. PR #12 is REST-only, not the complete API manager. See PRODUCT_COMPLETION_SPEC.md §§4.3–4.4.
+
+---
+
 # Stage 4 report — Local Git, GitHub foundation and API budgets
+
+> Historical baseline below; use this dated addendum for current status.
+
+## Current-state addendum — 2026-11-18 (PR #12)
+
+PR #12 is merged to main as `e380c58098878080b7d746f3cad7889effdc2fb6`. Production `GitHubClient` REST requests use a process-wide single-flight gate; REST mutations are paced at least one second apart; REST response telemetry and rate-limit observations are persisted; primary and secondary REST limit responses are classified separately; and API Monitor Pause/Resume enforces the persisted REST pause flag.
+
+Authenticated `GET /user` uses `GitHubClient`; OAuth Device Flow/token exchange/refresh remain separate auth operations. Actions run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258) passed 7/7 jobs at PR head `405f3d4cf4080a49f154d7d29eea53bade4857b4`.
+
+Still open: GraphQL through the same dispatcher, priority scheduling, enforced 10%/20% background admission control, adaptive scheduler, and automatic Outbox/cursor workers. Background Sync must remain Not implemented.
+
+---
+
 
 **Date:** 2026-11-15  
 **Status:** PARTIAL — local Git, the API-budget foundation and GitHub App Device

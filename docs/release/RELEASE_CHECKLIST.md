@@ -1,64 +1,50 @@
-# ForgeDesk release checklist
+# ForgeDesk release checklist — full product DoD
 
-## Automated gates
+This checklist separates automated verification from native interactive and live-provider verification. Do not mark an item complete based only on compilation.
 
-- [x] `cargo fmt --all --check`
-- [x] `cargo clippy -p forgedesk-core --all-targets -- -D warnings` (local)
-- [x] `cargo clippy -p forgedesk-ai --all-targets -- -D warnings` (local)
-- [x] AI Clippy command configured in the CI job with explicit `components: clippy`
-- [x] AI Clippy CI execution verified successfully (run 43772258572)
-- [x] `cargo test -p forgedesk-core` (106 passed, 2 ignored live)
-- [x] `cargo test -p forgedesk-ai` (5 passed)
-- [x] `npm run typecheck`
-- [x] `npm test` (139 passed)
-- [x] `npm run build` (main chunk ~244 KB)
-- [x] `VITE_AI_EXTENSION=true npm run build`
-- [x] `node scripts/visual-gate0.mjs` (59 captures + axe button-name/aria-command-name)
-- [x] Realistic v5→v10 migration data-preservation test + foreign_key_check
+## Core/data integrity
+- [x] Append-only SQLite migration runner and backup/restore baseline exist.
+- [ ] Supported migration path includes v11 → current with all entities/links/outbox/cursors/attachments preserved.
+- [ ] Workspace export/import includes DB + managed attachments, manifest/checksum and rollback.
+- [ ] Offline startup/local CRUD verified on Windows and Linux.
+- [ ] Large-workspace/performance/soak test completed.
 
-## Verified CI / native build (non-interactive)
+## Local product
+- [ ] Issues/Workflow/Views gaps in PRODUCT_COMPLETION_SPEC.md closed.
+- [ ] Projects/Initiatives/Cycles/Documents/Roadmap gaps closed.
+- [ ] Local Git safe operations/timeouts/cancellation/remote confirmations closed.
+- [ ] UI Gates 0–5 pass in Dark/Light, RU/EN and supported viewports.
+- [ ] Keyboard/accessibility audit passes; no inert controls or production fixtures.
 
-- [x] GitHub Actions CI [43969772720](https://github.com/mindwork64/forgedesk/actions/runs/43969772720)
-      at `670b499` — SUCCESS, all seven jobs
-- [x] Windows 10 Pro Build 19042 native run
-      [43778393711](https://github.com/mindwork64/forgedesk/actions/runs/43778393711)
-      at `bddc4c58` — SUCCESS
-- [x] Windows frontend typecheck/tests/build
-- [x] Windows `cargo fmt --all --check`
-- [x] Windows `cargo clippy -p forgedesk-core --all-targets -- -D warnings`
-- [x] Windows `cargo test -p forgedesk-core` (Core only)
-- [x] Windows `cargo build -p forgedesk` — Debug `forgedesk.exe`, 7,968,310 bytes
-      ([artifact](https://github.com/mindwork64/forgedesk/actions/runs/43778393711/artifacts/14187497885))
-- [x] Windows `cargo check -p forgedesk --features ai-extension` (check only)
-- [ ] MSI/release installer and interactive Windows launch — not verified
+## GitHub/providers
+- [ ] REST + GraphQL share dispatcher/queue/budget; API Monitor shows truthful worker state.
+- [ ] Automatic Outbox and incremental cursor sync pass restart/ambiguity tests.
+- [ ] GitHub Issues/comments/labels/milestones and PR/review/CI end-to-end scenarios pass.
+- [ ] GitLab/Gitea live capability matrix tested when hosts are available; otherwise NOT VERIFIED.
+- [ ] AI default-off/build optionality/approval tests pass; live calls require user credentials.
 
-## Native interactive smoke tests (not yet run)
+## Automated CI
+- [ ] cargo fmt --all --check
+- [ ] Core tests + Clippy Ubuntu/Windows
+- [ ] Optional AI tests/Clippy and feature check
+- [ ] Frontend typecheck/tests/production build
+- [ ] Tauri compile Linux/Windows
+- [ ] Visual/accessibility gates and production harness exclusion
+- [ ] GitHub-hosted Actions green on exact release candidate SHA
 
-- [ ] Windows 10/11 installer launch, WebView2 present
-- [ ] Linux AppImage/deb launch with WebKitGTK 4.1
-- [ ] Create workspace, issue, project, document
-- [ ] Backup/restore round-trip
-- [ ] Local Git repository attach/status
-- [ ] GitHub Device Flow connect and read-only PR sync
-- [ ] Merge linked PR → issue Done
-- [ ] AI extension build disabled by default; optional screen when enabled
-- [ ] MCP STDIO binary explicit start and read-only tool
+## Native interactive smoke
+- [ ] Windows 10/11 WebView2 installer launch, update/uninstall and full workflow
+- [ ] Linux WebKitGTK 4.1 launch/package install/uninstall and full workflow
+- [ ] GitHub connect/import/sync/reconciliation and PR merge → local task completion
+- [ ] Offline restart, backup/restore and export/import
+- [ ] Local Git folder/terminal/IDE and guarded remote operations
+- [ ] AI disabled by default; optional build behavior verified
 
-## Signing/release credentials
+## Packaging and documentation
+- [ ] Version/CHANGELOG finalized, artifacts/checksums published.
+- [ ] Windows MSI/installer and Linux package built.
+- [ ] Signing credentials supplied before claiming a signed release.
+- [ ] Installation/update/uninstall, data location, backup/restore, GitHub permissions and troubleshooting docs.
+- [ ] Known limitations documented; no mandatory telemetry/backend.
 
-- [ ] Windows code-signing certificate
-- [ ] Linux package/signing policy
-- [ ] Version/CHANGELOG finalization
-- [ ] Signed checksums and artifacts
-
-## Known limitations
-
-- Real-time GitHub webhooks are not implemented (on-demand PR refresh).
-- GitLab/Gitea live hosts not verified.
-- Real AI provider calls require user keys and are not tested in CI.
-- Stage 5 local→remote issue writes/conflicts remain partial.
-- No crash telemetry backend by design/offline policy.
-- GitHub Actions emits non-fatal Node.js 20/runtime deprecation warnings; no dependency
-  modernization was attempted.
-- The temporary WIN10 self-hosted workflow was removed; its successful build evidence
-  remains documented but it is not part of normal push/PR CI.
+See docs/specs/PRODUCT_COMPLETION_SPEC.md for complete acceptance and test matrix.

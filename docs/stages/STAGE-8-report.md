@@ -1,3 +1,11 @@
+## Full-product status addendum — 2026-11-18
+
+Stage 8 is currently a fixture/mock-tested, read-only GitLab/Gitea adapter foundation. It is not yet the live basic provider support described by 01_PRODUCT_PROJECT.md.
+
+Remaining: secure host/account connection UI, OS keyring token handling, persisted provider identity, repository/Issue/MR discovery, supported branches/commits/labels/comments/releases/pipelines and safe writes where capability/permission allow. Live test against each provider when host/credentials are available; otherwise mark NOT VERIFIED. See PRODUCT_COMPLETION_SPEC.md §4.8.
+
+---
+
 # Stage 8 report — GitLab/Gitea provider adapters
 
 **Date:** 2026-11-15
