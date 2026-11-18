@@ -122,3 +122,25 @@ Stage 5 — GitHub Issue synchronization requires Stage 4 authentication/network
 foundation first. Next concrete slice: GitHub App device-flow connection with
 secure token storage, live rate-limit header/GraphQL rateLimit parsing, serialized
 dispatcher worker and repository discovery.
+
+
+---
+
+## Current-state addendum — 2026-11-18 (PR #12)
+
+This report's earlier status is a historical Stage 4 snapshot. PR #12 is now merged
+to main as `e380c58098878080b7d746f3cad7889effdc2fb6`.
+
+Implemented by PR #12: shared single-flight authenticated REST dispatcher through
+`GitHubClient`, mutation pacing, REST telemetry/rate observations and an enforced
+API Monitor Pause/Resume gate. The exact PR head
+`405f3d4cf4080a49f154d7d29eea53bade4857b4` passed all 7 jobs in
+[Actions run 44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258).
+
+Still open for P0: GraphQL integration into the common dispatcher, runtime adaptive
+budget enforcement, lifecycle scheduler/worker and automatic cursor-based sync.
+The original sections above remain historical evidence; they are not the current
+acceptance status.
+
+Implementation handoff:
+`docs/implementation/P0_REMAINDER_DEEPSEEK_TZ.md`.
