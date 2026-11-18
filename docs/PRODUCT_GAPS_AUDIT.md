@@ -1,3 +1,14 @@
+# Current gap status — 2026-11-18 (supersedes older audit snapshots)
+
+- PR #12 is merged to main as e380c58098878080b7d746f3cad7889effdc2fb6.
+- Shared authenticated GitHub REST dispatcher, request telemetry/rate observations and the enforced API Monitor Pause/Resume gate are implemented. Exact PR head 405f3d4cf4080a49f154d7d29eea53bade4857b4 passed CI run 44166546258 (7/7 jobs).
+- Manual bidirectional sync of already linked GitHub Issues remains implemented from the earlier sync stage.
+- **Still outstanding P0:** background worker/scheduler; priority-aware request admission; per-account adaptive background allowance (10% cap) and 20% reserve; executable persistent queue/recovery; automatic Outbox processing and safe retry/reconciliation; production incremental cursor/watermark flow; truthful live worker/queue UI.
+- **Not part of this P0:** comment sync, publishing local-only Issues automatically, new GraphQL client, webhooks/backend, GitLab/Gitea live sync and full historical startup crawling.
+- Canonical P0 handoff: 07_P0_BACKGROUND_SYNC_IMPLEMENTATION.md. Token-saving rules remain mandatory in 04_TOKEN_EFFICIENCY_RULES.md.
+
+---
+
 # ForgeDesk product gaps audit
 
 # Current-state addendum — 2026-11-17 (after PR #8 and PR #10)
