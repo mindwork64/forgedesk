@@ -1,3 +1,11 @@
+## Full-product status addendum — 2026-11-18
+
+The optional AI foundation is delivered: separate crate/feature, default off, context preview, approval-gated local append and read-only MCP STDIO. This is not the full assistant scope from 01_PRODUCT_PROJECT.md.
+
+Remaining optional work: plan/subtask/acceptance-criteria/PR-description generators, structured output validation, model discovery/streaming/token accounting, stronger context controls, cancellation/provider error handling and live provider smoke when credentials are available. Default Core must remain AI-free. See PRODUCT_COMPLETION_SPEC.md §4.9.
+
+---
+
 # Stage 9 report — Optional AI extension
 
 **Date:** 2026-11-15

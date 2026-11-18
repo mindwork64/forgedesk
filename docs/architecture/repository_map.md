@@ -1,6 +1,6 @@
 # Repository map
 
-Updated after Stage 4 (local Git/API-budget foundation). Update only when the structure changes.
+Updated 2026-11-18 after PR #12 (shared GitHub REST dispatcher). Update only when the structure changes.
 
 ```text
 ForgeDesk/
@@ -38,6 +38,7 @@ ForgeDesk/
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── git.rs                  Safe direct-argv Git process wrapper
 │   ├── github_auth.rs          GitHub App Device Flow + keyring token vault
+│   ├── github_dispatcher.rs    Shared REST single-flight gate, mutation pacing, REST telemetry and pause enforcement (GraphQL/priority scheduler pending)
 │   ├── github_dispatcher.rs    Shared REST single-flight gate, mutation pacing, telemetry and pause enforcement (GraphQL/priority scheduler pending)
 │   ├── provider.rs             GitLab/Gitea adapter contract + transports
 │   ├── github_client.rs        GitHub REST client; production calls use shared dispatcher

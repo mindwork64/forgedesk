@@ -1,3 +1,7 @@
+# API Budget and Sync — P0 subsystem only
+
+> This wiki page covers the GitHub API/Sync subsystem, not the whole ForgeDesk completion plan. The master handoff for every subsystem and all release work is docs/specs/PRODUCT_COMPLETION_SPEC.md. See the Product-Roadmap wiki page for the complete project scope.
+
 # API Budget and Sync
 
 ## Delivered baseline — PR #12

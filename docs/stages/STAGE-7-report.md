@@ -1,3 +1,11 @@
+## Full-product status addendum — 2026-11-18
+
+The Stage 7 foundation is delivered: local activity Inbox, read/archive, basic local issue automations, linked PR state ingestion on refresh, Insights and configurable Dashboards. It is not the full productivity scope in 01_PRODUCT_PROJECT.md.
+
+Remaining: Triage queue (accept/reject/duplicate/project/priority/labels), broader normalized external event polling, complete automation triggers/AND-OR conditions/actions with idempotency and loop protection, due-date catch-up, remaining metrics (lead time/backlog age/velocity/project progress/PR and review lead time/CI success) and full dashboard widget configuration. No multi-user assignee model and no webhook relay. See PRODUCT_COMPLETION_SPEC.md §4.7.
+
+---
+
 # Stage 7 report — Inbox/triage/automation/analytics
 
 **Date:** 2026-11-15
