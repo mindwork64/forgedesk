@@ -1,3 +1,17 @@
+# Implementation status addendum — 2026-11-18
+
+PR #12 is merged to main (merge commit e380c58098878080b7d746f3cad7889effdc2fb6; verified PR head 405f3d4cf4080a49f154d7d29eea53bade4857b4; CI run 44166546258 passed 7/7).
+
+**Now implemented:** shared authenticated GitHub REST dispatcher/single-flight gate, mutative REST pacing, request telemetry/fingerprints, persisted REST rate observations, primary/secondary rate-limit classification, and a functional API Monitor Pause/Resume gate. OAuth Device Flow/token exchange/refresh remain outside REST pause.
+
+**Still pending P0:** Tauri-owned scheduler/worker, priority-aware request admission and effective request classes, per-account 10% background allowance/20% reserve/stale-observation enforcement, durable executable queue and crash recovery, automatic Outbox dispatch/retry/reconciliation, production cursor/page continuation/watermark processing, and real worker status in Sync settings/API Monitor.
+
+Existing api_queue_job, sync_cursor, sync_outbox and sync_conflict tables are foundations, not completed background functionality. The detailed implementation/acceptance specification is 07_P0_BACKGROUND_SYNC_IMPLEMENTATION.md.
+
+The normative API budget and sync rules below remain in force. This addendum supersedes only older implementation-status statements that claim no shared dispatcher or no enforced API pause exist.
+
+---
+
 # 03. GitHub API Budget Manager, GraphQL/REST и Sync Engine
 
 **Приоритет:** P0/P1 — критическая часть архитектуры  
