@@ -1,28 +1,38 @@
 # ForgeDesk Wiki
 
-ForgeDesk is a local-first desktop workspace for issues, projects, cycles,
-documents and provider-backed development workflows. It runs on Windows and Linux
-with Rust (Tauri 2), Vue 3 + TypeScript and SQLite.
+## Current project state — 2026-11-18
 
-## Start here
+ForgeDesk is a local-first, single-user desktop application built with Rust, Tauri 2, Vue 3/TypeScript and SQLite.
 
-- [Architecture](Architecture)
-- [Development](Development)
-- [Project stages](Project-Stages)
-- [Testing and release](Testing-and-Release)
-- [Security and privacy](Security-and-Privacy)
+### Latest verified GitHub integration milestone
 
-## Current state
+PR #12 is merged into main.
 
-- Stage 1 — desktop foundation: complete (browser-verified).
-- Stage 2 — issues/workflow/search/views: complete (browser-verified).
-- Stage 3 — projects/planning/documents: partial; templates, document import and
-  cycle analytics are follow-ups.
-- Stage 4 — Local Git and API budget foundation: partial; GitHub App auth and
-  repository discovery are live; dispatcher and write paths remain open.
-- Stage 5 — GitHub issue synchronization: read-only discovery/import done; write and
-  conflict paths remain partial.
-- Stage 6 — pull requests/checks/reviews: read-only list/detail/files done; write
-  actions and review/CI screens remain open.
+- Commit: e380c58098878080b7d746f3cad7889effdc2fb6
+- Shared GitHub REST dispatcher is active.
+- REST request telemetry and rate-limit observations are persisted.
+- API Monitor Pause/Resume is functional and gates authenticated REST calls.
+- OAuth Device Flow/token operations remain outside the REST pause gate.
 
-The source of truth for project status is `docs/PROJECT_STATE.md` in the repository.
+CI for the exact PR #12 head passed 7/7 jobs before merge.
+
+### Remaining P0
+
+1. Application-owned background scheduler/worker.
+2. Priority-aware request scheduling and adaptive API budget enforcement.
+3. Automatic Outbox dispatch, retry and ambiguity reconciliation.
+4. Persistent incremental cursors/watermarks.
+5. Real worker/queue status in Sync settings and API Monitor.
+
+The existing Outbox, cursor and queue tables are foundations; they are not evidence that the worker is complete.
+
+### Canonical documentation
+
+- Repository implementation specification: ../07_P0_BACKGROUND_SYNC_IMPLEMENTATION.md
+- API budget and sync contract: ../../03_GITHUB_API_BUDGET_AND_SYNC.md
+- Current project state: ../PROJECT_STATE.md
+- Product gap audit: ../PRODUCT_GAPS_AUDIT.md
+- Sync safety ADR: ../decisions/ADR-0006-sync-safety.md
+- New background runtime ADR: ../decisions/ADR-0008-background-sync-runtime.md
+
+See the dedicated P0-Background-Sync Wiki page for remaining implementation and acceptance criteria.
