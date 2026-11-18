@@ -1,3 +1,13 @@
+## Full-product status addendum — 2026-11-18
+
+PR #10 delivered manual bidirectional updates for linked GitHub Issues (title/body/open-closed/labels), Outbox persistence, reconciliation foundations and conflict resolution. PR #12 added the shared REST dispatcher/pause gate; main is e380c58098878080b7d746f3cad7889effdc2fb6, schema v11, CI run 44166546258 passed 7/7.
+
+Stage 5 remains partial for full product completion: automatic Outbox worker, remote Issue creation on explicit intent, GitHub Issue comments/labels/milestones lifecycle, operation-specific reconciliation, full field ownership, incremental cursor/watermark polling and Projects V2 minimum integration remain. Current import/Outbox processing is manually initiated. Existing cursor/outbox tables are foundations, not active workers.
+
+See PRODUCT_COMPLETION_SPEC.md §§4.4–4.5 and the P0 sync sub-spec.
+
+---
+
 # Stage 5 report — GitHub Issue synchronization foundation
 
 > Historical baseline below; use this dated addendum for current status.

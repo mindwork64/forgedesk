@@ -1,3 +1,13 @@
+## Full-product status addendum — 2026-11-18
+
+PR #11 fixed GitHub status messaging and PR detail lifecycle; PR #12 routes production REST calls through shared dispatch. Stage 6's core PR list/detail/files/reviews/checks and permission-gated merge/close/review actions remain delivered.
+
+Remaining full-product work: inline review-comment placement, thread replies/resolved state, GraphQL list summaries without N+1 requests, full API-budget logging for PR/Reviews/CI reads, repository-scope polish and branch/tag/release metadata integration. Native Tauri runtime and live remote mutation verification remain separate. PR labels/assignees/milestones/merge queue are optional backlog only unless scope is separately approved.
+
+See PRODUCT_COMPLETION_SPEC.md §4.6.
+
+---
+
 # Stage 6 report — Pull requests, checks and reviews
 
 **Date:** 2026-11-15

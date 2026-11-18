@@ -1,3 +1,11 @@
+## Full-product status addendum — 2026-11-18
+
+PR #12 merged as e380c58098878080b7d746f3cad7889effdc2fb6: production GitHub REST requests use a process-wide single-flight gate; mutations are paced; REST telemetry and primary/secondary rate observations are recorded; persisted pause is enforced; API Monitor Pause/Resume is functional. CI run 44166546258 passed 7/7 jobs at tested PR head 405f3d4cf4080a49f154d7d29eea53bade4857b4.
+
+The rest of Stage 4 is not complete: local Git timeouts/cancel/open folder-terminal-IDE/branch delete/rebase/guarded remote workflow remain; GitHub GraphQL transport, ETag/cache, priority scheduler, background budget enforcement and adaptive polling remain. PR #12 is REST-only, not the complete API manager. See PRODUCT_COMPLETION_SPEC.md §§4.3–4.4.
+
+---
+
 # Stage 4 report — Local Git, GitHub foundation and API budgets
 
 > Historical baseline below; use this dated addendum for current status.

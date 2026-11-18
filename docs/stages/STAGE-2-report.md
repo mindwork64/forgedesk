@@ -1,3 +1,13 @@
+## Current-state addendum — 2026-11-18 (full-product audit)
+
+This report records the original Stage 2 delivery snapshot. Current product completion is broader than the browser/core Stage 2 gate. Delivered basics remain valid: Issue CRUD, workflow statuses/categories, labels, relations/sub-issues, comments/activity, List/Board, FTS5, filter builder and Saved Views storage.
+
+Still open for full product DoD: Issue templates, local single-user watchers, managed attachments, Issue milestone/cycle UI, workflow editor/transition rules, Saved View column/density application, in/notIn filter UI, comment edit/soft-delete, Table/Calendar/Timeline views and complete keyboard/accessibility audit. PR #8 completed project archive/restore, key prefixes and Search improvements; PR #11/12 are unrelated to Stage 2.
+
+See docs/specs/PRODUCT_COMPLETION_SPEC.md §4.1 and traceability audit to distinguish DONE from PARTIAL. Native Windows/Linux remains a separate verification task.
+
+---
+
 # Stage 2 report — Issues, workflow, search and views
 
 **Date:** 2026-11-15  

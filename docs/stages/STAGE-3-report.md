@@ -1,3 +1,13 @@
+## Current-state addendum — 2026-11-18 (full-product audit)
+
+The historical Stage 3 slice delivered basic Projects/Initiatives/Milestones/Cycles/Documents/Roadmap. Project Archive/Restore was subsequently merged in PR #8.
+
+Still open: project templates; full count/estimate/milestone/manual progress methods; Cycle Board and velocity/burnup/burndown; Roadmap milestone level/drag/dependencies; project-scoped Issue quick-create; Document revision history/templates/Markdown import/outline/in-document search/managed images and attachments; backup/export of document assets. UI Gate 2 was partial and is not upgraded to PASS by the existence of the screens.
+
+See docs/specs/PRODUCT_COMPLETION_SPEC.md §4.2.
+
+---
+
 # Stage 3 report — Projects, planning and documents
 
 **Date:** 2026-11-15  
