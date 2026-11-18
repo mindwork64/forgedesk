@@ -28,11 +28,11 @@ The existing Outbox, cursor and queue tables are foundations; they are not evide
 
 ### Canonical documentation
 
-- Repository implementation specification: ../07_P0_BACKGROUND_SYNC_IMPLEMENTATION.md
-- API budget and sync contract: ../../03_GITHUB_API_BUDGET_AND_SYNC.md
-- Current project state: ../PROJECT_STATE.md
-- Product gap audit: ../PRODUCT_GAPS_AUDIT.md
-- Sync safety ADR: ../decisions/ADR-0006-sync-safety.md
-- New background runtime ADR: ../decisions/ADR-0008-background-sync-runtime.md
+- [P0 implementation specification](https://github.com/mindwork64/forgedesk/blob/main/07_P0_BACKGROUND_SYNC_IMPLEMENTATION.md)
+- [API budget and sync contract](https://github.com/mindwork64/forgedesk/blob/main/03_GITHUB_API_BUDGET_AND_SYNC.md)
+- [Current project state](https://github.com/mindwork64/forgedesk/blob/main/docs/PROJECT_STATE.md)
+- [Product gap audit](https://github.com/mindwork64/forgedesk/blob/main/docs/PRODUCT_GAPS_AUDIT.md)
+- [Sync safety ADR](https://github.com/mindwork64/forgedesk/blob/main/docs/decisions/ADR-0006-sync-safety.md)
+- [Background runtime ADR](https://github.com/mindwork64/forgedesk/blob/main/docs/decisions/ADR-0008-background-sync-runtime.md)
 
 See the dedicated P0-Background-Sync Wiki page for remaining implementation and acceptance criteria.
