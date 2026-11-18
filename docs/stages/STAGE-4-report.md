@@ -1,5 +1,18 @@
 # Stage 4 report — Local Git, GitHub foundation and API budgets
 
+> Historical baseline below; use this dated addendum for current status.
+
+## Current-state addendum — 2026-11-18 (PR #12)
+
+PR #12 is merged to main as `e380c58098878080b7d746f3cad7889effdc2fb6`. Production `GitHubClient` REST requests use a process-wide single-flight gate; REST mutations are paced at least one second apart; REST response telemetry and rate-limit observations are persisted; primary and secondary REST limit responses are classified separately; and API Monitor Pause/Resume enforces the persisted REST pause flag.
+
+Authenticated `GET /user` uses `GitHubClient`; OAuth Device Flow/token exchange/refresh remain separate auth operations. Actions run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258) passed 7/7 jobs at PR head `405f3d4cf4080a49f154d7d29eea53bade4857b4`.
+
+Still open: GraphQL through the same dispatcher, priority scheduling, enforced 10%/20% background admission control, adaptive scheduler, and automatic Outbox/cursor workers. Background Sync must remain Not implemented.
+
+---
+
+
 **Date:** 2026-11-15  
 **Status:** PARTIAL — local Git, the API-budget foundation and GitHub App Device
 Flow authentication are implemented; live provider client, discovery and dispatcher
