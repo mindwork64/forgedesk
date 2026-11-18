@@ -38,8 +38,9 @@ ForgeDesk/
 │   ├── backup.rs               VACUUM INTO snapshots, manifests, validation, prune
 │   ├── git.rs                  Safe direct-argv Git process wrapper
 │   ├── github_auth.rs          GitHub App Device Flow + keyring token vault
+│   ├── github_dispatcher.rs    Shared REST single-flight gate, mutation pacing, telemetry and pause enforcement (GraphQL/priority scheduler pending)
 │   ├── provider.rs             GitLab/Gitea adapter contract + transports
-│   ├── github_client.rs        Budget-free GitHub REST reads (repos/issues/PRs)
+│   ├── github_client.rs        GitHub REST client; production calls use shared dispatcher
 │   ├── github_pr.rs            PR detail/commits/reviews/check-runs
 │   ├── github_activity.rs      Review queue + CI/check-runs reads
 │   ├── github_actions.rs       Permissioned merge/close/review actions
@@ -59,7 +60,7 @@ ForgeDesk/
 │   └── db/
 │       ├── mod.rs              Guarded SQLite connection, WAL, reopen/replace
 │       ├── migrations.rs       Append-only runner + tests
-│       ├── migrations/0001_init.sql … 0010_repository_model.sql
+│       ├── migrations/0001_init.sql … 0011_project_issue_key_prefix.sql
 │       └── repositories/
 │           ├── issues.rs       Issue CRUD/detail/list/batch/duplicate
 │           ├── issue_query.rs  Whitelisted filter/sort/search SQL builder

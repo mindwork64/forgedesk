@@ -88,3 +88,10 @@ adapters return provider-neutral DTOs; domain does not import them.
 
 No server, PostgreSQL/MySQL, Redis, Docker, Nginx, hosted telemetry, webhooks
 relay, embedded Chromium or mandatory AI runtime.
+
+
+## Current GitHub runtime after PR #12
+
+Production `GitHubClient` REST requests pass through `github_dispatcher.rs`, which provides a process-wide single-flight gate, mutation pacing, REST telemetry and the persisted API Monitor pause gate. Authenticated `GET /user` uses this path; Device Flow/token exchange/refresh remain separate auth operations.
+
+This is not yet the complete target in `03_GITHUB_API_BUDGET_AND_SYNC.md`: GraphQL dispatch, priority scheduling, enforced background quota, adaptive scheduler, automatic Outbox worker and cursor/watermark-driven incremental sync remain P0.
