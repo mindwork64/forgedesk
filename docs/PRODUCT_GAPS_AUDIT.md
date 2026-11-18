@@ -1,5 +1,24 @@
 # ForgeDesk product gaps audit
 
+## Current-state addendum — 2026-11-18 (after PR #12)
+
+This addendum supersedes the older snapshots below. Historical notes are retained as history, not as current implementation status.
+
+- **PR #12 merged** to `main` as `e380c58098878080b7d746f3cad7889effdc2fb6`. PR head `405f3d4cf4080a49f154d7d29eea53bade4857b4`; CI run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258) passed 7/7 jobs.
+- **Delivered:** process-wide single-flight GitHub REST gate for production `GitHubClient`, one-second mutation pacing, REST telemetry, primary/secondary rate-limit classification, persisted pause enforcement before authenticated REST requests and functional API Monitor Pause/Resume (EN/RU). Authenticated `GET /user` uses `GitHubClient`; Device Flow/token exchange/refresh remain separate auth operations.
+- **Not delivered:** GraphQL transport; REST+GraphQL priority scheduler; active 10% background allowance / 20% reserve enforcement; adaptive periodic scheduler; automatic Outbox worker; cursor/watermark-driven incremental Issue sync.
+- **Current behavior:** manual GitHub Issue import and manual bidirectional updates for already-linked Issues (title, body, open/closed state, labels) exist. Outbox/conflict models and reconciliation foundations exist, but Outbox dispatch still requires a manual command. `sync_cursor` is persisted but does not yet drive incremental import.
+- **API Monitor boundary:** REST dispatcher is Active and REST pause is enforced. Background Sync is not active/implemented. `api_queue_job` is not yet a complete priority execution queue.
+- **P0 remaining:** (1) unified REST+GraphQL dispatch and priorities; (2) enforced per-bucket budgets and adaptive scheduler; (3) automatic durable Outbox worker; (4) persistent incremental cursor/watermark sync. See [P0 remaining sync specification](specs/P0_REMAINING_SYNC_SPEC.md).
+- **Additional backlog outside this P0 handoff:** Issue creation from local-only tasks, comment synchronization, full historical sync, broader PR/check polling, live GitLab/Gitea support and release hardening.
+- **Verification boundary:** CI does not replace interactive Windows/Linux smoke tests or live-provider write verification. PR #12 does not claim either.
+
+The rest of this audit is a historical snapshot. Do not treat its old PR #8/#10/#11 status or “dispatcher not implemented” statements as current.
+
+---
+
+# ForgeDesk product gaps audit
+
 # Current-state addendum — 2026-11-17 (after PR #8 and PR #10)
 
 This addendum supersedes any older statements below that describe PR #8 as pending or say that bidirectional GitHub Issue sync is not implemented. The historical audit body records the earlier PR #2 snapshot and is retained for context.

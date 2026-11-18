@@ -5,6 +5,17 @@ APIs and schema may still evolve with migrations.
 
 ## [Unreleased]
 
+### PR #12 — shared GitHub REST dispatcher and API pause gate (merged 2026-11-18)
+
+- Production `GitHubClient` REST requests now use one process-wide single-flight request gate; REST mutations are separated by at least one second.
+- API Monitor records REST operation/resource/class/status/latency/response size, Retry-After and rate-limit headers with a token-free request fingerprint.
+- Primary and secondary REST rate-limit responses are classified separately.
+- Persisted API Monitor pause is enforced before authenticated REST requests; Pause/Resume is available in English and Russian.
+- Authenticated `GET /user` uses the shared REST client. OAuth Device Flow/token exchange/refresh remain separate authentication operations.
+- CI run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258): 7/7 jobs passed.
+- Remaining P0: GraphQL dispatch, priority scheduling, enforced background budget/adaptive scheduler, automatic Outbox worker and incremental cursor/watermark sync.
+
+
 ### Stage 10 — stabilization (partial)
 
 - Route-level code splitting (main JS ~231 KB, warning gone).

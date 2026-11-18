@@ -1,5 +1,20 @@
 # PROJECT_STATE
 
+## Current authoritative snapshot — 2026-11-18 (after PR #12)
+
+- **Main:** `e380c58098878080b7d746f3cad7889effdc2fb6`; PR #12 merged; SQLite schema remains **v11**.
+- **PR #12 delivered:** production `GitHubClient` REST calls use a process-wide single-flight gate; REST mutations are paced by at least one second; REST telemetry records operation/resource/class/status/latency/size/rate headers/Retry-After and a token-free fingerprint; primary and secondary REST rate-limit responses are classified separately; API Monitor Pause/Resume now enforces the persisted REST pause flag. Authenticated `GET /user` uses the REST client; Device Flow/token exchange/refresh remain separate OAuth operations.
+- **CI evidence:** Actions run [44166546258](https://github.com/mindwork64/forgedesk/actions/runs/44166546258), 7/7 jobs passed at PR head `405f3d4cf4080a49f154d7d29eea53bade4857b4`.
+- **Not complete:** GraphQL transport through the shared dispatcher; request priority scheduling; enforced 10% background cap / 20% reserve; adaptive background scheduler; automatic Outbox worker; cursor/watermark-driven incremental sync.
+- **Current sync behavior:** GitHub repository discovery/Issue import and manual bidirectional field updates for linked Issues exist. Outbox dispatch remains manual. Persistent cursor/outbox/conflict models exist, but cursors do not yet drive automatic incremental import.
+- **Important boundary:** PR #12 implements REST dispatch only. It does not implement GraphQL or background synchronization. API Monitor may show the REST dispatcher Active; Background Sync remains Not implemented.
+- **Other open items:** local-only Issue creation on GitHub, comment sync, full historical sync, live GitLab/Gitea, native interactive Windows/Linux smoke tests, signing and workspace export/import beyond SQLite backup/restore.
+- **DeepSeek handoff:** [P0 remaining sync specification](specs/P0_REMAINING_SYNC_SPEC.md). The detailed downloadable Markdown handoff includes acceptance tests and starter prompt.
+
+**Historical detail below:** older snapshots are retained as history. If an older section conflicts with this block, use this block and the current source tree.
+
+# PROJECT_STATE
+
 **Current state (2026-11-17, after PR #8 and PR #10):**
 - Main commit: `bd80833002cee660b8f2ef9e262c0556ab4f725a`; schema v11.
 - PR #8 is merged: project Archive/Restore, workspace and per-project issue-key prefixes, Search improvements. Issues #5, #6 and #7 are closed.
